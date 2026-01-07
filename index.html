@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Agnes Bay</title>
+	<link rel="stylesheet" href="styles.css">
+	<link rel="icon" href="favicon.ico" />
+</head>
+<body>
+	<header class="site-header">
+		<div class="container">
+			<h1 class="brand">Agnes Bay</h1>
+			<nav>
+				<a href="index.html">Home</a>
+				<a href="about.html">About</a>
+			</nav>
+		</div>
+	</header>
+
+	<main class="container">
+		<section class="hero">
+			<h2>Welcome to Agnes Bay</h2>
+			<p>A simple GitHub Pages-ready site.</p>
+			<p><a class="btn" href="about.html">Learn more</a></p>
+		</section>
+
+		<section class="content">
+			<h3>Get started</h3>
+			<p>To publish this site on GitHub Pages, push this repository to a GitHub repo named <code>yourusername.github.io</code> (or enable Pages in repository settings).</p>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<div class="container">&copy; <span id="year"></span> Agnes Bay</div>
+	</footer>
+
+	<script>
+		document.getElementById('year').textContent = new Date().getFullYear();
+	</script>
+</body>
+</html>
+
