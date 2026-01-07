@@ -4,8 +4,17 @@
     --accent:#1f6feb;
     --muted:#6b7280}
 *{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;font-family:Inter, Roboto, Arial, sans-serif;background:var(--bg);color:#0f1724}
+.html,body{height:100%}
+.html, body{height:100%}
+body{margin:0;font-family:Inter, Roboto, Arial, sans-serif;background-color:var(--bg);color:#0f1724;min-height:100vh}
+
+/* Global background image with a light overlay for improved contrast */
+body{
+  background-image: linear-gradient(rgba(247,249,252,0.72), rgba(247,249,252,0.72)), url('assets/prettybay.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
 .container{max-width:900px;margin:0 auto;padding:24px}
 .site-header{background:var(--card);border-bottom:1px solid #e6eef8}
 .site-header .container{display:flex;align-items:center;justify-content:space-between}
