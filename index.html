@@ -557,7 +557,7 @@ body::after {
       <!-- ref left -->
       <text class="ref" x="75" y="96" text-anchor="end">R₁</text>
       <text class="val" x="75" y="105" text-anchor="end">10kΩ</text>
-      <text class="lbl" x="150" y="200">About</text>
+      <text class="lbl" x="140" y="210">About</text>
     </g>
 
     <!-- Wire R_in → op-amp input -->
@@ -605,7 +605,7 @@ body::after {
 
       <text class="ref" x="85" y="200">U₁</text>
       <text class="val" x="85" y="208" font-size="6">LM741</text>
-      <text class="lbl" x="125" y="375">Music</text>
+      <text class="lbl" x="150" y="415">Music</text>
     </g>
 
     <!-- Feedback resistor R_f (Projects) — goes from output back up to − input -->
@@ -628,7 +628,7 @@ body::after {
       "/>
       <text class="ref" x="180" y="238">R_f</text>
       <text class="val" x="180" y="247">47kΩ</text>
-      <text class="lbl" x="148" y="303">Projects</text>
+      <text class="lbl" x="140" y="340">Projects</text>
     </g>
 
     <!-- Wire from Rf down continues the signal path -->
@@ -652,7 +652,7 @@ body::after {
       <text class="val" x="123" y="370" font-size="8">+</text>
       <text class="ref" x="48" y="367" text-anchor="end">C₂</text>
       <text class="val" x="48" y="376" text-anchor="end">10µF</text>
-      <text class="lbl" x="100" y="402">Achievements</text>
+      <text class="lbl" x="165" y="375">Achievements</text>
     </g>
 
     <!-- Wire cap → speaker -->
@@ -759,7 +759,7 @@ body::after {
   <div class="now-playing" id="now-playing">
     <div class="np-dot"></div>
     <span class="np-text">Now playing —</span>
-    <span class="np-title" id="np-title">haze to come</span>
+    <span class="np-title" id="np-title">haze to come [DEMO]</span>
   </div>
 
   <!-- Visualizer -->
@@ -784,6 +784,40 @@ body::after {
       <div class="track-right">
         <span class="track-dur" id="dur-0">—:——</span>
         <span class="track-time" id="time-0">0:00</span>
+      </div>
+    </div>
+
+        <div class="track-row" id="track-1" onclick="playTrack(1)">
+      <span class="track-num">01</span>
+      <div class="play-icon">
+        <svg class="icon-play" viewBox="0 0 10 10"><polygon points="1,1 9,5 1,9"/></svg>
+        <svg class="icon-pause" viewBox="0 0 10 10"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-title">the voice of beauty [DEMO]</div>
+        <div class="track-meta">Produced · 2026 · R&B / Lo-fi</div>
+        <div class="progress-wrap"><div class="progress-bar" id="prog-1"></div></div>
+      </div>
+      <div class="track-right">
+        <span class="track-dur" id="dur-1">—:——</span>
+        <span class="track-time" id="time-1">0:00</span>
+      </div>
+    </div>
+
+        <div class="track-row" id="track-2" onclick="playTrack(2)">
+      <span class="track-num">01</span>
+      <div class="play-icon">
+        <svg class="icon-play" viewBox="0 0 10 10"><polygon points="1,1 9,5 1,9"/></svg>
+        <svg class="icon-pause" viewBox="0 0 10 10"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+      </div>
+      <div class="track-info">
+        <div class="track-title">firepit</div>
+        <div class="track-meta">Produced · 2026 · R&B / Lo-fi</div>
+        <div class="progress-wrap"><div class="progress-bar" id="prog-2"></div></div>
+      </div>
+      <div class="track-right">
+        <span class="track-dur" id="dur-2">—:——</span>
+        <span class="track-time" id="time-2">0:00</span>
       </div>
     </div>
 
@@ -921,7 +955,9 @@ function oscTogglePlay() {
 
 /* ── AUDIO PLAYER ── */
 const TRACKS = [
-  { file: 'assets/audio/haze-to-come.mp3', title: 'haze to come' },
+  { file: 'assets/audio/haze-to-come.mp3', title: 'haze to come [DEMO]' },
+  {file: 'assets/audio/26_0322-thevoiceofbeauty-mp3.mp3', title: 'the voice of beauty [DEMO]' },
+  {file: 'assets/audio/firepit-mp3', title: 'firepit' },
   // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },
 ];
 
