@@ -271,6 +271,176 @@ body::after {
   .page { padding: 46px 26px 56px; }
   .proj-grid { grid-template-columns: 1fr; }
 }
+
+/* ── MUSIC PLAYER ── */
+.player-wrap {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--cream-3);
+  cursor: none;
+  transition: padding-left .2s;
+  position: relative;
+}
+.track-row:hover { padding-left: 6px; }
+.track-row.playing { padding-left: 6px; }
+
+.track-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--ink-4);
+  text-align: right;
+  transition: opacity .2s;
+}
+.track-row.playing .track-num { opacity: 0; }
+
+.play-icon {
+  position: absolute;
+  left: 0;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.track-row:hover .play-icon,
+.track-row.playing .play-icon { opacity: 1; }
+
+.play-icon svg { width: 11px; height: 11px; fill: var(--gold); }
+.track-row.playing .play-icon svg.icon-play { display: none; }
+.track-row:not(.playing) .play-icon svg.icon-pause { display: none; }
+
+.track-info { flex: 1; min-width: 0; }
+.track-title {
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track-row.playing .track-title { color: var(--gold); }
+.track-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  color: var(--ink-3);
+  margin-top: 3px;
+  letter-spacing: 0.09em;
+}
+
+.track-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.track-dur {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--ink-4);
+}
+.track-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  color: var(--gold);
+  opacity: 0;
+  transition: opacity .2s;
+  min-width: 60px;
+  text-align: right;
+}
+.track-row.playing .track-time { opacity: 1; }
+
+/* Progress bar */
+.progress-wrap {
+  margin-top: 6px;
+  height: 1px;
+  background: var(--cream-3);
+  position: relative;
+  cursor: none;
+  display: none;
+}
+.track-row.playing .progress-wrap { display: block; }
+.progress-bar {
+  height: 100%;
+  background: var(--gold-dim);
+  width: 0%;
+  transition: width .1s linear;
+  position: relative;
+}
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -2.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+/* Visualizer */
+.viz-wrap {
+  margin-top: 36px;
+  height: 48px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity .4s;
+}
+.viz-wrap.active { opacity: 1; }
+.viz-bar {
+  flex: 1;
+  background: var(--gold-dim);
+  border-radius: 1px 1px 0 0;
+  height: 3px;
+  transition: height .05s;
+  opacity: 0.6;
+}
+
+/* Now playing strip */
+.now-playing {
+  margin-top: 28px;
+  padding: 14px 18px;
+  background: var(--cream-2);
+  border: 1px solid var(--cream-4);
+  border-radius: 5px;
+  display: none;
+  align-items: center;
+  gap: 14px;
+}
+.now-playing.visible { display: flex; }
+.np-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.np-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  flex: 1;
+}
+.np-title {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--ink);
+}
 </style>
 </head>
 <body>
@@ -555,46 +725,49 @@ body::after {
   </div>
 
   <!-- MUSIC -->
-  <div class="page" id="pg-music">
-    <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
-    <h1 class="ph">Signals &<br/>frequencies.</h1>
-    <p class="pb">Music is physics made emotional. I produce, record, and play — treating tracks like circuits: layered signals, carefully filtered, mixed to resonance. The op-amp is the heart of any amplifier. This is mine.</p>
-    <div class="div"></div>
-    <div class="track-list">
-      <div class="track">
-        <span class="track-num">01</span>
-        <div class="track-info">
-          <div class="track-title">Untitled Ambient No. 3</div>
-          <div class="track-meta">Produced · 2025 · Ambient / Electronic</div>
-        </div>
-        <span class="track-dur">4:22</span>
+<div class="page" id="pg-music">
+  <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
+  <h1 class="ph">Signals &<br/>frequencies.</h1>
+  <p class="pb">Music is physics made emotional. I produce, record, and play — treating tracks like circuits: layered signals, carefully filtered, mixed to resonance.</p>
+  <div class="div"></div>
+
+  <!-- Now playing strip -->
+  <div class="now-playing" id="now-playing">
+    <div class="np-dot"></div>
+    <span class="np-text">Now playing —</span>
+    <span class="np-title" id="np-title">haze to come</span>
+  </div>
+
+  <!-- Visualizer -->
+  <div class="viz-wrap" id="viz-wrap">
+    <!-- bars injected by JS -->
+  </div>
+
+  <!-- Track list -->
+  <div class="player-wrap" id="player-wrap">
+
+    <div class="track-row" id="track-0" onclick="playTrack(0)">
+      <span class="track-num">01</span>
+      <div class="play-icon">
+        <svg class="icon-play" viewBox="0 0 10 10"><polygon points="1,1 9,5 1,9"/></svg>
+        <svg class="icon-pause" viewBox="0 0 10 10"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
       </div>
-      <div class="track">
-        <span class="track-num">02</span>
-        <div class="track-info">
-          <div class="track-title">Late Signal</div>
-          <div class="track-meta">Produced · 2024 · Lo-fi / Instrumental</div>
-        </div>
-        <span class="track-dur">3:47</span>
+      <div class="track-info">
+        <div class="track-title">haze to come</div>
+        <div class="track-meta">Produced · 2026 · R&B / Lo-fi</div>
+        <div class="progress-wrap"><div class="progress-bar" id="prog-0"></div></div>
       </div>
-      <div class="track">
-        <span class="track-num">03</span>
-        <div class="track-info">
-          <div class="track-title">Ground Loop</div>
-          <div class="track-meta">Produced · 2024 · Experimental</div>
-        </div>
-        <span class="track-dur">5:11</span>
-      </div>
-      <div class="track">
-        <span class="track-num">04</span>
-        <div class="track-info">
-          <div class="track-title">Carrier Wave</div>
-          <div class="track-meta">Produced · 2023 · Ambient</div>
-        </div>
-        <span class="track-dur">6:03</span>
+      <div class="track-right">
+        <span class="track-dur" id="dur-0">—:——</span>
+        <span class="track-time" id="time-0">0:00</span>
       </div>
     </div>
+
+    <!-- Add more tracks here following the same pattern -->
+    <!-- Copy the track-row block above, increment the index numbers -->
+
   </div>
+</div>
 
   <!-- PROJECTS -->
   <div class="page" id="pg-projects">
@@ -701,6 +874,134 @@ const CFG = {
   anchorY:   82,      // y position of jack plug (px from top of page)
 };
 /* ══════════════════════════════════════ */
+
+/* ── AUDIO PLAYER ── */
+const TRACKS = [
+  { file: 'assets/audio/haze-to-come.mp3', title: 'haze to come' },
+  // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },
+];
+
+let audioCtx = null, analyser = null, source = null;
+let currentAudio = null, currentIdx = -1;
+const vizWrap = document.getElementById('viz-wrap');
+const nowPlaying = document.getElementById('now-playing');
+const npTitle = document.getElementById('np-title');
+
+/* Build visualizer bars */
+const BAR_COUNT = 40;
+for (let i = 0; i < BAR_COUNT; i++) {
+  const b = document.createElement('div');
+  b.className = 'viz-bar';
+  b.id = 'vb-' + i;
+  vizWrap.appendChild(b);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function setDuration(idx, dur) {
+  const el = document.getElementById('dur-' + idx);
+  if (el) el.textContent = formatTime(dur);
+}
+
+function setProgress(idx, current, duration) {
+  const bar = document.getElementById('prog-' + idx);
+  const time = document.getElementById('time-' + idx);
+  if (bar) bar.style.width = ((current / duration) * 100).toFixed(2) + '%';
+  if (time) time.textContent = formatTime(current);
+}
+
+function clearActive() {
+  document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
+  vizWrap.classList.remove('active');
+  nowPlaying.classList.remove('visible');
+}
+
+function playTrack(idx) {
+  const track = TRACKS[idx];
+  if (!track) return;
+
+  /* If same track — toggle pause */
+  if (currentIdx === idx && currentAudio) {
+    if (currentAudio.paused) {
+      currentAudio.play();
+      vizWrap.classList.add('active');
+      document.getElementById('track-' + idx).classList.add('playing');
+    } else {
+      currentAudio.pause();
+      vizWrap.classList.remove('active');
+      document.getElementById('track-' + idx).classList.remove('playing');
+    }
+    return;
+  }
+
+  /* Stop current */
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.src = '';
+  }
+  clearActive();
+
+  /* Set up Web Audio API on first play (requires user gesture) */
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.connect(audioCtx.destination);
+  }
+
+  const audio = new Audio();
+  audio.crossOrigin = 'anonymous';
+  audio.src = track.file;
+  audio.preload = 'metadata';
+
+  audio.addEventListener('loadedmetadata', () => setDuration(idx, audio.duration));
+  audio.addEventListener('timeupdate', () => setProgress(idx, audio.currentTime, audio.duration));
+  audio.addEventListener('ended', () => {
+    clearActive();
+    /* Auto-advance to next track */
+    if (idx + 1 < TRACKS.length) playTrack(idx + 1);
+  });
+
+  /* Connect to analyser */
+  if (source) source.disconnect();
+  source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+
+  audio.play().then(() => {
+    currentAudio = audio;
+    currentIdx = idx;
+    document.getElementById('track-' + idx).classList.add('playing');
+    vizWrap.classList.add('active');
+    nowPlaying.classList.add('visible');
+    npTitle.textContent = track.title;
+    /* Also switch sidebar oscilloscope to chaotic/audio mode */
+    waveTarget = 'audio';
+  }).catch(e => console.warn('Playback error:', e));
+}
+
+/* Visualizer + sidebar osc animation loop */
+const freqData = new Uint8Array(BAR_COUNT);
+function drawViz() {
+  requestAnimationFrame(drawViz);
+  if (!analyser || !currentAudio || currentAudio.paused) return;
+  analyser.getByteFrequencyData(freqData);
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const pct = freqData[i] / 255;
+    const h = Math.max(3, pct * 48);
+    const bar = document.getElementById('vb-' + i);
+    if (bar) {
+      bar.style.height = h + 'px';
+      bar.style.opacity = 0.3 + pct * 0.7;
+    }
+  }
+  /* Feed into sidebar oscilloscope */
+  window._audioFreqData = freqData;
+}
+drawViz();
 
 /* ── CURSOR (hidden, replaced by probe) ── */
 document.getElementById('cursor').style.display = 'none';
@@ -861,7 +1162,7 @@ let oscT = 0, jY = 0, jTarget = 0, jTimer = 0;
 
 document.querySelectorAll('.cg, .card, .proj-card, .track, .clink').forEach(el => {
   el.addEventListener('mouseenter', () => {
-    if      (el.id === 'cg-music')        waveTarget = 'sine';
+    if      (el.id === 'cg-music')        waveTarget = 'audio';
     else if (el.id === 'cg-projects')     waveTarget = 'damped';
     else if (el.id === 'cg-achievements') waveTarget = 'clip';
     else if (el.id === 'cg-contact')      waveTarget = 'chaotic';
@@ -893,6 +1194,15 @@ function getWaveSample(mode, x, t, H) {
       return noiseF(x*0.08+t*0.012)*0.9
            + Math.sin(2*Math.PI*0.12*x + phase*1.5)*0.5
            + Math.sin(2*Math.PI*0.033*x + phase*0.7)*0.4;
+
+    case 'audio': {
+      const fd = window._audioFreqData;
+      if (!fd) return Math.sin(2*Math.PI*0.046*x + t*0.038);
+      const bin = Math.floor((x / 90) * fd.length);
+      const amp = (fd[bin] || 0) / 255;
+      return amp * Math.sin(2*Math.PI*0.046*x + t*0.038) * 1.8
+       + noiseF(x*0.04+t*0.008)*0.1;
+    }
   }
   return 0;
 }
