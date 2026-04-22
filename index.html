@@ -469,12 +469,36 @@ body::after {
   </svg>
 
 <div class="sidebar-top">
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
     <div class="site-name">
       Ian Christensen
       <span>ECE · Portfolio</span>
     </div>
-    <canvas id="osc" width="90" height="32" style="display:block; opacity:0.85; flex-shrink:0;"></canvas>
+    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+      <button id="osc-playpause"
+        onclick="oscTogglePlay()"
+        style="
+          display:none;
+          width:22px; height:22px;
+          background:none;
+          border:1px solid var(--gold-dim);
+          border-radius:3px;
+          cursor:none;
+          padding:0;
+          align-items:center;
+          justify-content:center;
+          flex-shrink:0;
+          transition: border-color .2s;
+        ">
+        <svg id="osc-play-icon" viewBox="0 0 10 10" width="9" height="9" style="fill:var(--gold);display:block;">
+          <polygon points="2,1 9,5 2,9"/>
+        </svg>
+        <svg id="osc-pause-icon" viewBox="0 0 10 10" width="9" height="9" style="fill:var(--gold);display:none;">
+          <rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/>
+        </svg>
+      </button>
+      <canvas id="osc" width="90" height="32" style="display:block; opacity:0.85;"></canvas>
+    </div>
   </div>
 </div>
 
@@ -802,8 +826,8 @@ body::after {
   <!-- ACHIEVEMENTS -->
   <div class="page" id="pg-achievements">
     <p class="ptag">C₂ · 10µF — Achievements</p>
-    <h1 class="ph">Keeping<br/>good time.</h1>
-    <p class="pb">The milestones that have clocked this career so far.</p>
+    <h1 class="ph">so far..<br/></h1>
+    <p class="pb">Always working on new projects and challenges.</p>
     <div class="div"></div>
     <div class="timeline">
       <div class="titem">
@@ -875,6 +899,26 @@ const CFG = {
 };
 /* ══════════════════════════════════════ */
 
+function oscTogglePlay() {
+  if (!currentAudio) return;
+  if (currentAudio.paused) {
+    currentAudio.play();
+    vizWrap.classList.add('active');
+    document.getElementById('track-' + currentIdx).classList.add('playing');
+    waveTarget = 'audio'; waveMode = 'audio';
+    document.getElementById('osc-play-icon').style.display  = 'none';
+    document.getElementById('osc-pause-icon').style.display = 'block';
+  } else {
+    currentAudio.pause();
+    vizWrap.classList.remove('active');
+    document.getElementById('track-' + currentIdx).classList.remove('playing');
+    waveTarget = 'sine'; waveMode = 'sine';
+    window._audioTimeData = null;
+    document.getElementById('osc-play-icon').style.display  = 'block';
+    document.getElementById('osc-pause-icon').style.display = 'none';
+  }
+}
+
 /* ── AUDIO PLAYER ── */
 const TRACKS = [
   { file: 'assets/audio/haze-to-come.mp3', title: 'haze to come' },
@@ -918,6 +962,10 @@ function clearActive() {
   document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
   vizWrap.classList.remove('active');
   nowPlaying.classList.remove('visible');
+  waveTarget = 'sine'; waveMode = 'sine';
+  window._audioTimeData = null;
+  const ppBtn = document.getElementById('osc-playpause');
+  if (ppBtn) ppBtn.style.display = 'none';
 }
 
 function playTrack(idx) {
@@ -934,6 +982,9 @@ function playTrack(idx) {
       currentAudio.pause();
       vizWrap.classList.remove('active');
       document.getElementById('track-' + idx).classList.remove('playing');
+      waveTarget = 'sine';
+      waveMode   = 'sine';
+      window._audioTimeData = null;
     }
     return;
   }
@@ -962,7 +1013,9 @@ function playTrack(idx) {
   audio.addEventListener('timeupdate', () => setProgress(idx, audio.currentTime, audio.duration));
   audio.addEventListener('ended', () => {
     clearActive();
-    /* Auto-advance to next track */
+    waveTarget = 'sine';
+    waveMode   = 'sine';
+    window._audioTimeData = null;
     if (idx + 1 < TRACKS.length) playTrack(idx + 1);
   });
 
@@ -977,6 +1030,10 @@ function playTrack(idx) {
     document.getElementById('track-' + idx).classList.add('playing');
     vizWrap.classList.add('active');
     nowPlaying.classList.add('visible');
+    const ppBtn = document.getElementById('osc-playpause');
+    ppBtn.style.display = 'flex';
+    document.getElementById('osc-play-icon').style.display  = 'none';
+    document.getElementById('osc-pause-icon').style.display = 'block';
     npTitle.textContent = track.title;
     /* Also switch sidebar oscilloscope to chaotic/audio mode */
     waveTarget = 'audio';
@@ -985,9 +1042,13 @@ function playTrack(idx) {
 
 /* Visualizer + sidebar osc animation loop */
 const freqData = new Uint8Array(BAR_COUNT);
+let timeData = null;
+
 function drawViz() {
   requestAnimationFrame(drawViz);
   if (!analyser || !currentAudio || currentAudio.paused) return;
+
+  /* Frequency data → visualizer bars */
   analyser.getByteFrequencyData(freqData);
   for (let i = 0; i < BAR_COUNT; i++) {
     const pct = freqData[i] / 255;
@@ -998,8 +1059,16 @@ function drawViz() {
       bar.style.opacity = 0.3 + pct * 0.7;
     }
   }
-  /* Feed into sidebar oscilloscope */
   window._audioFreqData = freqData;
+
+  /* Time-domain data → oscilloscope waveform */
+  if (!timeData) timeData = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(timeData);
+  window._audioTimeData = timeData;
+
+  /* Force oscilloscope to audio mode while playing */
+  waveTarget = 'audio';
+  waveMode   = 'audio';
 }
 drawViz();
 
@@ -1196,12 +1265,11 @@ function getWaveSample(mode, x, t, H) {
            + Math.sin(2*Math.PI*0.033*x + phase*0.7)*0.4;
 
     case 'audio': {
-      const fd = window._audioFreqData;
-      if (!fd) return Math.sin(2*Math.PI*0.046*x + t*0.038);
-      const bin = Math.floor((x / 90) * fd.length);
-      const amp = (fd[bin] || 0) / 255;
-      return amp * Math.sin(2*Math.PI*0.046*x + t*0.038) * 1.8
-       + noiseF(x*0.04+t*0.008)*0.1;
+      const td = window._audioTimeData;
+      if (!td) return Math.sin(2*Math.PI*0.046*x + t*0.038) + noiseF(x*0.038+t*0.008)*0.18;
+      const bin = Math.floor((x / 90) * td.length);
+      const sample = ((td[bin] || 128) - 128) / 128;
+      return sample * 1.4 + noiseF(x*0.04+t*0.006)*0.06;
     }
   }
   return 0;
