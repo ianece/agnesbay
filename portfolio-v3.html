@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Portfolio — Ian</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream:       #F4EFE4;
+  --cream-2:     #EDE5D4;
+  --cream-3:     #E3D8C3;
+  --cream-4:     #D0C4A8;
+  --gold:        #C8A84B;
+  --gold-bright: #E5C76B;
+  --gold-dim:    #A8893A;
+  --gold-glow:   rgba(200,168,75,0.32);
+  --ink:         #221A0C;
+  --ink-2:       #4A3F28;
+  --ink-3:       #7A6A4A;
+  --ink-4:       #A89878;
+  --sidebar-w:   310px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  min-height: 100vh;
+  cursor: none;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.032'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9000; opacity: 0.7;
+}
+
+/* ── CURSOR ── */
+#cursor {
+  width: 9px; height: 9px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width .16s, height .16s, background .16s;
+  mix-blend-mode: multiply;
+}
+#cursor.on { width: 24px; height: 24px; background: var(--gold-glow); }
+
+/* ── LAYOUT ── */
+#shell { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  position: fixed; top: 0; left: 0; bottom: 0;
+  background: var(--cream-2);
+  border-right: 1px solid var(--cream-4);
+  display: flex;
+  flex-direction: column;
+  z-index: 500;
+  overflow: hidden;
+}
+
+#sidebar-cracks {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0; opacity: 0.5;
+}
+
+.sidebar-top {
+  position: relative; z-index: 1;
+  padding: 26px 24px 14px;
+  border-bottom: 1px solid var(--cream-4);
+}
+
+.site-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 21px; font-weight: 300; font-style: italic;
+  color: var(--ink); line-height: 1.15;
+}
+.site-name span {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px; font-style: normal;
+  letter-spacing: 0.3em; color: var(--gold);
+  margin-top: 5px; text-transform: uppercase;
+}
+
+/* ── SCHEMATIC SVG WRAP ── */
+#circuit-wrap {
+  flex: 1; position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 6px;
+}
+
+#nav-svg {
+  width: 100%; max-width: 286px; height: auto; overflow: visible;
+}
+
+/* Schematic wire style */
+.wire {
+  fill: none;
+  stroke: var(--gold-dim);
+  stroke-width: 1.6;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  opacity: 0.32;
+  transition: opacity .35s, stroke .3s;
+  pointer-events: none;
+}
+.wire.lit { opacity: 1; stroke: var(--gold-bright); filter: url(#glow); }
+
+/* Junction dot */
+.jct {
+  fill: var(--gold-dim); opacity: 0.4;
+  transition: opacity .3s, fill .3s;
+  pointer-events: none;
+}
+.jct.lit { opacity: 1; fill: var(--gold-bright); filter: url(#glow); }
+
+/* Component groups */
+.cg { cursor: none; }
+.cg:hover .sym { stroke: var(--gold-bright); filter: url(#glow); }
+.cg:hover .ref { fill: var(--gold); }
+.cg:hover .lbl { fill: var(--gold-dim); }
+.cg:hover .hit { fill: var(--gold-glow); }
+.cg.active .sym { stroke: var(--gold-bright); filter: url(#glow); }
+.cg.active .ref { fill: var(--gold); }
+.cg.active .lbl { fill: var(--gold); }
+
+/* Component symbol strokes */
+.sym {
+  fill: none;
+  stroke: var(--gold-dim);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .25s, filter .25s;
+}
+.sym-fill {
+  fill: var(--cream-2);
+  stroke: var(--gold-dim);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .25s, filter .25s;
+}
+/* active fill variant */
+.cg:hover .sym-fill { stroke: var(--gold-bright); filter: url(#glow); }
+.cg.active .sym-fill { stroke: var(--gold-bright); filter: url(#glow); }
+
+/* Hit area (invisible, for hover) */
+.hit { fill: transparent; stroke: none; }
+
+/* Reference designator */
+.ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px; fill: var(--ink-3);
+  letter-spacing: 0.08em;
+  transition: fill .25s;
+  pointer-events: none;
+}
+
+/* Section label */
+.lbl {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px; font-style: italic;
+  fill: var(--ink); text-anchor: middle;
+  transition: fill .25s;
+  pointer-events: none;
+}
+
+/* Net labels / values */
+.val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 6.5px; fill: var(--ink-4);
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Flow dot */
+.fd { fill: var(--gold-bright); opacity: 0; filter: url(#glow-s); pointer-events: none; }
+
+.sidebar-foot {
+  position: relative; z-index: 1;
+  padding: 12px 22px;
+  border-top: 1px solid var(--cream-4);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7.5px; color: var(--ink-4);
+  letter-spacing: 0.15em;
+  display: flex; justify-content: space-between;
+}
+
+/* ── MAIN ── */
+#main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; position: relative; }
+
+#overlay {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; bottom: 0;
+  background: var(--cream); pointer-events: none;
+  z-index: 400; opacity: 0; transition: opacity .2s;
+}
+#overlay.flash { opacity: 1; }
+
+.page { display: none; padding: 62px 70px 80px; min-height: 100vh; animation: pageIn .5s cubic-bezier(.16,1,.3,1) both; }
+.page.active { display: block; }
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ptag { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.32em; color: var(--gold); text-transform: uppercase; margin-bottom: 14px; opacity: 0.85; }
+.ph { font-size: clamp(36px,5vw,66px); font-weight: 300; font-style: italic; line-height: 1.06; color: var(--ink); margin-bottom: 26px; }
+.pb { font-size: 18px; font-weight: 300; line-height: 1.88; color: var(--ink-2); max-width: 540px; }
+.div { width: 44px; height: 1px; background: var(--gold-dim); margin: 28px 0; opacity: 0.45; }
+
+/* Cards */
+.card-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 18px; margin-top: 38px; }
+.card { background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 5px; padding: 22px; transition: border-color .22s, transform .22s; cursor: none; }
+.card:hover { border-color: var(--gold-dim); transform: translateY(-3px); }
+.card-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: 0.24em; color: var(--gold); text-transform: uppercase; margin-bottom: 9px; }
+.card h3 { font-size: 19px; font-weight: 400; font-style: italic; margin-bottom: 7px; }
+.card p { font-size: 14px; color: var(--ink-3); line-height: 1.62; font-weight: 300; }
+.new-dot { display: inline-block; width: 5px; height: 5px; background: var(--gold); border-radius: 50%; margin-left: 7px; animation: pulse 2s ease-in-out infinite; vertical-align: middle; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)} }
+
+/* Tracks */
+.track-list { margin-top: 34px; display: flex; flex-direction: column; gap: 0; }
+.track { display: flex; align-items: center; gap: 18px; padding: 15px 0; border-bottom: 1px solid var(--cream-3); transition: padding-left .2s; cursor: none; }
+.track:hover { padding-left: 7px; }
+.track-num { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-4); width: 18px; flex-shrink: 0; }
+.track-info { flex: 1; }
+.track-title { font-size: 17px; font-style: italic; font-weight: 400; color: var(--ink); }
+.track-meta { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--ink-3); margin-top: 3px; letter-spacing: 0.09em; }
+.track-dur { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-4); }
+
+/* Projects */
+.proj-grid { margin-top: 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.proj-card { border: 1px solid var(--cream-4); border-radius: 5px; padding: 20px; background: var(--cream-2); transition: border-color .22s, background .22s; cursor: none; }
+.proj-card:hover { border-color: var(--gold-dim); background: #EEE6D0; }
+.proj-tag { font-family: 'JetBrains Mono', monospace; font-size: 7.5px; letter-spacing: 0.22em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 9px; }
+.proj-card h3 { font-size: 18px; font-style: italic; font-weight: 400; margin-bottom: 7px; }
+.proj-card p { font-size: 14px; color: var(--ink-3); line-height: 1.65; font-weight: 300; }
+
+/* Timeline */
+.timeline { margin-top: 34px; position: relative; padding-left: 26px; }
+.timeline::before { content:''; position: absolute; left: 4px; top: 6px; bottom: 6px; width: 1px; background: linear-gradient(to bottom, var(--gold-dim), transparent); opacity: 0.38; }
+.titem { position: relative; margin-bottom: 34px; }
+.titem::before { content:''; position: absolute; left: -25px; top: 7px; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid var(--gold-dim); background: var(--cream-2); }
+.tyear { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--gold); letter-spacing: 0.2em; margin-bottom: 5px; }
+.titem h3 { font-size: 19px; font-style: italic; font-weight: 400; margin-bottom: 4px; }
+.titem p { font-size: 15px; color: var(--ink-3); font-weight: 300; line-height: 1.62; }
+
+/* Contact */
+.contact-links { margin-top: 38px; display: flex; flex-direction: column; }
+.clink { display: flex; align-items: center; gap: 18px; padding: 17px 0; border-bottom: 1px solid var(--cream-3); text-decoration: none; color: var(--ink); transition: padding-left .2s; cursor: none; }
+.clink:hover { padding-left: 7px; }
+.clink-label { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; width: 76px; flex-shrink: 0; }
+.clink-val { font-size: 18px; font-style: italic; }
+
+/* Mobile */
+#mob-toggle { display: none; position: fixed; top: 13px; right: 14px; z-index: 600; background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 3px; padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.15em; cursor: pointer; }
+
+@media (max-width: 780px) {
+  :root { --sidebar-w: 270px; }
+  #mob-toggle { display: block; }
+  #sidebar { transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #overlay { left: 0; }
+  .page { padding: 46px 26px 56px; }
+  .proj-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="overlay"></div>
+<button id="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">NAV ▾</button>
+
+<div id="shell">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside id="sidebar">
+
+  <!-- Kintsugi cracks -->
+  <svg id="sidebar-cracks" viewBox="0 0 310 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#C8A84B" fill="none" stroke-linecap="round">
+      <path d="M0,90 Q45,120 65,175 Q85,230 65,295" stroke-width="2.2" opacity="0.13"/>
+      <path d="M65,175 Q100,160 145,148" stroke-width="1.1" opacity="0.09"/>
+      <path d="M310,60 Q265,100 245,162 Q225,224 258,295" stroke-width="1.6" opacity="0.09"/>
+      <path d="M0,510 Q55,478 85,425 Q115,372 105,318" stroke-width="1.6" opacity="0.09"/>
+      <path d="M310,610 Q255,578 225,528" stroke-width="1.1" opacity="0.08"/>
+      <path d="M155,0 Q143,55 164,108 Q185,161 163,210" stroke-width="1" opacity="0.07"/>
+    </g>
+    <path d="M0,90 Q45,120 65,175 Q85,230 65,295" stroke="#E5C76B" stroke-width="5" fill="none" opacity="0.035" stroke-linecap="round"/>
+  </svg>
+
+  <div class="sidebar-top">
+    <div class="site-name">
+      Your Name
+      <span>ECE · Portfolio</span>
+    </div>
+  </div>
+
+  <!-- ══ SCHEMATIC NAV SVG ══ -->
+  <div id="circuit-wrap">
+  <svg id="nav-svg" viewBox="0 0 200 580" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2.2" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glow-s" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!--
+      AMPLIFIER SIGNAL CHAIN (top→bottom)
+      VIN (Home) → R_in (About) → Op-Amp (Music) → R_f feedback → Speaker (Music nav)
+      With: Bypass caps, power rails, ground symbols
+
+      Layout backbone: main signal wire runs x=100 vertically
+    -->
+
+    <!-- ═══ POWER RAIL (top) ═══ -->
+    <!-- VCC label -->
+    <line class="wire" id="w-vcc" x1="100" y1="18" x2="100" y2="30"/>
+    <!-- VCC symbol (upward arrow / bar) -->
+    <g id="cg-home" class="cg" onclick="nav('home')">
+      <rect class="hit" x="72" y="8" width="56" height="36" rx="4"/>
+      <!-- Power symbol: horizontal bar + short line up -->
+      <line class="sym" x1="82" y1="18" x2="118" y2="18"/>
+      <line class="sym" x1="88" y1="13" x2="112" y2="13"/>
+      <line class="sym" x1="95" y1="8"  x2="105" y2="8"/>
+      <line class="sym" x1="100" y1="18" x2="100" y2="30"/>
+      <text class="ref" x="122" y="14">VCC</text>
+      <text class="val" x="122" y="22">+12V</text>
+      <text class="lbl" x="100" y="44">Home</text>
+    </g>
+
+    <!-- Main wire down from VCC to R_in -->
+    <line class="wire" id="w0" x1="100" y1="30" x2="100" y2="78"/>
+
+    <!-- ═══ R_in — INPUT RESISTOR (About) ═══ -->
+    <g id="cg-about" class="cg" onclick="nav('about')">
+      <rect class="hit" x="55" y="78" width="90" height="44" rx="3"/>
+      <!-- Resistor: IEEE zigzag symbol -->
+      <polyline class="sym" points="
+        100,78
+        100,85
+        107,88 93,92 107,96 93,100 107,104 93,108 107,112
+        100,116
+        100,122
+      "/>
+      <!-- ref left -->
+      <text class="ref" x="48" y="96" text-anchor="end">R₁</text>
+      <text class="val" x="48" y="105" text-anchor="end">10kΩ</text>
+      <text class="lbl" x="100" y="134">About</text>
+    </g>
+
+    <!-- Wire R_in → op-amp input -->
+    <line class="wire" id="w1" x1="100" y1="122" x2="100" y2="158"/>
+
+    <!-- Bypass cap (C1) on left branch — decorative but real -->
+    <!-- horizontal wire left to cap -->
+    <line class="wire" x1="100" y1="148" x2="52" y2="148" opacity="0.18"/>
+    <!-- cap symbol -->
+    <line class="wire" x1="52" y1="142" x2="52" y2="154" opacity="0.18"/>
+    <line class="wire" x1="45" y1="142" x2="45" y2="154" opacity="0.18"/>
+    <line class="wire" x1="45" y1="148" x2="38" y2="148" opacity="0.18"/>
+    <!-- ground from cap -->
+    <line class="wire" x1="38" y1="148" x2="38" y2="158" opacity="0.14"/>
+    <line class="wire" x1="33" y1="158" x2="43" y2="158" opacity="0.14"/>
+    <line class="wire" x1="35" y1="162" x2="41" y2="162" opacity="0.14"/>
+    <line class="wire" x1="37" y1="166" x2="39" y2="166" opacity="0.14"/>
+    <text class="val" x="56" y="140" font-size="6">C₁ 100nF</text>
+
+    <!-- ═══ OP-AMP — MUSIC ═══ -->
+    <g id="cg-music" class="cg" onclick="nav('music')">
+      <rect class="hit" x="40" y="158" width="120" height="90" rx="4"/>
+      <!-- Op-amp triangle (standard symbol) -->
+      <!-- Triangle: input left vertex, output right vertex -->
+      <polygon class="sym-fill" points="60,165 60,235 130,200"/>
+      <!-- + input line -->
+      <line class="sym" x1="48" y1="187" x2="60" y2="187"/>
+      <!-- − input line -->
+      <line class="sym" x1="48" y1="213" x2="60" y2="213"/>
+      <!-- output line -->
+      <line class="sym" x1="130" y1="200" x2="152" y2="200"/>
+      <!-- + and − markings -->
+      <text class="val" x="63" y="191" font-size="8">+</text>
+      <text class="val" x="63" y="216" font-size="8">−</text>
+      <!-- Input wire from signal -->
+      <line class="sym" x1="100" y1="158" x2="100" y2="187"/>
+      <line class="sym" x1="48" y1="187" x2="60" y2="187"/>
+      <!-- GND to − input -->
+      <line class="sym" x1="30" y1="213" x2="60" y2="213"/>
+      <!-- ground symbol -->
+      <line class="sym" x1="30" y1="213" x2="30" y2="222"/>
+      <line class="sym" x1="24" y1="222" x2="36" y2="222"/>
+      <line class="sym" x1="26" y1="226" x2="34" y2="226"/>
+      <line class="sym" x1="28" y1="230" x2="32" y2="230"/>
+
+      <text class="ref" x="85" y="200">U₁</text>
+      <text class="val" x="85" y="208" font-size="6">LM741</text>
+      <text class="lbl" x="100" y="255">Music</text>
+    </g>
+
+    <!-- Feedback resistor R_f (Projects) — goes from output back up to − input -->
+    <!-- Output wire right then up then left to − input -->
+    <!-- Right segment -->
+    <line class="wire" id="w2" x1="152" y1="200" x2="168" y2="200"/>
+    <!-- Up segment -->
+    <line class="wire" id="w-fb-up" x1="168" y1="200" x2="168" y2="213"/>
+
+    <!-- ═══ R_f — FEEDBACK RESISTOR (Projects) ═══ -->
+    <g id="cg-projects" class="cg" onclick="nav('projects')">
+      <rect class="hit" x="138" y="258" width="62" height="90" rx="3"/>
+      <!-- Vertical resistor zigzag -->
+      <polyline class="sym" points="
+        168,213
+        168,225
+        174,229 162,233 174,237 162,241 174,245 162,249 174,253
+        168,257
+        168,270
+      "/>
+      <text class="ref" x="180" y="238">R_f</text>
+      <text class="val" x="180" y="247">47kΩ</text>
+      <text class="lbl" x="168" y="283">Projects</text>
+    </g>
+
+    <!-- Wire from Rf down continues the signal path -->
+    <line class="wire" id="w3" x1="168" y1="270" x2="168" y2="310"/>
+    <!-- Elbow left to main rail -->
+    <line class="wire" id="w3b" x1="100" y1="310" x2="168" y2="310"/>
+    <circle class="jct" cx="168" cy="310" r="3"/>
+
+    <!-- Output wire left side down to achievements -->
+    <line class="wire" id="w4" x1="100" y1="310" x2="100" y2="345"/>
+
+    <!-- ═══ C_out — OUTPUT CAP (Achievements) ═══ -->
+    <g id="cg-achievements" class="cg" onclick="nav('achievements')">
+      <rect class="hit" x="55" y="345" width="90" height="55" rx="3"/>
+      <!-- Horizontal capacitor symbol — plates -->
+      <line class="sym" x1="100" y1="345" x2="100" y2="368"/>
+      <line class="sym" x1="80"  y1="368" x2="120" y2="368"/>
+      <line class="sym" x1="80"  y1="374" x2="120" y2="374"/>
+      <line class="sym" x1="100" y1="374" x2="100" y2="390"/>
+      <!-- + mark -->
+      <text class="val" x="123" y="370" font-size="8">+</text>
+      <text class="ref" x="48" y="367" text-anchor="end">C₂</text>
+      <text class="val" x="48" y="376" text-anchor="end">10µF</text>
+      <text class="lbl" x="100" y="402">Achievements</text>
+    </g>
+
+    <!-- Wire cap → speaker -->
+    <line class="wire" id="w5" x1="100" y1="390" x2="100" y2="420"/>
+
+    <!-- ═══ SPEAKER — CONTACT ═══ -->
+    <g id="cg-contact" class="cg" onclick="nav('contact')">
+      <rect class="hit" x="45" y="420" width="110" height="100" rx="4"/>
+      <!-- Speaker symbol:
+           Rectangle (voice coil box) + trapezoid cone + arc radiation lines -->
+      <!-- lead wire in -->
+      <line class="sym" x1="100" y1="420" x2="100" y2="432"/>
+      <!-- split to coil box -->
+      <line class="sym" x1="100" y1="432" x2="84"  y2="432"/>
+      <line class="sym" x1="100" y1="432" x2="116" y2="432"/>
+      <!-- coil rectangle -->
+      <rect class="sym-fill" x="84" y="432" width="32" height="22"/>
+      <!-- cone (trapezoid lines) -->
+      <line class="sym" x1="84"  y1="432" x2="66"  y2="418"/>
+      <line class="sym" x1="84"  y1="454" x2="66"  y2="468"/>
+      <line class="sym" x1="116" y1="432" x2="134" y2="418"/>
+      <line class="sym" x1="116" y1="454" x2="134" y2="468"/>
+      <!-- vertical close lines on cone -->
+      <line class="sym" x1="66"  y1="418" x2="66"  y2="468"/>
+      <line class="sym" x1="134" y1="418" x2="134" y2="468"/>
+      <!-- Radiation arcs (sound waves) -->
+      <path class="sym" d="M140,435 Q150,443 140,451" stroke-width="1.4"/>
+      <path class="sym" d="M146,430 Q160,443 146,456" stroke-width="1.2"/>
+      <!-- Ground from speaker bottom -->
+      <line class="sym" x1="100" y1="454" x2="100" y2="470"/>
+      <line class="sym" x1="88"  y1="470" x2="112" y2="470"/>
+      <line class="sym" x1="91"  y1="474" x2="109" y2="474"/>
+      <line class="sym" x1="94"  y1="478" x2="106" y2="478"/>
+      <!-- ref -->
+      <text class="ref" x="57" y="462" text-anchor="end">LS₁</text>
+      <text class="val" x="57" y="471" text-anchor="end">8Ω</text>
+      <text class="lbl" x="100" y="500">Contact</text>
+    </g>
+
+    <!-- Overall schematic title -->
+    <text class="val" x="100" y="520" text-anchor="middle" font-size="6.5" opacity="0.5">AUDIO AMP · SCHEMATIC</text>
+    <text class="val" x="100" y="528" text-anchor="middle" font-size="5.5" opacity="0.35">REV 1.0 · LEAD-FREE</text>
+
+    <!-- Flow dot -->
+    <circle id="fdot" class="fd" r="2.8" cx="100" cy="30"/>
+  </svg>
+  </div>
+
+  <div class="sidebar-foot">
+    <span>REV 1.0</span><span>2025</span>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main id="main">
+
+  <!-- HOME -->
+  <div class="page active" id="pg-home">
+    <p class="ptag">VCC · +12V — Home</p>
+    <h1 class="ph">Hello,<br/>I build things.</h1>
+    <p class="pb">ECE student, musician, and maker. This site is a live schematic of what I'm working on — select a component to explore.</p>
+    <div class="div"></div>
+    <div class="card-row">
+      <div class="card" onclick="nav('music')">
+        <p class="card-eyebrow">Latest <span class="new-dot"></span></p>
+        <h3>New Track Out</h3>
+        <p>Just dropped a new ambient piece — processed through a custom reverb chain. Have a listen.</p>
+      </div>
+      <div class="card" onclick="nav('projects')">
+        <p class="card-eyebrow">Project Update</p>
+        <h3>Neo 80 Build</h3>
+        <p>Jade case, Kintsugi keycaps. Almost done — finishing the sound dampening this week.</p>
+      </div>
+      <div class="card" onclick="nav('achievements')">
+        <p class="card-eyebrow">Academic</p>
+        <h3>Research Published</h3>
+        <p>Contributed to a paper on low-power DSP architectures. Preprint now available.</p>
+      </div>
+      <div class="card">
+        <p class="card-eyebrow">Reading</p>
+        <h3>Currently Into</h3>
+        <p>The Art of Electronics + whatever's in my Spotify Discover Weekly this week.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="page" id="pg-about">
+    <p class="ptag">R₁ · 10kΩ — About</p>
+    <h1 class="ph">The engineer<br/>behind the board.</h1>
+    <p class="pb">I'm an ECE student who thinks in signals. I design things that sit at the border of hardware and software — RF circuits, embedded systems, DSP. Off the clock I'm playing music or building something that blinks.</p>
+    <div class="div"></div>
+    <p class="pb" style="margin-top:0">This portfolio is built the way I think: as a schematic. Every section is a component in a real amplifier circuit. Every navigation is signal flow.</p>
+  </div>
+
+  <!-- MUSIC -->
+  <div class="page" id="pg-music">
+    <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
+    <h1 class="ph">Signals &<br/>frequencies.</h1>
+    <p class="pb">Music is physics made emotional. I produce, record, and play — treating tracks like circuits: layered signals, carefully filtered, mixed to resonance. The op-amp is the heart of any amplifier. This is mine.</p>
+    <div class="div"></div>
+    <div class="track-list">
+      <div class="track">
+        <span class="track-num">01</span>
+        <div class="track-info">
+          <div class="track-title">Untitled Ambient No. 3</div>
+          <div class="track-meta">Produced · 2025 · Ambient / Electronic</div>
+        </div>
+        <span class="track-dur">4:22</span>
+      </div>
+      <div class="track">
+        <span class="track-num">02</span>
+        <div class="track-info">
+          <div class="track-title">Late Signal</div>
+          <div class="track-meta">Produced · 2024 · Lo-fi / Instrumental</div>
+        </div>
+        <span class="track-dur">3:47</span>
+      </div>
+      <div class="track">
+        <span class="track-num">03</span>
+        <div class="track-info">
+          <div class="track-title">Ground Loop</div>
+          <div class="track-meta">Produced · 2024 · Experimental</div>
+        </div>
+        <span class="track-dur">5:11</span>
+      </div>
+      <div class="track">
+        <span class="track-num">04</span>
+        <div class="track-info">
+          <div class="track-title">Carrier Wave</div>
+          <div class="track-meta">Produced · 2023 · Ambient</div>
+        </div>
+        <span class="track-dur">6:03</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="page" id="pg-projects">
+    <p class="ptag">R_f · 47kΩ — Projects</p>
+    <h1 class="ph">Hobby<br/>projects.</h1>
+    <p class="pb">Weekend obsessions and semester-long rabbit holes. Hardware, firmware, and everything in between.</p>
+    <div class="div"></div>
+    <div class="proj-grid">
+      <div class="proj-card">
+        <p class="proj-tag">Keyboards · In Progress</p>
+        <h3>Neo 80 Build</h3>
+        <p>Custom 80% in jade. Kintsugi keycap set, lubed switches, PE foam mod. Designed around feel and sound.</p>
+      </div>
+      <div class="proj-card">
+        <p class="proj-tag">RF · Complete</p>
+        <h3>SDR Weather Sat Receiver</h3>
+        <p>RTL-SDR based NOAA satellite receiver with a turnstile antenna built from scratch. Receives live weather imagery.</p>
+      </div>
+      <div class="proj-card">
+        <p class="proj-tag">Embedded · Rev 2</p>
+        <h3>MIDI Controller PCB</h3>
+        <p>Custom MIDI controller in KiCad. STM32-based, 16 encoders, USB-C. Currently iterating on Rev 2.</p>
+      </div>
+      <div class="proj-card">
+        <p class="proj-tag">Plants · Ongoing</p>
+        <h3>Sensor Network</h3>
+        <p>ESP32 soil moisture + light sensor network for my plant collection. Logs to a local dashboard. Zero casualties.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="page" id="pg-achievements">
+    <p class="ptag">C₂ · 10µF — Achievements</p>
+    <h1 class="ph">Keeping<br/>good time.</h1>
+    <p class="pb">The milestones that have clocked this career so far.</p>
+    <div class="div"></div>
+    <div class="timeline">
+      <div class="titem">
+        <p class="tyear">2025</p>
+        <h3>Research Contribution</h3>
+        <p>Co-authored paper on low-power DSP architectures for edge inference. Submitted to IEEE.</p>
+      </div>
+      <div class="titem">
+        <p class="tyear">2024</p>
+        <h3>Engineering Internship</h3>
+        <p>Hardware engineering intern. Worked on signal integrity analysis and PCB bring-up.</p>
+      </div>
+      <div class="titem">
+        <p class="tyear">2023</p>
+        <h3>Dean's List</h3>
+        <p>Recognized for academic excellence in ECE core curriculum.</p>
+      </div>
+      <div class="titem">
+        <p class="tyear">2022</p>
+        <h3>Hackathon — 1st Place</h3>
+        <p>Built a real-time ECG classifier on a microcontroller in 24 hours. Won best hardware hack.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="page" id="pg-contact">
+    <p class="ptag">LS₁ · 8Ω Speaker — Contact</p>
+    <h1 class="ph">Plug in.</h1>
+    <p class="pb">Always open to collaboration, internship conversations, or talking keyboards and circuits. Find me wherever the signal reaches.</p>
+    <div class="div"></div>
+    <div class="contact-links">
+      <a class="clink" href="mailto:you@email.com">
+        <span class="clink-label">Email</span>
+        <span class="clink-val">you@email.com</span>
+      </a>
+      <a class="clink" href="#">
+        <span class="clink-label">GitHub</span>
+        <span class="clink-val">github.com/ianece</span>
+      </a>
+      <a class="clink" href="#">
+        <span class="clink-label">LinkedIn</span>
+        <span class="clink-val">linkedin.com/in/yourname</span>
+      </a>
+      <a class="clink" href="#">
+        <span class="clink-label">SoundCloud</span>
+        <span class="clink-val">soundcloud.com/yourname</span>
+      </a>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+/* Cursor */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('.cg,.card,.track,.proj-card,.titem,.clink,#mob-toggle').forEach(el => {
+  el.addEventListener('mouseenter', () => cur.classList.add('on'));
+  el.addEventListener('mouseleave', () => cur.classList.remove('on'));
+});
+
+/* Trace draw on load */
+window.addEventListener('load', () => {
+  document.querySelectorAll('.wire').forEach((w, i) => {
+    const len = w.getTotalLength ? w.getTotalLength() : 60;
+    w.style.strokeDasharray  = len;
+    w.style.strokeDashoffset = len;
+    w.style.transition = `stroke-dashoffset .65s cubic-bezier(.4,0,.2,1) ${.6 + i * .06}s, opacity .4s ease ${.6 + i * .06}s, stroke .3s`;
+    setTimeout(() => { w.style.strokeDashoffset = 0; }, 40);
+  });
+});
+
+/* Nav state */
+const wireMap = {
+  home:         [],
+  about:        ['w0'],
+  music:        ['w0','w1'],
+  projects:     ['w0','w1','w2','w-fb-up'],
+  achievements: ['w0','w1','w2','w-fb-up','w3','w3b','w4'],
+  contact:      ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
+};
+
+let current = 'home';
+
+function nav(section) {
+  if (section === current) return;
+
+  const ov = document.getElementById('overlay');
+  ov.classList.add('flash');
+  setTimeout(() => ov.classList.remove('flash'), 260);
+
+  document.getElementById('pg-' + current).classList.remove('active');
+  setTimeout(() => {
+    document.getElementById('pg-' + section).classList.add('active');
+    window.scrollTo(0,0);
+  }, 110);
+
+  document.querySelectorAll('.cg').forEach(g => g.classList.remove('active'));
+  document.getElementById('cg-' + section).classList.add('active');
+
+  document.querySelectorAll('.wire').forEach(w => w.classList.remove('lit'));
+  document.querySelectorAll('.jct').forEach(j => j.classList.remove('lit'));
+  (wireMap[section] || []).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('lit');
+  });
+
+  animateDot(section);
+  current = section;
+
+  if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
+}
+
+function animateDot(section) {
+  const wires = wireMap[section];
+  if (!wires || !wires.length) return;
+  const lastWire = document.getElementById(wires[wires.length - 1]);
+  if (!lastWire || !lastWire.getTotalLength) return;
+  const dot = document.getElementById('fdot');
+  const len = lastWire.getTotalLength();
+  let t = 0;
+  dot.style.opacity = '1';
+  const anim = setInterval(() => {
+    t += 2.2;
+    if (t > len) { dot.style.opacity = '0'; clearInterval(anim); return; }
+    const pt = lastWire.getPointAtLength(t);
+    dot.setAttribute('cx', pt.x);
+    dot.setAttribute('cy', pt.y);
+  }, 13);
+}
+
+document.getElementById('cg-home').classList.add('active');
+</script>
+</body>
+</html>
