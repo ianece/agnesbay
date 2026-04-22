@@ -307,12 +307,15 @@ body::after {
     <path d="M0,90 Q45,120 65,175 Q85,230 65,295" stroke="#E5C76B" stroke-width="5" fill="none" opacity="0.035" stroke-linecap="round"/>
   </svg>
 
-  <div class="sidebar-top">
+<div class="sidebar-top">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
     <div class="site-name">
-      Your Name
+      Ian Christensen
       <span>ECE · Portfolio</span>
     </div>
+    <canvas id="osc" width="90" height="32" style="display:block; opacity:0.85; flex-shrink:0;"></canvas>
   </div>
+</div>
 
   <!-- ══ SCHEMATIC NAV SVG ══ -->
   <div id="circuit-wrap">
@@ -774,6 +777,64 @@ function animateDot(section) {
 }
 
 document.getElementById('cg-home').classList.add('active');
+
+(function(){
+  const cv = document.getElementById('osc');
+  const cx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  let t = 0, jitterY = 0, jitterTarget = 0, jitterTimer = 0;
+
+  function noise(x) {
+    return Math.sin(x * 1.7)  * 0.50
+         + Math.sin(x * 3.13) * 0.25
+         + Math.sin(x * 5.97) * 0.13
+         + Math.sin(x * 11.41)* 0.07
+         + Math.sin(x * 23.7) * 0.03;
+  }
+
+  function draw() {
+    cx.clearRect(0, 0, W, H);
+
+    cx.strokeStyle = '#C8B87A'; cx.lineWidth = 0.4;
+    cx.setLineDash([2,5]); cx.globalAlpha = 0.35;
+    cx.beginPath(); cx.moveTo(0, H/2); cx.lineTo(W, H/2); cx.stroke();
+    cx.setLineDash([]); cx.globalAlpha = 1;
+
+    jitterTimer++;
+    if (jitterTimer > 6 + Math.random() * 14) {
+      jitterTarget = (Math.random() - 0.5) * 1.8;
+      jitterTimer = 0;
+    }
+    jitterY += (jitterTarget - jitterY) * 0.18;
+
+    const speed = 0.038, amp = H * 0.30;
+
+    cx.strokeStyle = '#C8A84B'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    for (let x = 0; x < W; x++) {
+      const phase = t * speed;
+      const n = noise(x * 0.038 + t * 0.008) * 0.18;
+      const hf = Math.sin(2 * Math.PI * 0.094 * x + phase * 2.3) * 0.10;
+      const y = H/2 + jitterY - amp * (Math.sin(2 * Math.PI * 0.046 * x + phase) + n + hf);
+      x === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+    }
+    cx.stroke();
+
+    cx.strokeStyle = 'rgba(200,168,75,0.18)'; cx.lineWidth = 1;
+    cx.beginPath();
+    for (let x = 0; x < W; x++) {
+      const phase = t * speed;
+      const n2 = noise(x * 0.07 + t * 0.005) * 0.12;
+      const y = H/2 + jitterY * 0.5 - (H * 0.13) * (Math.sin(2 * Math.PI * 0.091 * x + phase * 1.7 + 1.1) + n2);
+      x === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+    }
+    cx.stroke();
+
+    t++; requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
 </script>
 </body>
 </html>
