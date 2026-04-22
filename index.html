@@ -43,17 +43,7 @@ body::after {
 }
 
 /* ── CURSOR ── */
-#cursor {
-  width: 9px; height: 9px;
-  border: 1.5px solid var(--gold);
-  border-radius: 50%;
-  position: fixed; top: 0; left: 0;
-  pointer-events: none; z-index: 9999;
-  transform: translate(-50%,-50%);
-  transition: width .16s, height .16s, background .16s;
-  mix-blend-mode: multiply;
-}
-#cursor.on { width: 24px; height: 24px; background: var(--gold-glow); }
+#cursor { display: none; }
 
 /* ── LAYOUT ── */
 #shell { display: flex; min-height: 100vh; }
@@ -286,6 +276,7 @@ body::after {
 <body>
 
 <div id="cursor"></div>
+<canvas id="wire-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:9999;"></canvas>
 <div id="overlay"></div>
 <button id="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">NAV ▾</button>
 
@@ -695,29 +686,266 @@ body::after {
 </div>
 
 <script>
-/* Cursor */
+/* ── CURSOR ── */
 const cur = document.getElementById('cursor');
 document.addEventListener('mousemove', e => {
   cur.style.left = e.clientX + 'px';
   cur.style.top  = e.clientY + 'px';
 });
-document.querySelectorAll('.cg,.card,.track,.proj-card,.titem,.clink,#mob-toggle').forEach(el => {
-  el.addEventListener('mouseenter', () => cur.classList.add('on'));
-  el.addEventListener('mouseleave', () => cur.classList.remove('on'));
+
+/* ── PROBE + WIRE ── */
+const wireCanvas = document.getElementById('wire-canvas');
+const wCtx = wireCanvas.getContext('2d');
+
+function resizeWire() {
+  wireCanvas.width  = window.innerWidth;
+  wireCanvas.height = window.innerHeight;
+}
+resizeWire();
+window.addEventListener('resize', resizeWire);
+
+const SEGMENTS  = 31;
+const GRAVITY   = 0.35;
+const DAMPING   = 0.88;
+const STIFFNESS = 1;
+const SEG_LEN   = 30;
+const SLACK     = 2.5;
+
+const anchor = { x: 148, y: window.innerHeight - 80 };
+let probe = { x: 400, y: 300 };
+let mouse = { x: 400, y: 300 };
+
+document.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
 });
 
-/* Trace draw on load */
-window.addEventListener('load', () => {
-  document.querySelectorAll('.wire').forEach((w, i) => {
-    const len = w.getTotalLength ? w.getTotalLength() : 60;
-    w.style.strokeDasharray  = len;
-    w.style.strokeDashoffset = len;
-    w.style.transition = `stroke-dashoffset .65s cubic-bezier(.4,0,.2,1) ${.6 + i * .06}s, opacity .4s ease ${.6 + i * .06}s, stroke .3s`;
-    setTimeout(() => { w.style.strokeDashoffset = 0; }, 40);
+let chain = [];
+function initChain() {
+  chain = [];
+  for (let i = 0; i <= SEGMENTS; i++) {
+    const t = i / SEGMENTS;
+    chain.push({
+      x: anchor.x + (probe.x - anchor.x) * t,
+      y: anchor.y + (probe.y - anchor.y) * t,
+      px: anchor.x + (probe.x - anchor.x) * t,
+      py: anchor.y + (probe.y - anchor.y) * t,
+    });
+  }
+}
+initChain();
+
+function updateChain() {
+  probe.x += (mouse.x - probe.x) * 0.22;
+  probe.y += (mouse.y - probe.y) * 0.22;
+
+  for (let i = 1; i < chain.length; i++) {
+    const p = chain[i];
+    const vx = (p.x - p.px) * DAMPING;
+    const vy = (p.y - p.py) * DAMPING;
+    p.px = p.x; p.py = p.y;
+    p.x += vx; p.y += vy + GRAVITY;
+  }
+
+  const restLen = SEG_LEN * SLACK;
+  for (let iter = 0; iter < STIFFNESS; iter++) {
+    chain[0].x = anchor.x; chain[0].y = anchor.y;
+    chain[chain.length-1].x = probe.x; chain[chain.length-1].y = probe.y;
+    for (let i = 0; i < chain.length - 1; i++) {
+      const a = chain[i], b = chain[i+1];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 0.001;
+      const diff = (dist - restLen) / dist * 0.5;
+      if (i > 0)             { a.x += dx*diff; a.y += dy*diff; }
+      if (i < chain.length-2){ b.x -= dx*diff; b.y -= dy*diff; }
+    }
+    chain[0].x = anchor.x; chain[0].y = anchor.y;
+    chain[chain.length-1].x = probe.x; chain[chain.length-1].y = probe.y;
+  }
+}
+
+function drawProbe(x, y) {
+  const prev = chain[chain.length - 2];
+  const angle = Math.atan2(y - prev.y, x - prev.x);
+  wCtx.save();
+  wCtx.translate(x, y);
+  wCtx.rotate(angle);
+
+  wCtx.fillStyle = '#EDE5D4';
+  wCtx.strokeStyle = '#A8893A';
+  wCtx.lineWidth = 1.2;
+  wCtx.beginPath();
+  wCtx.roundRect(-22, -5, 20, 10, 3);
+  wCtx.fill(); wCtx.stroke();
+
+  wCtx.strokeStyle = 'rgba(168,137,58,0.4)';
+  wCtx.lineWidth = 0.8;
+  for (let i = -18; i < -6; i += 3) {
+    wCtx.beginPath();
+    wCtx.moveTo(i, -4); wCtx.lineTo(i, 4); wCtx.stroke();
+  }
+
+  wCtx.fillStyle = '#A8893A';
+  wCtx.beginPath();
+  wCtx.moveTo(-2, -3); wCtx.lineTo(8, 0); wCtx.lineTo(-2, 3);
+  wCtx.closePath(); wCtx.fill();
+
+  wCtx.fillStyle = '#C8A84B';
+  wCtx.beginPath();
+  wCtx.arc(8, 0, 2, 0, Math.PI*2);
+  wCtx.fill();
+
+  wCtx.restore();
+}
+
+function drawAnchorJack(x, y) {
+  wCtx.save();
+  wCtx.fillStyle = '#D0C4A8';
+  wCtx.strokeStyle = '#A8893A';
+  wCtx.lineWidth = 1.2;
+  wCtx.beginPath();
+  wCtx.roundRect(x-10, y-8, 20, 16, 3);
+  wCtx.fill(); wCtx.stroke();
+  wCtx.fillStyle = '#A8893A';
+  wCtx.beginPath(); wCtx.arc(x, y, 4, 0, Math.PI*2); wCtx.fill();
+  wCtx.fillStyle = '#EDE5D4';
+  wCtx.beginPath(); wCtx.arc(x, y, 2, 0, Math.PI*2); wCtx.fill();
+  wCtx.restore();
+}
+
+function drawWire() {
+  wCtx.clearRect(0, 0, wireCanvas.width, wireCanvas.height);
+  if (chain.length < 2) return;
+
+  wCtx.save();
+  wCtx.strokeStyle = 'rgba(90,70,30,0.08)';
+  wCtx.lineWidth = 4; wCtx.lineCap = 'round'; wCtx.lineJoin = 'round';
+  wCtx.beginPath(); wCtx.moveTo(chain[0].x, chain[0].y+2);
+  for (let i = 1; i < chain.length; i++) wCtx.lineTo(chain[i].x, chain[i].y+2);
+  wCtx.stroke(); wCtx.restore();
+
+  wCtx.save();
+  wCtx.strokeStyle = '#8A6E2A';
+  wCtx.lineWidth = 2.2; wCtx.lineCap = 'round'; wCtx.lineJoin = 'round';
+  wCtx.beginPath(); wCtx.moveTo(chain[0].x, chain[0].y);
+  for (let i = 1; i < chain.length-1; i++) {
+    const mx = (chain[i].x + chain[i+1].x) / 2;
+    const my = (chain[i].y + chain[i+1].y) / 2;
+    wCtx.quadraticCurveTo(chain[i].x, chain[i].y, mx, my);
+  }
+  wCtx.lineTo(chain[chain.length-1].x, chain[chain.length-1].y);
+  wCtx.stroke(); wCtx.restore();
+
+  wCtx.save();
+  wCtx.strokeStyle = 'rgba(220,185,90,0.28)';
+  wCtx.lineWidth = 0.8; wCtx.lineCap = 'round'; wCtx.lineJoin = 'round';
+  wCtx.beginPath(); wCtx.moveTo(chain[0].x-0.5, chain[0].y-0.5);
+  for (let i = 1; i < chain.length; i++) wCtx.lineTo(chain[i].x-0.5, chain[i].y-0.5);
+  wCtx.stroke(); wCtx.restore();
+
+  drawProbe(probe.x, probe.y);
+  drawAnchorJack(anchor.x, anchor.y);
+}
+
+/* ── WAVEFORM ── */
+const waveMap = {
+  'cg-home':         'sine',
+  'cg-about':        'sine',
+  'cg-music':        'sine',
+  'cg-projects':     'damped',
+  'cg-achievements': 'clip',
+  'cg-contact':      'chaotic',
+  'card':            'sine',
+};
+
+let waveMode = 'sine', waveTarget = 'sine', waveLerp = 0;
+let oscT = 0, jY = 0, jTarget = 0, jTimer = 0;
+
+document.querySelectorAll('.cg, .card, .proj-card, .track, .clink').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    const id = el.id || el.className.split(' ')[0];
+    waveTarget = waveMap[el.id] || waveMap[id] || 'sine';
   });
+  el.addEventListener('mouseleave', () => { waveTarget = 'sine'; });
 });
 
-/* Nav state */
+function noiseF(x) {
+  return Math.sin(x*1.7)*0.50 + Math.sin(x*3.13)*0.25
+       + Math.sin(x*5.97)*0.13 + Math.sin(x*11.41)*0.07
+       + Math.sin(x*23.7)*0.03;
+}
+
+function getWaveSample(mode, x, t, H) {
+  const phase = t * 0.038, amp = H * 0.30;
+  switch(mode) {
+    case 'sine':
+      return Math.sin(2*Math.PI*0.046*x + phase) + noiseF(x*0.038+t*0.008)*0.18;
+    case 'damped': {
+      const env = Math.exp(-((x % 140)/60));
+      return Math.sin(2*Math.PI*0.06*x + phase)*env*1.2 + noiseF(x*0.05+t*0.006)*0.12;
+    }
+    case 'clip': {
+      const raw = Math.sin(2*Math.PI*0.046*x + phase)*2.2;
+      return Math.max(-1,Math.min(1,raw)) + noiseF(x*0.04+t*0.009)*0.1;
+    }
+    case 'chaotic':
+      return noiseF(x*0.08+t*0.012)*0.9
+           + Math.sin(2*Math.PI*0.12*x+phase*1.5)*0.5
+           + Math.sin(2*Math.PI*0.033*x+phase*0.7)*0.4;
+  }
+  return 0;
+}
+
+function drawOsc() {
+  const cv = document.getElementById('osc');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  ctx.strokeStyle='#D0C4A8'; ctx.lineWidth=0.4;
+  ctx.setLineDash([2,4]); ctx.globalAlpha=0.35;
+  ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+  ctx.setLineDash([]); ctx.globalAlpha=1;
+
+  jTimer++;
+  if (jTimer > 6+Math.random()*14) { jTarget=(Math.random()-0.5)*1.6; jTimer=0; }
+  jY += (jTarget-jY)*0.18;
+
+  if (waveMode !== waveTarget) waveLerp += 0.06;
+  else waveLerp = 0;
+  if (waveLerp >= 1) { waveMode = waveTarget; waveLerp = 0; }
+
+  ctx.strokeStyle='#C8A84B'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  for (let x=0; x<W; x++) {
+    let s = getWaveSample(waveMode, x, oscT, H);
+    if (waveLerp > 0) s = s*(1-waveLerp) + getWaveSample(waveTarget,x,oscT,H)*waveLerp;
+    const y = H/2 + jY - H*0.30*s;
+    x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle='rgba(200,168,75,0.18)'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for (let x=0; x<W; x++) {
+    const y=H/2+jY*0.5-H*0.13*(Math.sin(2*Math.PI*0.091*x+oscT*0.025+1.1)+noiseF(x*0.07+oscT*0.005)*0.1);
+    x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  oscT++;
+}
+
+/* ── MAIN LOOP ── */
+function loop() {
+  updateChain();
+  drawWire();
+  drawOsc();
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ── NAV STATE ── */
 const wireMap = {
   home:         [],
   about:        ['w0'],
@@ -731,109 +959,43 @@ let current = 'home';
 
 function nav(section) {
   if (section === current) return;
-
   const ov = document.getElementById('overlay');
   ov.classList.add('flash');
   setTimeout(() => ov.classList.remove('flash'), 260);
-
-  document.getElementById('pg-' + current).classList.remove('active');
+  document.getElementById('pg-'+current).classList.remove('active');
   setTimeout(() => {
-    document.getElementById('pg-' + section).classList.add('active');
+    document.getElementById('pg-'+section).classList.add('active');
     window.scrollTo(0,0);
   }, 110);
-
   document.querySelectorAll('.cg').forEach(g => g.classList.remove('active'));
-  document.getElementById('cg-' + section).classList.add('active');
-
+  document.getElementById('cg-'+section).classList.add('active');
   document.querySelectorAll('.wire').forEach(w => w.classList.remove('lit'));
   document.querySelectorAll('.jct').forEach(j => j.classList.remove('lit'));
-  (wireMap[section] || []).forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('lit');
+  (wireMap[section]||[]).forEach(id => {
+    const el=document.getElementById(id); if(el) el.classList.add('lit');
   });
-
   animateDot(section);
   current = section;
-
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
 }
 
 function animateDot(section) {
   const wires = wireMap[section];
-  if (!wires || !wires.length) return;
-  const lastWire = document.getElementById(wires[wires.length - 1]);
-  if (!lastWire || !lastWire.getTotalLength) return;
+  if (!wires||!wires.length) return;
+  const lastWire = document.getElementById(wires[wires.length-1]);
+  if (!lastWire||!lastWire.getTotalLength) return;
   const dot = document.getElementById('fdot');
   const len = lastWire.getTotalLength();
-  let t = 0;
-  dot.style.opacity = '1';
+  let t = 0; dot.style.opacity='1';
   const anim = setInterval(() => {
     t += 2.2;
-    if (t > len) { dot.style.opacity = '0'; clearInterval(anim); return; }
+    if (t>len) { dot.style.opacity='0'; clearInterval(anim); return; }
     const pt = lastWire.getPointAtLength(t);
-    dot.setAttribute('cx', pt.x);
-    dot.setAttribute('cy', pt.y);
+    dot.setAttribute('cx',pt.x); dot.setAttribute('cy',pt.y);
   }, 13);
 }
 
 document.getElementById('cg-home').classList.add('active');
-
-(function(){
-  const cv = document.getElementById('osc');
-  const cx = cv.getContext('2d');
-  const W = cv.width, H = cv.height;
-  let t = 0, jitterY = 0, jitterTarget = 0, jitterTimer = 0;
-
-  function noise(x) {
-    return Math.sin(x * 1.7)  * 0.50
-         + Math.sin(x * 3.13) * 0.25
-         + Math.sin(x * 5.97) * 0.13
-         + Math.sin(x * 11.41)* 0.07
-         + Math.sin(x * 23.7) * 0.03;
-  }
-
-  function draw() {
-    cx.clearRect(0, 0, W, H);
-
-    cx.strokeStyle = '#C8B87A'; cx.lineWidth = 0.4;
-    cx.setLineDash([2,5]); cx.globalAlpha = 0.35;
-    cx.beginPath(); cx.moveTo(0, H/2); cx.lineTo(W, H/2); cx.stroke();
-    cx.setLineDash([]); cx.globalAlpha = 1;
-
-    jitterTimer++;
-    if (jitterTimer > 6 + Math.random() * 14) {
-      jitterTarget = (Math.random() - 0.5) * 1.8;
-      jitterTimer = 0;
-    }
-    jitterY += (jitterTarget - jitterY) * 0.18;
-
-    const speed = 0.038, amp = H * 0.30;
-
-    cx.strokeStyle = '#C8A84B'; cx.lineWidth = 1.5;
-    cx.beginPath();
-    for (let x = 0; x < W; x++) {
-      const phase = t * speed;
-      const n = noise(x * 0.038 + t * 0.008) * 0.18;
-      const hf = Math.sin(2 * Math.PI * 0.094 * x + phase * 2.3) * 0.10;
-      const y = H/2 + jitterY - amp * (Math.sin(2 * Math.PI * 0.046 * x + phase) + n + hf);
-      x === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
-    }
-    cx.stroke();
-
-    cx.strokeStyle = 'rgba(200,168,75,0.18)'; cx.lineWidth = 1;
-    cx.beginPath();
-    for (let x = 0; x < W; x++) {
-      const phase = t * speed;
-      const n2 = noise(x * 0.07 + t * 0.005) * 0.12;
-      const y = H/2 + jitterY * 0.5 - (H * 0.13) * (Math.sin(2 * Math.PI * 0.091 * x + phase * 1.7 + 1.1) + n2);
-      x === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
-    }
-    cx.stroke();
-
-    t++; requestAnimationFrame(draw);
-  }
-  draw();
-})();
 
 </script>
 </body>
