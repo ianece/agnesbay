@@ -690,11 +690,11 @@ body::after {
    TUNING — edit these to dial in the feel
    ══════════════════════════════════════ */
 const CFG = {
-  segments:  12,      // number of chain links (fewer = faster/stiffer)
+  segments:  32,      // number of chain links (fewer = faster/stiffer)
   gravity:   0.35,    // downward pull per frame
   damping:   0.88,    // velocity decay (0=no movement, 1=no decay)
   stiffness: 1,       // constraint iterations (higher = tighter wire)
-  segLen:    10,      // natural length of each segment in px
+  segLen:    8,      // natural length of each segment in px
   slack:     1.4,     // multiplier on segLen (more = droopier wire)
   probeSnap: 0.22,    // how fast probe follows mouse (0.05=laggy, 0.5=snappy)
   anchorX:   36,      // x position of jack plug in sidebar (px from left)
