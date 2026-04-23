@@ -537,7 +537,7 @@ body::after {
       <line class="sym" x1="100" y1="18" x2="100" y2="30"/>
       <text class="ref" x="122" y="14">VCC</text>
       <text class="val" x="122" y="22">+12V</text>
-      <text class="lbl" x="60" y="40">Home</text>
+      <text class="lbl" x="60" y="20">Home</text>
     </g>
 
     <!-- Main wire down from VCC to R_in -->
@@ -557,7 +557,7 @@ body::after {
       <!-- ref left -->
       <text class="ref" x="75" y="96" text-anchor="end">R₁</text>
       <text class="val" x="75" y="105" text-anchor="end">10kΩ</text>
-      <text class="lbl" x="130" y="110">About</text>
+      <text class="lbl" x="130" y="115">About</text>
     </g>
 
     <!-- Wire R_in → op-amp input -->
@@ -578,7 +578,7 @@ body::after {
     <text class="val" x="56" y="140" font-size="6">C₁ 100nF</text>
 
     <!-- ═══ OP-AMP — MUSIC ═══ -->
-    <g id="cg-music" class="cg" onclick="nav('music')">
+    <g id="cg-music" class="cg" onclick="nav('projects')">
       <rect class="hit" x="40" y="158" width="120" height="90" rx="4"/>
       <!-- Op-amp triangle (standard symbol) -->
       <!-- Triangle: input left vertex, output right vertex -->
@@ -605,7 +605,7 @@ body::after {
 
       <text class="ref" x="85" y="200">U₁</text>
       <text class="val" x="85" y="208" font-size="6">LM741</text>
-      <text class="lbl" x="30" y="470">Music</text>
+      <text class="lbl" x="170" y="470">Music</text>
     </g>
 
     <!-- Feedback resistor R_f (Projects) — goes from output back up to − input -->
@@ -616,7 +616,7 @@ body::after {
     <line class="wire" id="w-fb-up" x1="168" y1="200" x2="168" y2="213"/>
 
     <!-- ═══ R_f — FEEDBACK RESISTOR (Projects) ═══ -->
-    <g id="cg-projects" class="cg" onclick="nav('projects')">
+    <g id="cg-projects" class="cg" onclick="nav('contact')">
       <rect class="hit" x="138" y="220" width="62" height="90" rx="3"/>
       <!-- Vertical resistor zigzag -->
       <polyline class="sym" points="
@@ -659,7 +659,7 @@ body::after {
     <line class="wire" id="w5" x1="100" y1="390" x2="100" y2="420"/>
 
     <!-- ═══ SPEAKER — CONTACT ═══ -->
-    <g id="cg-contact" class="cg" onclick="nav('contact')">
+    <g id="cg-contact" class="cg" onclick="nav('music')">
       <rect class="hit" x="45" y="420" width="110" height="100" rx="4"/>
       <!-- Speaker symbol:
            Rectangle (voice coil box) + trapezoid cone + arc radiation lines -->
