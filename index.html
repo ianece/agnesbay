@@ -528,7 +528,7 @@ body::after {
     <!-- VCC label -->
     <line class="wire" id="w-vcc" x1="100" y1="18" x2="100" y2="30"/>
     <!-- VCC symbol (upward arrow / bar) -->
-    <g id="cg-home" class="cg" onclick="nav('home')">
+    <g id="cg-home" class="cg" onclick="nav('home', 'cg-home')">
       <rect class="hit" x="72" y="8" width="56" height="36" rx="4"/>
       <!-- Power symbol: horizontal bar + short line up -->
       <line class="sym" x1="82" y1="18" x2="118" y2="18"/>
@@ -544,7 +544,7 @@ body::after {
     <line class="wire" id="w0" x1="100" y1="30" x2="100" y2="78"/>
 
     <!-- ═══ R_in — INPUT RESISTOR (About) ═══ -->
-    <g id="cg-about" class="cg" onclick="nav('about')">
+    <g id="cg-about" class="cg" onclick="nav('about', 'cg-about')">
       <rect class="hit" x="55" y="78" width="90" height="44" rx="3"/>
       <!-- Resistor: IEEE zigzag symbol -->
       <polyline class="sym" points="
@@ -578,7 +578,7 @@ body::after {
     <text class="val" x="56" y="140" font-size="6">C₁ 100nF</text>
 
     <!-- ═══ OP-AMP — MUSIC ═══ -->
-    <g id="cg-music" class="cg" onclick="nav('projects')">
+    <g id="cg-music" class="cg" onclick="nav('projects', 'cg-music')">
       <rect class="hit" x="40" y="158" width="120" height="90" rx="4"/>
       <!-- Op-amp triangle (standard symbol) -->
       <!-- Triangle: input left vertex, output right vertex -->
@@ -616,7 +616,7 @@ body::after {
     <line class="wire" id="w-fb-up" x1="168" y1="200" x2="168" y2="213"/>
 
     <!-- ═══ R_f — FEEDBACK RESISTOR (Projects) ═══ -->
-    <g id="cg-projects" class="cg" onclick="nav('contact')">
+    <g id="cg-projects" class="cg" onclick="nav('contact', 'cg-projects')">
       <rect class="hit" x="138" y="220" width="62" height="90" rx="3"/>
       <!-- Vertical resistor zigzag -->
       <polyline class="sym" points="
@@ -641,7 +641,7 @@ body::after {
     <line class="wire" id="w4" x1="100" y1="310" x2="100" y2="345"/>
 
     <!-- ═══ C_out — OUTPUT CAP (Achievements) ═══ -->
-    <g id="cg-achievements" class="cg" onclick="nav('achievements')">
+    <g id="cg-achievements" class="cg" onclick="nav('achievements', 'cg-achievements')">
       <rect class="hit" x="55" y="345" width="90" height="55" rx="3"/>
       <!-- Horizontal capacitor symbol — plates -->
       <line class="sym" x1="100" y1="345" x2="100" y2="368"/>
@@ -659,7 +659,7 @@ body::after {
     <line class="wire" id="w5" x1="100" y1="390" x2="100" y2="420"/>
 
     <!-- ═══ SPEAKER — CONTACT ═══ -->
-    <g id="cg-contact" class="cg" onclick="nav('music')">
+    <g id="cg-contact" class="cg" onclick="nav('music', 'cg-contact')">
       <rect class="hit" x="45" y="420" width="110" height="100" rx="4"/>
       <!-- Speaker symbol:
            Rectangle (voice coil box) + trapezoid cone + arc radiation lines -->
@@ -689,7 +689,7 @@ body::after {
       <!-- ref -->
       <text class="ref" x="57" y="462" text-anchor="end">LS₁</text>
       <text class="val" x="57" y="471" text-anchor="end">8Ω</text>
-      <text class="lbl" x="135" y="245">Contact</text>
+      <text class="lbl" x="130" y="250">Contact</text>
     </g>
 
     <!-- Overall schematic title -->
@@ -1370,9 +1370,19 @@ const wireMap = {
   contact:      ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
 };
 
+// Map component IDs to their wire paths for highlighting
+const componentWireMap = {
+  'cg-home':        [],
+  'cg-about':       ['w0'],
+  'cg-music':       ['w0','w1'],  // op-amp
+  'cg-projects':    ['w0','w1','w2','w-fb-up'],  // R_f
+  'cg-achievements':['w0','w1','w2','w-fb-up','w3','w3b','w4'],  // C_out
+  'cg-contact':     ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],  // speaker
+};
+
 let current = 'home';
 
-function nav(section) {
+function nav(section, componentId) {
   if (section === current) return;
   const ov = document.getElementById('overlay');
   ov.classList.add('flash');
@@ -1383,19 +1393,27 @@ function nav(section) {
     window.scrollTo(0,0);
   }, 110);
   document.querySelectorAll('.cg').forEach(g => g.classList.remove('active'));
-  document.getElementById('cg-'+section).classList.add('active');
+  if (componentId) {
+    document.getElementById(componentId).classList.add('active');
+  } else {
+    document.getElementById('cg-'+section).classList.add('active');
+  }
   document.querySelectorAll('.wire').forEach(w => w.classList.remove('lit'));
   document.querySelectorAll('.jct').forEach(j => j.classList.remove('lit'));
-  (wireMap[section]||[]).forEach(id => {
+  // Use component wires for highlighting instead of section wires
+  const wiresToLight = componentId ? (componentWireMap[componentId] || []) : (wireMap[section] || []);
+  wiresToLight.forEach(id => {
     const el = document.getElementById(id); if(el) el.classList.add('lit');
   });
-  animateDot(section);
+  animateDot(componentId || section);
   current = section;
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
 }
 
-function animateDot(section) {
-  const wires = wireMap[section];
+function animateDot(sectionOrComponentId) {
+  // If it's a component ID (starts with 'cg-'), use componentWireMap
+  const isComponentId = sectionOrComponentId.startsWith('cg-');
+  const wires = isComponentId ? componentWireMap[sectionOrComponentId] : wireMap[sectionOrComponentId];
   if (!wires||!wires.length) return;
   const lastWire = document.getElementById(wires[wires.length-1]);
   if (!lastWire||!lastWire.getTotalLength) return;
