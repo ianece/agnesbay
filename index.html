@@ -258,6 +258,17 @@ body::after {
 .clink-label { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; width: 76px; flex-shrink: 0; }
 .clink-val { font-size: 18px; font-style: italic; }
 
+/* Shop */
+.shop-grid { margin-top: 34px; display: grid; grid-template-columns: repeat(auto-fill, minmax(158px,1fr)); gap: 14px; }
+.shop-item { background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 5px; cursor: none; transition: border-color .22s, transform .22s; overflow: hidden; }
+.shop-item:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
+.shop-thumb { width: 100%; aspect-ratio: 1/1; background: var(--cream-3); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--cream-4); }
+.shop-thumb-icon { opacity: 0.22; }
+.shop-item-body { padding: 11px 13px 14px; }
+.shop-item-tag { font-family: 'JetBrains Mono', monospace; font-size: 7.5px; letter-spacing: 0.22em; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 5px; }
+.shop-item-name { font-size: 15px; font-style: italic; font-weight: 400; color: var(--ink); margin-bottom: 6px; }
+.shop-item-price { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.08em; }
+
 /* Mobile */
 #mob-toggle { display: none; position: fixed; top: 13px; right: 14px; z-index: 600; background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 3px; padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.15em; cursor: pointer; }
 
@@ -637,11 +648,11 @@ body::after {
     <line class="wire" id="w3b" x1="100" y1="310" x2="168" y2="310"/>
     <circle class="jct" cx="168" cy="310" r="3"/>
 
-    <!-- Output wire left side down to achievements -->
+    <!-- Output wire left side down to shop -->
     <line class="wire" id="w4" x1="100" y1="310" x2="100" y2="345"/>
 
     <!-- ═══ C_out — OUTPUT CAP (Achievements) ═══ -->
-    <g id="cg-achievements" class="cg" onclick="nav('achievements', 'cg-achievements')">
+    <g id="cg-shop" class="cg" onclick="nav('shop', 'cg-shop')">
       <rect class="hit" x="55" y="345" width="90" height="55" rx="3"/>
       <!-- Horizontal capacitor symbol — plates -->
       <line class="sym" x1="100" y1="345" x2="100" y2="368"/>
@@ -652,7 +663,7 @@ body::after {
       <text class="val" x="123" y="370" font-size="8">+</text>
       <text class="ref" x="48" y="367" text-anchor="end">C₂</text>
       <text class="val" x="48" y="376" text-anchor="end">10µF</text>
-      <text class="lbl" x="165" y="375">Achievements</text>
+      <text class="lbl" x="165" y="375">Shop</text>
     </g>
 
     <!-- Wire cap → speaker -->
@@ -726,10 +737,10 @@ body::after {
         <h3>Neo 80 Build</h3>
         <p>Jade case, Kintsugi keycaps. Almost done — finishing the sound dampening this week.</p>
       </div>
-      <div class="card" onclick="nav('achievements')">
-        <p class="card-eyebrow">Academic</p>
-        <h3>Research Published</h3>
-        <p>Contributed to a paper on low-power DSP architectures. Preprint now available.</p>
+      <div class="card" onclick="nav('shop')">
+        <p class="card-eyebrow">Shop <span class="new-dot"></span></p>
+        <h3>New Drop</h3>
+        <p>Fresh beats, sample packs, and hardware kits. Check the store.</p>
       </div>
       <div class="card">
         <p class="card-eyebrow">Reading</p>
@@ -857,33 +868,136 @@ body::after {
     </div>
   </div>
 
-  <!-- ACHIEVEMENTS -->
-  <div class="page" id="pg-achievements">
-    <p class="ptag">C₂ · 10µF — Achievements</p>
-    <h1 class="ph">so far..<br/></h1>
-    <p class="pb">Always working on new projects and challenges.</p>
+  <!-- SHOP -->
+  <div class="page" id="pg-shop">
+    <p class="ptag">C₂ · 10µF — Shop</p>
+    <h1 class="ph">The shop.</h1>
+    <p class="pb">Beats, sample packs, and hardware drops. Everything here was built or produced by hand.</p>
     <div class="div"></div>
-    <div class="timeline">
-      <div class="titem">
-        <p class="tyear">2025</p>
-        <h3>Research Contribution</h3>
-        <p>Co-authored paper on low-power DSP architectures for edge inference. Submitted to IEEE.</p>
+    <div class="shop-grid">
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <path d="M14 22 Q18 14 22 22 Q26 30 30 22" stroke="var(--gold-dim)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Beat · R&amp;B</p>
+          <p class="shop-item-name">haze to come</p>
+          <p class="shop-item-price">$24.99</p>
+        </div>
       </div>
-      <div class="titem">
-        <p class="tyear">2024</p>
-        <h3>Engineering Internship</h3>
-        <p>Hardware engineering intern. Worked on signal integrity analysis and PCB bring-up.</p>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <path d="M14 22 Q18 14 22 22 Q26 30 30 22" stroke="var(--gold-dim)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Beat · R&amp;B</p>
+          <p class="shop-item-name">the voice of beauty</p>
+          <p class="shop-item-price">$24.99</p>
+        </div>
       </div>
-      <div class="titem">
-        <p class="tyear">2023</p>
-        <h3>Dean's List</h3>
-        <p>Recognized for academic excellence in ECE core curriculum.</p>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <path d="M14 22 Q18 14 22 22 Q26 30 30 22" stroke="var(--gold-dim)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Beat · Acoustic</p>
+          <p class="shop-item-name">firepit</p>
+          <p class="shop-item-price">$19.99</p>
+        </div>
       </div>
-      <div class="titem">
-        <p class="tyear">2022</p>
-        <h3>Hackathon — 1st Place</h3>
-        <p>Built a real-time ECG classifier on a microcontroller in 24 hours. Won best hardware hack.</p>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <circle cx="22" cy="22" r="8" stroke="var(--gold-dim)" stroke-width="1.2"/>
+            <circle cx="22" cy="22" r="2" fill="var(--gold-dim)"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Samples</p>
+          <p class="shop-item-name">Vintage Brass Pack</p>
+          <p class="shop-item-price">$14.99</p>
+        </div>
       </div>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <line x1="10" y1="22" x2="18" y2="22" stroke="var(--gold-dim)" stroke-width="1.2"/>
+            <line x1="18" y1="18" x2="18" y2="26" stroke="var(--gold-dim)" stroke-width="1.2"/>
+            <line x1="20" y1="18" x2="20" y2="26" stroke="var(--gold-dim)" stroke-width="1.2"/>
+            <line x1="20" y1="22" x2="34" y2="22" stroke="var(--gold-dim)" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Presets</p>
+          <p class="shop-item-name">Lo-fi Reverb Suite</p>
+          <p class="shop-item-price">$9.99</p>
+        </div>
+      </div>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <rect x="14" y="16" width="16" height="12" stroke="var(--gold-dim)" stroke-width="1.2"/>
+            <line x1="14" y1="20" x2="30" y2="20" stroke="var(--gold-dim)" stroke-width="0.8"/>
+            <line x1="14" y1="24" x2="30" y2="24" stroke="var(--gold-dim)" stroke-width="0.8"/>
+            <line x1="20" y1="16" x2="20" y2="28" stroke="var(--gold-dim)" stroke-width="0.8"/>
+            <line x1="24" y1="16" x2="24" y2="28" stroke="var(--gold-dim)" stroke-width="0.8"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Hardware · Kit</p>
+          <p class="shop-item-name">MIDI Controller PCB</p>
+          <p class="shop-item-price">$49.00</p>
+        </div>
+      </div>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <path d="M14 22 Q18 14 22 22 Q26 30 30 22" stroke="var(--gold-dim)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Beat · Electronic</p>
+          <p class="shop-item-name">late frequency</p>
+          <p class="shop-item-price">$24.99</p>
+        </div>
+      </div>
+
+      <div class="shop-item">
+        <div class="shop-thumb">
+          <svg class="shop-thumb-icon" width="44" height="44" viewBox="0 0 44 44" fill="none">
+            <rect x="6" y="6" width="32" height="32" stroke="var(--gold-dim)" stroke-width="1.4"/>
+            <line x1="12" y1="15" x2="32" y2="15" stroke="var(--gold-dim)" stroke-width="1"/>
+            <line x1="12" y1="20" x2="32" y2="20" stroke="var(--gold-dim)" stroke-width="1"/>
+            <line x1="12" y1="25" x2="24" y2="25" stroke="var(--gold-dim)" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="shop-item-body">
+          <p class="shop-item-tag">Print · Zine</p>
+          <p class="shop-item-name">Signal Path</p>
+          <p class="shop-item-price">$12.00</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1265,16 +1379,12 @@ function drawWire() {
 let waveMode = 'sine', waveTarget = 'sine', waveLerp = 0;
 let oscT = 0, jY = 0, jTarget = 0, jTimer = 0;
 
-document.querySelectorAll('.cg, .card, .proj-card, .track, .clink').forEach(el => {
+document.querySelectorAll('.cg, .card, .proj-card, .track, .clink, .shop-item').forEach(el => {
   el.addEventListener('mouseenter', () => {
-    if      (el.id === 'cg-music')        waveTarget = 'damped';  // op-amp now links to projects
-    else if (el.id === 'cg-projects')     waveTarget = 'chaotic'; // R_f now links to contact
-    else if (el.id === 'cg-achievements') waveTarget = 'clip';
-    else if (el.id === 'cg-contact')      waveTarget = 'audio';   // speaker now links to music
-    else                                  waveTarget = 'sine';
+    waveTarget = componentWaveMap[el.id] || sectionWaveMap[current] || 'sine';
   });
-  el.addEventListener('mouseleave', () => { 
-    waveTarget = sectionWaveMap[current] || 'sine'; 
+  el.addEventListener('mouseleave', () => {
+    waveTarget = sectionWaveMap[current] || 'sine';
   });
 });
 
@@ -1308,6 +1418,19 @@ function getWaveSample(mode, x, t, H) {
       const bin = Math.floor((x / 90) * td.length);
       const sample = ((td[bin] || 128) - 128) / 128;
       return sample * 1.4 + noiseF(x*0.04+t*0.006)*0.06;
+    }
+    case 'sawtooth': {
+      const raw = ((x * 0.028 + t * 0.015) % 1) * 2 - 1;
+      return raw * 0.85 + noiseF(x*0.03+t*0.007)*0.1;
+    }
+    case 'square': {
+      const raw = Math.sign(Math.sin(2*Math.PI*0.046*x + phase));
+      return raw * 0.7 + noiseF(x*0.03+t*0.007)*0.08;
+    }
+    case 'pulse': {
+      const pos = ((x * 0.046 + phase * 0.0159) % 1 + 1) % 1;
+      const raw = pos < 0.3 ? 1 : -0.25;
+      return raw * 0.85 + noiseF(x*0.04+t*0.009)*0.1;
     }
   }
   return 0;
@@ -1364,32 +1487,39 @@ loop();
 
 /* ── NAV STATE ── */
 const wireMap = {
-  home:         [],
-  about:        ['w0'],
-  music:        ['w0','w1'],
-  projects:     ['w0','w1','w2','w-fb-up'],
-  achievements: ['w0','w1','w2','w-fb-up','w3','w3b','w4'],
-  contact:      ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
+  home:     [],
+  about:    ['w0'],
+  music:    ['w0','w1'],
+  projects: ['w0','w1','w2','w-fb-up'],
+  shop:     ['w0','w1','w2','w-fb-up','w3','w3b','w4'],
+  contact:  ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
 };
 
-// Map component IDs to their wire paths for highlighting
 const componentWireMap = {
-  'cg-home':        [],
-  'cg-about':       ['w0'],
-  'cg-music':       ['w0','w1'],  // op-amp
-  'cg-projects':    ['w0','w1','w2','w-fb-up'],  // R_f
-  'cg-achievements':['w0','w1','w2','w-fb-up','w3','w3b','w4'],  // C_out
-  'cg-contact':     ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],  // speaker
+  'cg-home':     [],
+  'cg-about':    ['w0'],
+  'cg-music':    ['w0','w1'],
+  'cg-projects': ['w0','w1','w2','w-fb-up'],
+  'cg-shop':     ['w0','w1','w2','w-fb-up','w3','w3b','w4'],
+  'cg-contact':  ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
 };
 
-// Map sections to their oscilloscope waveforms
+const componentWaveMap = {
+  'cg-home':     'sine',
+  'cg-about':    'square',
+  'cg-music':    'chaotic',
+  'cg-projects': 'damped',
+  'cg-shop':     'sawtooth',
+  'cg-contact':  'pulse',
+};
+
 const sectionWaveMap = {
-  home: 'sine',
-  about: 'clip',  // square wave/distorted
-  music: 'chaotic',  // complex noisy waveform
-  projects: 'damped',  // decaying wave
-  achievements: 'clip',  // keep existing
-  contact: 'chaotic'  // keep existing
+  home:     'sine',
+  about:    'square',
+  music:    'chaotic',
+  projects: 'damped',
+  shop:     'sawtooth',
+  contact:  'pulse',
 };
 
 let current = 'home';
