@@ -1267,10 +1267,10 @@ let oscT = 0, jY = 0, jTarget = 0, jTimer = 0;
 
 document.querySelectorAll('.cg, .card, .proj-card, .track, .clink').forEach(el => {
   el.addEventListener('mouseenter', () => {
-    if      (el.id === 'cg-music')        waveTarget = 'audio';
-    else if (el.id === 'cg-projects')     waveTarget = 'damped';
+    if      (el.id === 'cg-music')        waveTarget = 'damped';  // op-amp now links to projects
+    else if (el.id === 'cg-projects')     waveTarget = 'chaotic'; // R_f now links to contact
     else if (el.id === 'cg-achievements') waveTarget = 'clip';
-    else if (el.id === 'cg-contact')      waveTarget = 'chaotic';
+    else if (el.id === 'cg-contact')      waveTarget = 'audio';   // speaker now links to music
     else                                  waveTarget = 'sine';
   });
   el.addEventListener('mouseleave', () => { waveTarget = 'sine'; });
