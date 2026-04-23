@@ -1273,7 +1273,9 @@ document.querySelectorAll('.cg, .card, .proj-card, .track, .clink').forEach(el =
     else if (el.id === 'cg-contact')      waveTarget = 'audio';   // speaker now links to music
     else                                  waveTarget = 'sine';
   });
-  el.addEventListener('mouseleave', () => { waveTarget = 'sine'; });
+  el.addEventListener('mouseleave', () => { 
+    waveTarget = sectionWaveMap[current] || 'sine'; 
+  });
 });
 
 function noiseF(x) {
@@ -1380,6 +1382,16 @@ const componentWireMap = {
   'cg-contact':     ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],  // speaker
 };
 
+// Map sections to their oscilloscope waveforms
+const sectionWaveMap = {
+  home: 'sine',
+  about: 'clip',  // square wave/distorted
+  music: 'chaotic',  // complex noisy waveform
+  projects: 'damped',  // decaying wave
+  achievements: 'clip',  // keep existing
+  contact: 'chaotic'  // keep existing
+};
+
 let current = 'home';
 
 function nav(section, componentId) {
@@ -1406,6 +1418,8 @@ function nav(section, componentId) {
     const el = document.getElementById(id); if(el) el.classList.add('lit');
   });
   animateDot(componentId || section);
+  // Set the oscilloscope waveform for this section
+  waveTarget = sectionWaveMap[section] || 'sine';
   current = section;
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
 }
@@ -1429,6 +1443,8 @@ function animateDot(sectionOrComponentId) {
 }
 
 document.getElementById('cg-home').classList.add('active');
+// Set initial waveform for home section
+waveTarget = sectionWaveMap['home'] || 'sine';
 
 </script>
 </body>
