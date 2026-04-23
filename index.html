@@ -540,7 +540,7 @@ body::after {
     <line class="wire" id="w-vcc" x1="100" y1="18" x2="100" y2="30"/>
     <!-- VCC symbol (upward arrow / bar) -->
     <g id="cg-home" class="cg" onclick="nav('home', 'cg-home')">
-      <rect class="hit" x="72" y="8" width="56" height="36" rx="4"/>
+      <rect class="hit" x="45" y="-4" width="100" height="36" rx="4"/>
       <!-- Power symbol: horizontal bar + short line up -->
       <line class="sym" x1="82" y1="18" x2="118" y2="18"/>
       <line class="sym" x1="88" y1="13" x2="112" y2="13"/>
@@ -616,7 +616,7 @@ body::after {
 
       <text class="ref" x="85" y="200">U₁</text>
       <text class="val" x="85" y="208" font-size="6">LM741</text>
-      <text class="lbl" x="180" y="445">Music</text>
+      <text class="lbl" x="130" y="183">Projects</text>
     </g>
 
     <!-- Feedback resistor R_f (Projects) — goes from output back up to − input -->
@@ -624,26 +624,26 @@ body::after {
     <!-- Right segment -->
     <line class="wire" id="w2" x1="152" y1="200" x2="168" y2="200"/>
     <!-- Up segment -->
-    <line class="wire" id="w-fb-up" x1="168" y1="200" x2="168" y2="213"/>
+    <line class="wire" id="w-fb-up" x1="168" y1="200" x2="168" y2="248"/>
 
     <!-- ═══ R_f — FEEDBACK RESISTOR (Projects) ═══ -->
     <g id="cg-projects" class="cg" onclick="nav('contact', 'cg-projects')">
-      <rect class="hit" x="138" y="220" width="62" height="90" rx="3"/>
+      <rect class="hit" x="111" y="264" width="89" height="25" rx="3"/>
       <!-- Vertical resistor zigzag -->
       <polyline class="sym" points="
-        168,213
-        168,225
-        174,229 162,233 174,237 162,241 174,245 162,249 174,253
-        168,257
-        168,270
+        168,248
+        168,260
+        174,264 162,268 174,272 162,276 174,280 162,284 174,288
+        168,292
+        168,305
       "/>
-      <text class="ref" x="180" y="238">R_f</text>
-      <text class="val" x="180" y="247">47kΩ</text>
-      <text class="lbl" x="135" y="185">Projects</text>
+      <text class="ref" x="180" y="273">R_f</text>
+      <text class="val" x="180" y="282">47kΩ</text>
+      <text class="lbl" x="130" y="280">Contact</text>
     </g>
 
     <!-- Wire from Rf down continues the signal path -->
-    <line class="wire" id="w3" x1="168" y1="270" x2="168" y2="310"/>
+    <line class="wire" id="w3" x1="168" y1="305" x2="168" y2="310"/>
     <!-- Elbow left to main rail -->
     <line class="wire" id="w3b" x1="100" y1="310" x2="168" y2="310"/>
     <circle class="jct" cx="168" cy="310" r="3"/>
@@ -653,7 +653,7 @@ body::after {
 
     <!-- ═══ C_out — OUTPUT CAP (Achievements) ═══ -->
     <g id="cg-shop" class="cg" onclick="nav('shop', 'cg-shop')">
-      <rect class="hit" x="55" y="345" width="90" height="55" rx="3"/>
+      <rect class="hit" x="68" y="350" width="90" height="35" rx="3"/>
       <!-- Horizontal capacitor symbol — plates -->
       <line class="sym" x1="100" y1="345" x2="100" y2="368"/>
       <line class="sym" x1="80"  y1="368" x2="120" y2="368"/>
@@ -663,7 +663,7 @@ body::after {
       <text class="val" x="123" y="370" font-size="8">+</text>
       <text class="ref" x="48" y="367" text-anchor="end">C₂</text>
       <text class="val" x="48" y="376" text-anchor="end">10µF</text>
-      <text class="lbl" x="165" y="375">Shop</text>
+      <text class="lbl" x="140" y="375">Shop</text>
     </g>
 
     <!-- Wire cap → speaker -->
@@ -671,7 +671,7 @@ body::after {
 
     <!-- ═══ SPEAKER — CONTACT ═══ -->
     <g id="cg-contact" class="cg" onclick="nav('music', 'cg-contact')">
-      <rect class="hit" x="45" y="420" width="110" height="100" rx="4"/>
+      <rect class="hit" x="40" y="410" width="150" height="75" rx="4"/>
       <!-- Speaker symbol:
            Rectangle (voice coil box) + trapezoid cone + arc radiation lines -->
       <!-- lead wire in -->
@@ -700,7 +700,7 @@ body::after {
       <!-- ref -->
       <text class="ref" x="57" y="462" text-anchor="end">LS₁</text>
       <text class="val" x="57" y="471" text-anchor="end">8Ω</text>
-      <text class="lbl" x="130" y="245">Contact</text>
+      <text class="lbl" x="170" y="448">Music</text>
     </g>
 
     <!-- Overall schematic title -->
@@ -723,8 +723,8 @@ body::after {
   <!-- HOME -->
   <div class="page active" id="pg-home">
     <p class="ptag">VCC · +12V — Home</p>
-    <h1 class="ph">Hello,<br/>I build things.</h1>
-    <p class="pb">ECE student, musician, and maker. This site is a live schematic of what I'm working on — select a component to explore.</p>
+    <h1 class="ph">Hello there!</h1>
+    <p class="pb">Select a component from the navigation menu on the left to explore, or browse the suggested options below.</p>
     <div class="div"></div>
     <div class="card-row">
       <div class="card" onclick="nav('music')">
@@ -753,8 +753,8 @@ body::after {
   <!-- ABOUT -->
   <div class="page" id="pg-about">
     <p class="ptag">R₁ · 10kΩ — About</p>
-    <h1 class="ph">The engineer<br/>behind the board.</h1>
-    <p class="pb">I'm an ECE student who thinks in signals. I design things that sit at the border of hardware and software — RF circuits, embedded systems, DSP. Off the clock I'm playing music or building something that blinks.</p>
+    <h1 class="ph">What is this place?</h1>
+    <p class="pb">I'm an engineer who works on advanced imaging systems. This is my website, which highlights none of that. Instead </p>
     <div class="div"></div>
     <p class="pb" style="margin-top:0">This portfolio is built the way I think: as a schematic. Every section is a component in a real amplifier circuit. Every navigation is signal flow.</p>
   </div>
@@ -841,7 +841,7 @@ body::after {
   <!-- PROJECTS -->
   <div class="page" id="pg-projects">
     <p class="ptag">R_f · 47kΩ — Projects</p>
-    <h1 class="ph">Hobby<br/>projects.</h1>
+    <h1 class="ph">Projects & hobby.</h1>
     <p class="pb">Weekend obsessions and semester-long rabbit holes. Hardware, firmware, and everything in between.</p>
     <div class="div"></div>
     <div class="proj-grid">
