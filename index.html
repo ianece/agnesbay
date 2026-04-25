@@ -397,56 +397,41 @@
     <div class="proj-header-row">
       <div class="proj-header-text">
         <p class="ptag">R_f · 47kΩ — Projects</p>
-        <div class="ph-line">
-          <h1 class="ph">Projects & hobbies.</h1>
-          <button class="power-switch" id="power-switch" type="button" aria-label="Cut power · return to projects" aria-pressed="false">
-            <span class="ps-base"></span>
-            <span class="ps-contact ps-contact-a"></span>
-            <span class="ps-contact ps-contact-b"></span>
-            <span class="ps-lever"></span>
-            <span class="ps-label">SW₁</span>
-          </button>
-        </div>
-        <p class="pb">Weekend obsessions and semester-long rabbit holes. Hardware, firmware, and everything in between.</p>
+        <h1 class="ph">Projects & hobbies.</h1>
+        <p class="pb">Weekend obsessions and semester-long rabbit holes. Hardware, firmware, original builds and kits. I go where the wind takes me.</p>
         <div class="div"></div>
       </div>
       <div class="proj-selected-slot" id="proj-selected-slot" aria-hidden="true"></div>
     </div>
 
-    <!-- Circuit rails — two thin power lines below the project summary, visible when expanded -->
-    <div class="circuit-rails" id="circuit-rails" aria-hidden="true">
-      <div class="c-rail c-rail-a"></div>
-      <div class="c-rail c-rail-b"></div>
-    </div>
-
-    <!-- Schematic SVG overlay — wires + schematic switch, drawn by JS when a card is open -->
+    <!-- Schematic SVG overlay — wires + schematic switch, drawn by JS when a card is open.
+         The wires terminate on the two accent borders of the selected project's meta grid. -->
     <svg class="proj-schematic" id="proj-schematic" aria-hidden="true"></svg>
 
     <div class="proj-grid">
-      <article class="proj-card" data-proj="neo80">
-        <p class="proj-tag">Keyboards · In Progress</p>
-        <h3>Neo 80 Build</h3>
-        <p>Custom 80% in jade. Kintsugi keycap set, lubed switches, PE foam mod. Designed around feel and sound.</p>
+      <article class="proj-card" data-proj="website">
+          <dd>
+          <div class="switch"></div>
+          </dd>
+        <p class="proj-tag">Coding · In Progress</p>
+        <h3>This Website</h3>
+        <p>Created on a whim with claude. This website is also a personal project.</p>
         <template class="proj-detail-source">
-          <p class="proj-sub">Keyboards · In Progress</p>
-          <h2>Neo 80 Build</h2>
-          <p class="proj-lede">Custom 80% mechanical keyboard in a jade aluminum case, built for feel and sound. Kintsugi-themed PBT keycap set with veined gold accents pairs with Gateron Oil King switches — long-pole, factory-lubed, with a deep muted thock.</p>
+          <p class="proj-sub">Coding · In Progress</p>
+          <h2>This Website</h2>
+          <p class="proj-lede">Created the first iteration in an evening after work. Claude code is helping with all of the code.</p>
 
           <dl class="proj-meta-grid">
-            <div><dt>Status</dt><dd>Assembly in progress</dd></div>
-            <div><dt>Started</dt><dd>January 2026</dd></div>
-            <div><dt>Discipline</dt><dd>Mechanical / Acoustic</dd></div>
-            <div><dt>Switches</dt><dd>Gateron Oil King</dd></div>
+            <div><dt>Status</dt><dd>I progress</dd></div>
+            <div><dt>Start Date</dt><dd>April 2026</dd></div>
+            <div><dt>Discipline</dt><dd>Prompt Engineering</dd></div>
+            <div><dt>Completion Date</dt><dd> -- </dd></div>
           </dl>
 
           <div class="proj-body">
-            <figure class="proj-figure span-2">
-              <img src="assets/prettybay.jpeg" alt="Neo 80 build hero shot"/>
-              <figcaption>Fig. 01 — Jade chassis on the bench, pre-lube</figcaption>
-            </figure>
 
             <div class="proj-text">
-              <h3>Case & acoustics</h3>
+              <h3>Abstract</h3>
               <p>Full PE foam mod to dampen case resonance. Case foam, switch pad, and PET film layered between the plate and PCB. Hot-swappable, wired USB-C, gasket-mount with Poron gaskets on the plate tabs.</p>
               <p>The jade anodized finish catches light differently at every angle — the photos never quite capture it. Ordered from a small group buy out of Shenzhen, three-month wait from PO to wheels-down.</p>
             </div>

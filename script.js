@@ -548,19 +548,21 @@ const projPage = document.getElementById('pg-projects');
 const projSlot = document.getElementById('proj-selected-slot');
 const projDetailWrap = document.getElementById('proj-detail-wrap');
 const projDetail = document.getElementById('proj-detail');
-const powerSwitch = document.getElementById('power-switch');
 const schemSvg = document.getElementById('proj-schematic');
-const circuitRails = document.getElementById('circuit-rails');
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
+function getPowerSwitch() {
+  return projDetail.querySelector('.power-switch');
+}
 
 document.querySelectorAll('.proj-card').forEach(card => {
   card.addEventListener('click', () => openProject(card));
 });
 
-/* Physical switch = "cut power / return to projects" */
-powerSwitch.addEventListener('click', () => {
-  if (projPage.classList.contains('project-expanded')) closeProject();
+/* Delegate clicks on the toggle switch (lives inside the detail content) */
+projDetail.addEventListener('click', (e) => {
+  if (e.target.closest('.power-switch')) {
+    if (projPage.classList.contains('project-expanded')) closeProject();
+  }
 });
 
 document.addEventListener('keydown', e => {
@@ -574,13 +576,66 @@ document.querySelectorAll('.cg').forEach(cg => {
   });
 });
 
+/* Build the SVG markup for the industrial toggle switch shown in assets/user_switch.png.
+   Gear ring is generated once (16 teeth alternating between inner/outer radius). */
+const SWITCH_GEAR_PATH = (() => {
+  const teeth = 16, cx = 50, cy = 55, rOut = 11, rIn = 9;
+  const pts = [];
+  for (let i = 0; i < teeth * 2; i++) {
+    const a = (i / (teeth * 2)) * Math.PI * 2 - Math.PI / 2;
+    const r = i % 2 === 0 ? rOut : rIn;
+    pts.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+  }
+  return `M ${pts[0]} L ${pts.slice(1).join(' L ')} Z`;
+})();
+
+function buildPowerSwitch() {
+  const btn = document.createElement('button');
+  btn.className = 'power-switch';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Cut power · return to projects');
+  btn.setAttribute('aria-pressed', 'false');
+  btn.innerHTML = `
+    <svg class="ps-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Left mounting lugs -->
+      <rect class="ps-lug" x="6"  y="42" width="12" height="8" rx="1"/>
+      <circle class="ps-lug-hole" cx="12" cy="46" r="1.4"/>
+      <rect class="ps-lug" x="6"  y="60" width="12" height="8" rx="1"/>
+      <circle class="ps-lug-hole" cx="12" cy="64" r="1.4"/>
+
+      <!-- Right mounting lugs -->
+      <rect class="ps-lug" x="82" y="42" width="12" height="8" rx="1"/>
+      <circle class="ps-lug-hole" cx="88" cy="46" r="1.4"/>
+      <rect class="ps-lug" x="82" y="60" width="12" height="8" rx="1"/>
+      <circle class="ps-lug-hole" cx="88" cy="64" r="1.4"/>
+
+      <!-- Main body rectangle (fills when on) -->
+      <rect class="ps-body" x="18" y="40" width="64" height="30" rx="1.2"/>
+
+      <!-- Central hub: serrated outer gear, middle ring, center dot -->
+      <path class="ps-gear" d="${SWITCH_GEAR_PATH}"/>
+      <circle class="ps-hub-ring"   cx="50" cy="55" r="7.5"/>
+      <circle class="ps-hub-center" cx="50" cy="55" r="2.2"/>
+
+      <!-- Pointer flag below hub -->
+      <path class="ps-pointer" d="M46.8,65 L53.2,65 L52,71 L48,71 Z"/>
+
+      <!-- Lever group — JS rotates this around (50,55) for on/off -->
+      <g class="ps-lever-group" transform="rotate(180 50 55)">
+        <rect class="ps-lever" x="46.5" y="14" width="7" height="42" rx="3.5"/>
+      </g>
+    </svg>
+  `;
+  return btn;
+}
+
 function openProject(card) {
-  /* Clone card face (everything except the detail template) into the slot */
+  /* Clone card face (minus the template) into the slot — same size, same styling */
   const faceHTML = [...card.children]
     .filter(el => el.tagName !== 'TEMPLATE')
     .map(el => el.outerHTML)
     .join('');
-  projSlot.innerHTML = '<article class="proj-card" aria-hidden="true">' + faceHTML + '</article>';
+  projSlot.innerHTML = '<article class="proj-card slot-card" aria-hidden="false">' + faceHTML + '</article>';
   projSlot.setAttribute('aria-hidden', 'false');
 
   /* Load full detail from the template */
@@ -588,17 +643,33 @@ function openProject(card) {
   projDetail.innerHTML = tpl ? tpl.innerHTML : '';
   projDetailWrap.setAttribute('aria-hidden', 'false');
 
+  /* Inject the power switch to the RIGHT of the detail's h2 title */
+  const h2 = projDetail.querySelector('h2');
+  if (h2) {
+    const row = document.createElement('div');
+    row.className = 'proj-title-row';
+    h2.parentNode.insertBefore(row, h2);
+    row.appendChild(h2);
+    row.appendChild(buildPowerSwitch());
+  }
+
   projPage.classList.add('project-expanded');
 
-  /* Scroll to top of the projects page so the user sees header + detail start */
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  /* Draw schematic once layout has settled; initial render has lever open,
-     then we close the switch (power on) for the lever-drops-in animation. */
-  drawSchematic({ state: 'off', animate: false });
+  /* Redraw once any image in the detail finishes loading (page height may grow) */
+  projDetail.querySelectorAll('img').forEach(img => {
+    if (!img.complete) {
+      img.addEventListener('load',  redrawIfOpen, { once: true });
+      img.addEventListener('error', redrawIfOpen, { once: true });
+    }
+  });
+
+  /* Draw schematic once layout has settled; initial render shows lever open,
+     then we close the switch (power on) for the drop-in animation. */
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    drawSchematic({ state: 'off', animate: false });
-    setTimeout(() => flipSwitch(true), 260);
+    drawSchematic({ state: 'off' });
+    setTimeout(() => flipSwitch(true), 300);
   }));
 }
 
@@ -609,7 +680,6 @@ function closeProject() {
     projPage.classList.remove('project-expanded', 'power-on');
     projSlot.setAttribute('aria-hidden', 'true');
     projDetailWrap.setAttribute('aria-hidden', 'true');
-    powerSwitch.setAttribute('aria-pressed', 'false');
     setTimeout(() => {
       if (!projPage.classList.contains('project-expanded')) {
         projSlot.innerHTML = '';
@@ -617,69 +687,109 @@ function closeProject() {
         schemSvg.innerHTML = '';
       }
     }, 450);
-  }, 380);
+  }, 440);
 }
 
-/* Flip both the physical switch and the schematic switch together. */
+/* Flip both the physical toggle and the schematic switch together. */
 function flipSwitch(on) {
+  const sw = getPowerSwitch();
   if (on) {
-    powerSwitch.classList.add('on');
-    powerSwitch.setAttribute('aria-pressed', 'true');
+    if (sw) { sw.classList.add('on'); sw.setAttribute('aria-pressed', 'true'); }
     projPage.classList.add('power-on');
   } else {
-    powerSwitch.classList.remove('on');
-    powerSwitch.setAttribute('aria-pressed', 'false');
+    if (sw) { sw.classList.remove('on'); sw.setAttribute('aria-pressed', 'false'); }
     projPage.classList.remove('power-on');
   }
+  animatePhysicalLever(on ? 0 : 180);
   animateSchematicLever(on ? 0 : 58);
 }
 
-/* ── Schematic SVG: wires from the slotted card down through a switch to two rails,
-   plus a control wire back to the physical switch next to the title. ── */
+/* Rotate the physical switch's lever group around the hub center (50, 55) */
+let physLeverRaf = null;
+function animatePhysicalLever(targetDeg) {
+  const sw = getPowerSwitch();
+  if (!sw) return;
+  const leverG = sw.querySelector('.ps-lever-group');
+  if (!leverG) return;
+  if (physLeverRaf) cancelAnimationFrame(physLeverRaf);
+  const m = /rotate\(\s*(-?[\d.]+)/.exec(leverG.getAttribute('transform') || '');
+  const startDeg = m ? parseFloat(m[1]) : 0;
+  const delta = targetDeg - startDeg;
+  const dur = 450;
+  const t0 = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - t0) / dur);
+    /* ease-out-back */
+    const c1 = 1.70158, c3 = c1 + 1;
+    const eased = 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    const deg = startDeg + delta * (t < 1 ? eased : 1);
+    leverG.setAttribute('transform', `rotate(${deg} 50 55)`);
+    if (t < 1) physLeverRaf = requestAnimationFrame(tick);
+    else {
+      leverG.setAttribute('transform', `rotate(${targetDeg} 50 55)`);
+      physLeverRaf = null;
+    }
+  }
+  physLeverRaf = requestAnimationFrame(tick);
+}
+
+/* ── Schematic SVG: wires from the slotted card down past page content to the
+   two accent borders of the selected project's meta-grid. A schematic switch
+   is placed in-line with the left wire, aligned with (and controlled by) the
+   physical toggle next to the detail h2. ── */
 let leverRaf = null;
 let leverCoords = null; // { hingeX, hingeY, length }
 
-function drawSchematic({ state = 'off', animate = true } = {}) {
+function drawSchematic({ state = 'off' } = {}) {
   if (!projPage.classList.contains('project-expanded')) return;
   const slotCard = projSlot.querySelector('.proj-card');
   if (!slotCard) return;
+  const sw = getPowerSwitch();
+  if (!sw) return;
+  const metaGrid = projDetail.querySelector('.proj-meta-grid');
+  if (!metaGrid) { schemSvg.innerHTML = ''; return; }
 
-  const pageRect = projPage.getBoundingClientRect();
-  const cardRect = slotCard.getBoundingClientRect();
-  const psRect   = powerSwitch.getBoundingClientRect();
-  const railsRect = circuitRails.getBoundingClientRect();
+  const pageRect  = projPage.getBoundingClientRect();
+  const cardRect  = slotCard.getBoundingClientRect();
+  const psRect    = sw.getBoundingClientRect();
+  const metaRect  = metaGrid.getBoundingClientRect();
 
   const W = pageRect.width;
   const H = pageRect.height;
 
-  /* Card terminals: two points on the card's bottom edge, indented from the sides */
-  const termInset = Math.min(60, cardRect.width * 0.18);
-  const termAX = cardRect.left  - pageRect.left + termInset;
-  const termBX = cardRect.right - pageRect.left - termInset;
+  /* Card terminals: two points on the card's bottom edge.
+     Left terminal is indented to leave room for the in-line schematic switch.
+     Right terminal hugs close to the card's right edge. */
+  const termInsetA = Math.min(80, cardRect.width * 0.22); // left wire — through switch
+  const termInsetB = 28;                                   // right wire — direct, near edge
+  const termAX = cardRect.left  - pageRect.left + termInsetA;
+  const termBX = cardRect.right - pageRect.left - termInsetB;
   const termY  = cardRect.bottom - pageRect.top + 4;
 
-  /* Top rail (first of the two thin lines) */
-  const railY = railsRect.top - pageRect.top;
+  /* The two accent lines (meta-grid's top/bottom borders), in page coords */
+  const accentTopY    = metaRect.top    - pageRect.top;
+  const accentBottomY = metaRect.bottom - pageRect.top;
 
-  /* Physical switch anchor — right edge, vertical center */
-  const physX = psRect.right - pageRect.left - 6;
-  const physY = (psRect.top + psRect.bottom) / 2 - pageRect.top;
+  /* Physical switch — left edge as the "tap" point (switch sits to the right of
+     the h2, schematic switch is on the left, so the wire exits leftward). */
+  const physLeftX = psRect.left - pageRect.left;
+  const physMidY  = (psRect.top + psRect.bottom) / 2 - pageRect.top;
 
-  /* Schematic switch lives in the left wire, halfway between card and rail */
+  /* Schematic switch sits in the left wire, aligned vertically near the physical
+     switch so the control wire is short. Place it just above the top accent line. */
   const swColumnX = termAX;
-  const swY1 = termY + (railY - termY) * 0.38; // hinge
-  const swL  = Math.max(26, (railY - termY) * 0.22); // lever length
-  const swY2 = swY1 + swL; // fixed contact (below hinge)
-
+  const swY1 = Math.max(termY + 60, accentTopY - 64);  // hinge
+  const swL  = 28;
+  const swY2 = swY1 + swL;                              // fixed contact
   leverCoords = { hingeX: swColumnX, hingeY: swY1, length: swL };
 
-  /* Control wire from physical switch to schematic hinge: up-over-down */
-  const overY = Math.max(12, physY - 28);
+  /* Control wire: from the physical switch's left edge, jog left to the switch
+     column, then vertically to the hinge. A short dashed connector. */
   const controlPath =
-    `M ${physX} ${physY} ` +
-    `V ${overY} ` +
-    `H ${swColumnX} ` +
-    `V ${swY1 - 6}`;
+    `M ${physLeftX} ${physMidY} ` +
+    `H ${swColumnX - 18} ` +
+    `V ${swY1 + swL/2} ` +
+    `H ${swColumnX - 6}`;
 
   schemSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   schemSvg.setAttribute('preserveAspectRatio', 'none');
@@ -687,17 +797,21 @@ function drawSchematic({ state = 'off', animate = true } = {}) {
   schemSvg.style.height = H + 'px';
 
   schemSvg.innerHTML = `
-    <!-- Left wire: card terminal → switch hinge -->
+    <!-- Left power wire: card terminal → schematic switch hinge -->
     <line class="c-wire" x1="${termAX}" y1="${termY}" x2="${swColumnX}" y2="${swY1}" />
-    <!-- Left wire: switch contact → rail A -->
-    <line class="c-wire" x1="${swColumnX}" y1="${swY2}" x2="${termAX}" y2="${railY}" />
-    <!-- Right wire: card terminal → rail A (continuous) -->
-    <line class="c-wire" x1="${termBX}" y1="${termY}" x2="${termBX}" y2="${railY}" />
+    <!-- Left power wire: switch contact → top accent line -->
+    <line class="c-wire" x1="${swColumnX}" y1="${swY2}" x2="${termAX}" y2="${accentTopY}" />
+    <!-- Right power wire: card terminal → bottom accent line (continuous, passes over meta grid) -->
+    <line class="c-wire" x1="${termBX}" y1="${termY}" x2="${termBX}" y2="${accentBottomY}" />
+
+    <!-- Tap nodes on the accent lines -->
+    <circle class="c-node c-tap" cx="${termAX}" cy="${accentTopY}" r="3" />
+    <circle class="c-node c-tap" cx="${termBX}" cy="${accentBottomY}" r="3" />
 
     <!-- Control wire from physical switch to schematic hinge -->
     <path class="c-wire c-wire-control" d="${controlPath}" />
 
-    <!-- Schematic switch: hinge and fixed contact, lever rotates around hinge -->
+    <!-- Schematic switch: hinge + fixed contact, lever rotates around hinge -->
     <circle class="c-node" cx="${swColumnX}" cy="${swY1}" r="3.2" />
     <circle class="c-node" cx="${swColumnX}" cy="${swY2}" r="3.2" />
     <g id="sch-lever-g" transform="rotate(0 ${swColumnX} ${swY1})">
@@ -705,8 +819,7 @@ function drawSchematic({ state = 'off', animate = true } = {}) {
       <circle class="c-lever-tip" cx="${swColumnX}" cy="${swY2}" r="2.4" />
     </g>
 
-    <!-- Small ref label next to the schematic switch -->
-    <text class="c-label" x="${swColumnX + 10}" y="${swY1 + (swY2 - swY1) / 2 + 3}">SW₁</text>
+    <text class="c-label" x="${swColumnX + 10}" y="${swY1 + swL/2 + 3}">SW₁</text>
   `;
 
   /* Apply initial lever angle without animation */
@@ -745,15 +858,14 @@ function animateSchematicLever(targetDeg) {
 }
 
 /* Redraw schematic on layout changes */
-window.addEventListener('resize', () => {
-  if (projPage.classList.contains('project-expanded')) {
-    const isOn = powerSwitch.classList.contains('on');
-    drawSchematic({ state: isOn ? 'on' : 'off', animate: false });
-  }
-});
+function redrawIfOpen() {
+  if (!projPage.classList.contains('project-expanded')) return;
+  const sw = getPowerSwitch();
+  const isOn = sw && sw.classList.contains('on');
+  drawSchematic({ state: isOn ? 'on' : 'off' });
+}
+
+window.addEventListener('resize', redrawIfOpen);
 projSlot.addEventListener('transitionend', (e) => {
-  if (e.propertyName === 'width' && projPage.classList.contains('project-expanded')) {
-    const isOn = powerSwitch.classList.contains('on');
-    drawSchematic({ state: isOn ? 'on' : 'off', animate: false });
-  }
+  if (e.propertyName === 'width') redrawIfOpen();
 });

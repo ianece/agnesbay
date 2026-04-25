@@ -461,113 +461,85 @@ body::after {
   min-width: 0;
 }
 
-/* Title line — holds the h1 plus the physical switch */
-.ph-line {
+/* ── DETAIL TITLE ROW — holds the power switch (left) and the h2 project title ── */
+.proj-title-row {
   display: flex;
   align-items: center;
-  gap: 28px;
-  flex-wrap: wrap;
+  gap: 22px;
+  margin-bottom: 24px;
 }
-.ph-line .ph { margin-bottom: 0; }
+.proj-title-row h2 {
+  margin-bottom: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+}
 
-/* ── PHYSICAL POWER SWITCH (next to project title) ── */
+/* ── INDUSTRIAL POWER SWITCH (matches assets/user_switch.png) ── */
 .power-switch {
   position: relative;
-  width: 78px;
-  height: 40px;
+  width: 72px;
+  height: 72px;
   background: transparent;
   border: none;
   padding: 0;
   cursor: none;
   flex-shrink: 0;
-  opacity: 0;
-  transform: scale(0.55);
-  transform-origin: left center;
-  pointer-events: none;
-  transition: opacity .3s ease, transform .4s cubic-bezier(.68,-0.55,.27,1.55);
+  color: var(--gold-dim);
+  transition: color .25s ease, transform .2s ease;
 }
-#pg-projects.project-expanded .power-switch {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
+.power-switch:hover { color: var(--gold); }
+.power-switch:active { transform: scale(0.96); }
+
+.power-switch .ps-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
 
-.ps-base {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 50%;
-  height: 6px;
-  background: linear-gradient(to bottom, var(--cream-3), var(--cream-4));
-  border: 1px solid var(--gold-dim);
-  border-radius: 3px;
-  transform: translateY(-50%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+/* All sub-parts are outlined in currentColor (gold-dim → gold on hover) */
+.power-switch .ps-lug,
+.power-switch .ps-body,
+.power-switch .ps-hub-ring,
+.power-switch .ps-hub-center,
+.power-switch .ps-pointer,
+.power-switch .ps-lever,
+.power-switch .ps-gear {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill .4s ease, stroke .25s ease;
 }
 
-.ps-contact {
-  position: absolute;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-dim));
-  border: 1px solid var(--ink-4);
-  transform: translateY(-50%);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
-  z-index: 2;
-}
-.ps-contact-a { left: 8px; }
-.ps-contact-b { right: 8px; }
-
-.ps-lever {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  width: 52px;
-  height: 4px;
-  background: linear-gradient(to bottom, var(--gold-bright) 0%, var(--gold) 55%, var(--gold-dim) 100%);
-  border: 1px solid var(--ink-4);
-  border-radius: 2px;
-  transform-origin: 2px 50%;
-  transform: translate3d(0, -50%, 0) rotate(-52deg);
-  transition: transform .45s cubic-bezier(.68,-0.55,.27,1.55),
-              box-shadow .3s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
-  z-index: 3;
-}
-.ps-lever::after {
-  content: '';
-  position: absolute;
-  right: -4px;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--gold-bright), var(--gold-dim) 80%, var(--ink-4));
-  border: 1px solid var(--ink-4);
-  transform: translateY(-50%);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-.power-switch.on .ps-lever {
-  transform: translate3d(0, -50%, 0) rotate(0deg);
-  box-shadow: 0 0 10px var(--gold-glow), 0 1px 2px rgba(0,0,0,0.25);
-}
-.power-switch:hover .ps-lever {
-  box-shadow: 0 0 12px var(--gold-bright), 0 1px 2px rgba(0,0,0,0.25);
+.power-switch .ps-lug-hole {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.9;
 }
 
-.ps-label {
-  position: absolute;
-  left: 50%;
-  bottom: -14px;
-  transform: translateX(-50%);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 7.5px;
-  letter-spacing: 0.18em;
-  color: var(--ink-4);
-  text-transform: uppercase;
-  pointer-events: none;
+/* Body fills when the switch is on */
+.power-switch.on .ps-body {
+  fill: var(--gold);
+  fill-opacity: 0.22;
+  stroke: var(--gold);
+}
+.power-switch.on .ps-gear,
+.power-switch.on .ps-hub-ring,
+.power-switch.on .ps-hub-center,
+.power-switch.on .ps-pointer,
+.power-switch.on .ps-lever,
+.power-switch.on .ps-lug {
+  stroke: var(--gold);
+}
+.power-switch.on { color: var(--gold); }
+
+/* Lever lives in a rotatable group — JS writes the transform attribute directly.
+   Default attribute = rotate(180 50 55) (down / off); on = rotate(0 50 55). */
+.power-switch .ps-lever-group {
+  transition: none; /* animation is JS-driven for reliable cross-browser rotation */
 }
 
 /* ── SLOTTED CARD ── */
@@ -600,37 +572,6 @@ body::after {
 #pg-projects.project-expanded .proj-grid {
   display: none;
 }
-
-/* Hide the default small divider when expanded — rails take over */
-#pg-projects.project-expanded .proj-header-text > .div {
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-
-/* ── CIRCUIT RAILS (the two thin lines below project summary) ── */
-.circuit-rails {
-  position: relative;
-  z-index: 1;
-  margin-top: 0;
-  height: 0;
-  overflow: visible;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .3s ease .1s, height .3s ease, margin .3s ease;
-}
-#pg-projects.project-expanded .circuit-rails {
-  opacity: 1;
-  height: auto;
-  margin-top: 6px;
-  margin-bottom: 28px;
-}
-.c-rail {
-  height: 1px;
-  background: var(--gold-dim);
-  opacity: 0.7;
-}
-.c-rail-a { margin-bottom: 9px; }
-.c-rail-b { opacity: 0.45; }
 
 /* ── SCHEMATIC SVG OVERLAY (wires + schematic switch) ── */
 .proj-schematic {
@@ -666,6 +607,10 @@ body::after {
   stroke: var(--gold-dim);
   stroke-width: 1.4;
 }
+.proj-schematic .c-node.c-tap {
+  fill: var(--gold);
+  stroke: var(--gold-dim);
+}
 .proj-schematic .c-lever {
   stroke: var(--gold);
   stroke-width: 2.2;
@@ -689,10 +634,6 @@ body::after {
 #pg-projects.project-expanded.power-on .proj-schematic .c-wire {
   stroke: var(--gold);
   opacity: 1;
-}
-#pg-projects.project-expanded.power-on .circuit-rails .c-rail {
-  background: var(--gold);
-  opacity: 0.85;
 }
 
 /* Detail wrap — inline, full content-width */
@@ -772,6 +713,13 @@ body::after {
   font-size: 15px;
   font-style: italic;
   color: var(--ink-2);
+  display: flex;
+  justify-content: flex-end;
+}
+.proj-meta-grid > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
 }
 
 /* Body — two-column mixed media grid that fills the content area */
@@ -852,5 +800,6 @@ body::after {
   .proj-body { grid-template-columns: 1fr; gap: 28px; }
   .proj-detail { padding: 8px 0 40px; }
   .proj-schematic { display: none; }
-  .circuit-rails { margin-bottom: 16px; }
+  .proj-title-row { gap: 14px; }
+  .power-switch { width: 56px; height: 56px; }
 }
