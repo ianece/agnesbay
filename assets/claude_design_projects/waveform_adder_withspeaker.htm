@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var A=["https://claude.ai","https://preview.claude.ai","https://eap-omelette.claude.ai"];var L=30000;var u=3000;document.addEventListener("DOMContentLoaded",()=>{const V=window.Babel;const $="om-src-id";if(V&&V.registerPlugin&&!(V.availablePlugins&&V.availablePlugins[$])){V.registerPlugin($,({types:Q})=>({visitor:{JSXOpeningElement(W,X){const K=W.node;if(K.name&&K.name.type==="JSXMemberExpression")return;for(let J=0;J<K.attributes.length;J++){const w=K.attributes[J];if(w.type==="JSXAttribute"&&w.name&&w.name.name==="data-om-id")return}const z=X.file&&X.file.opts&&X.file.opts.filename||"?";const k=K.loc&&K.loc.start;const C=`jsx:${z}:${K.start??0}:${k?k.line:0}:${k?k.column+1:0}`;K.attributes.push(Q.jsxAttribute(Q.jsxIdentifier("data-om-id"),Q.stringLiteral(C)))}}}))}const Z=["transform-react-jsx-source",$];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Q,W)=>{const X=Q.getAttribute("data-plugins")||"";const K=Z.filter((z)=>X.indexOf(z)<0);if(K.length){Q.setAttribute("data-plugins",X?`${X},${K.join(",")}`:K.join(","))}if(!Q.hasAttribute("data-filename")){Q.setAttribute("data-filename",Q.getAttribute("src")||`inline-${W}`)}})});var b=window.parent;if(b&&b!==window){const V=(z,k)=>{try{b.postMessage({__omelette_log:true,type:z,data:k},"*")}catch{}};["log","warn","error"].forEach((z)=>{const k=console[z];console[z]=(...C)=>{const J=C.map((w)=>{try{return typeof w==="object"?JSON.stringify(w):String(w)}catch{try{return String(w)}catch{return"[unstringifiable]"}}}).join(" ");V(z,J);k.apply(console,C)}});window.addEventListener("error",(z)=>{const k=z.target;if(k&&k!==window&&k.tagName){const C=k.src||k.href||"";V("resource_error",`${k.tagName} failed to load: ${C}`)}else{V("error",`${z.message||"Unknown error"} at ${z.filename||"?"}:${z.lineno||0}:${z.colno||0}`)}},true);window.addEventListener("unhandledrejection",(z)=>{const k=z.reason;const C=k instanceof Error?`${k.message} ${k.stack}`:String(k);V("error",`Unhandled rejection: ${C}`)});const $=()=>{try{b.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")$();else window.addEventListener("load",$);if(window.ResizeObserver)new ResizeObserver($).observe(document.documentElement);const Z={};let Q=0;window.claude={complete(z){return new Promise((k,C)=>{if(!A.length){C(new Error("claude.complete: no parent origin"));return}const J=`c${++Q}`;const w=()=>setTimeout(()=>{delete Z[J];C(new Error(`claude.complete: no data for ${L/1000}s`))},L);const Y=w();Z[J]={resolve:k,reject:C,text:"",t:Y,arm:w};try{for(const F of A){b.postMessage({__om_api:true,id:J,body:z},F)}}catch(F){clearTimeout(Y);delete Z[J];C(F)}})}};const W={};let X=0;window.omelette={writeFile:(z,k)=>new Promise((C,J)=>{if(!A.length){C();return}const w=`f${++X}`;const Y=setTimeout(()=>{delete W[w];C()},u);W[w]={resolve:C,reject:J,t:Y};try{for(const F of A){b.postMessage({__om_file:true,id:w,op:"write",path:z,content:k},F)}}catch{clearTimeout(Y);delete W[w];C()}})};const K=(z)=>{try{return JSON.stringify(z)}catch{return JSON.stringify(String(z))}};window.addEventListener("message",(z)=>{if(A.indexOf(z.origin)<0)return;if(z.source!==b)return;const k=z.data;if(!k)return;if(k.__om_file_r){const w=W[k.id];if(!w)return;clearTimeout(w.t);delete W[k.id];if(k.ok)w.resolve();else w.reject(new Error(k.error||"write failed"));return}if(k.__om_api_r){const w=Z[k.id];if(!w)return;if(k.error!=null){clearTimeout(w.t);delete Z[k.id];w.reject(new Error(k.error));return}if(k.chunk!=null){clearTimeout(w.t);w.t=w.arm();w.text+=k.chunk;return}if(k.done){clearTimeout(w.t);delete Z[k.id];w.resolve(k.text!=null?k.text:w.text);return}return}if(!k.__om_eval)return;const C=k;const J=(w)=>{z.source.postMessage({...w,__om_eval_r:1,id:C.id},z.origin)};try{const w=(0,eval)(C.code);if(w&&typeof w.then==="function"){w.then((Y)=>J({ok:1,v:K(Y)}),(Y)=>J({ok:0,e:String(Y)}))}else{J({ok:1,v:K(w)})}}catch(w){J({ok:0,e:String(w)})}})}})();
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ian ECE — Waveform Adder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="colors_and_type.css"/>
+<style>
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--cream); }
+  body::after {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:9000; opacity:0.7;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.032'/%3E%3C/svg%3E");
+  }
+  .stage {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0;
+  }
+  .header {
+    display:flex; justify-content:space-between; align-items:baseline;
+    width:min(920px,95vw); margin-bottom:12px;
+  }
+  .site-name { font-family:var(--font-serif); font-size:21px; font-weight:300; font-style:italic; color:var(--ink); letter-spacing:0.02em; }
+  .ref-tag   { font-family:var(--font-mono); font-size:8px; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; opacity:0.8; }
+
+  .modules-row {
+    display:flex; align-items:flex-end; gap:36px;
+    width:min(920px,95vw);
+  }
+  .scope-wrap   { position:relative; flex:1 1 0; min-width:0; }
+  .speaker-wrap { position:relative; flex:0 0 200px; }
+  .scope-svg    { width:100%; display:block; }
+  .speaker-svg  { width:100%; display:block; }
+  .screen-canvas { position:absolute; }
+
+  .footer {
+    width:min(920px,95vw); margin-top:10px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .footer-lede { font-family:var(--font-serif); font-size:14px; font-weight:300; font-style:italic; color:var(--ink-3); }
+  .footer-nav  { display:flex; gap:24px; }
+  .footer-nav a {
+    font-family:var(--font-mono); font-size:8px; letter-spacing:0.24em;
+    color:var(--ink-4); text-decoration:none; text-transform:uppercase; transition:color 150ms;
+  }
+  .footer-nav a:hover { color:var(--gold); }
+
+  .knob-group { cursor:grab; user-select:none; }
+  .knob-group:active { cursor:grabbing; }
+
+  #wireCanvas {
+    position:fixed; inset:0; pointer-events:none; z-index:500;
+  }
+
+  .plug-hint {
+    position:fixed; pointer-events:none; z-index:501;
+    font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:0.2em;
+    color:var(--gold); opacity:0; transition:opacity 300ms; white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="header">
+    <span class="site-name">Ian Christensen</span>
+    <span class="ref-tag">ECE · Signal Analysis · Audio Out</span>
+  </div>
+  <div class="modules-row" id="modulesRow">
+    <div class="scope-wrap" id="scopeWrap">
+      <canvas class="screen-canvas" id="waveCanvas"></canvas>
+      <canvas class="screen-canvas" id="miniCanvas0"></canvas>
+      <canvas class="screen-canvas" id="miniCanvas1"></canvas>
+    </div>
+    <div class="speaker-wrap" id="speakerWrap"></div>
+  </div>
+  <div class="footer">
+    <span class="footer-lede">ECE · imaging · RF · music</span>
+    <nav class="footer-nav">
+      <a href="#">About</a><a href="#">Projects</a>
+      <a href="#">Music</a><a href="#">Shop</a><a href="#">Contact</a>
+    </nav>
+  </div>
+</div>
+<canvas id="wireCanvas"></canvas>
+<div class="plug-hint" id="plugHint">drag to speaker</div>
+
+<script>
+// ── Design tokens ──
+const GOLD       = '#C8A84B';
+const GOLD_BRIGHT= '#E5C76B';
+const GOLD_DIM   = '#A8893A';
+const GOLD_GLOW  = 'rgba(200,168,75,0.28)';
+const CREAM_2    = '#EDE5D4';
+const CREAM_3    = '#E3D8C3';
+const CREAM_4    = '#D0C4A8';
+const INK        = '#221A0C';
+const INK_3      = '#7A6A4A';
+const INK_4      = '#A89878';
+const CH2_COLOR  = '#7A9E8A';
+const CH2_GLOW   = 'rgba(122,158,138,0.25)';
+const WIRE_COL   = '#7A6030';
+
+// ── Waveforms ──
+const WAVE_TYPES = ['sine','square','saw','triangle','damped','noise'];
+
+// ── Channel state ──
+const ch = [
+  { freq:1.2, amp:0.65, wave:'sine' },
+  { freq:2.0, amp:0.40, wave:'square' },
+];
+let t = 0;
+
+// ── Noise helper (from agnesbay) ──
+function noiseF(x) {
+  return Math.sin(x*1.7)*0.50 + Math.sin(x*3.13)*0.25
+       + Math.sin(x*5.97)*0.13 + Math.sin(x*11.41)*0.07
+       + Math.sin(x*23.7)*0.03;
+}
+
+// ── Visual waveform sampler ──
+function sampleWave(wave, x, freq, px) {
+  const phase = x * freq * Math.PI * 2;
+  switch (wave) {
+    case 'sine':     return Math.sin(phase) + noiseF(x*0.038)*0.08;
+    case 'square':   return Math.sign(Math.sin(phase)) + noiseF(x*0.03)*0.06;
+    case 'saw':      return 2*((x*freq)%1) - 1 + noiseF(x*0.03)*0.06;
+    case 'triangle': { const p=(x*freq)%1; return (p<0.5?4*p-1:3-4*p)+noiseF(x*0.03)*0.06; }
+    case 'damped': {
+      const env = Math.exp(-((px%140)/60));
+      return Math.sin(2*Math.PI*0.06*px + t*2.4)*env*1.2 + noiseF(px*0.05+t*0.6)*0.12;
+    }
+    case 'noise': return (Math.sin(px*127.1+x*311)*43758.5453)%1*2-1;
+  }
+  return 0;
+}
+
+// ── Audio waveform sampler (phase-accumulator based) ──
+function sampleAudio(wave, phase) {
+  switch(wave) {
+    case 'sine':     return Math.sin(phase);
+    case 'square':   return Math.sign(Math.sin(phase));
+    case 'saw':      { const p=((phase/Math.PI)%2+2)%2; return p-1; }
+    case 'triangle': { const p=((phase/Math.PI)%2+2)%2; return p<1?2*p-1:3-2*p; }
+    case 'damped':   { const env=Math.exp(-(phase%(Math.PI*4))/(Math.PI*2)); return Math.sin(phase*2)*env; }
+    case 'noise':    return Math.random()*2-1;
+  }
+  return 0;
+}
+
+// ────────────────────────────────────────
+// SCOPE SVG
+// ────────────────────────────────────────
+const SCOPE_W = 900, BODY_H = 530, SVG_H = 560;
+const TITLE_H = 52, SEP_Y = TITLE_H;
+const SCREEN_X=62, SCREEN_Y=SEP_Y+10, SCREEN_W=SCOPE_W-124, SCREEN_H=248;
+const CTRL_TOP = SCREEN_Y+SCREEN_H+14;
+const MINI_W=112, MINI_H=62;
+const CH1_CX=240, CH2_CX=SCOPE_W-240;
+const MINI1_X=CH1_CX-MINI_W/2, MINI2_X=CH2_CX-MINI_W/2, MINI_Y=CTRL_TOP+4;
+const KNOB_R=22, KNOB_ROW=MINI_Y+MINI_H+42, BTN_ROW=KNOB_ROW+KNOB_R+36;
+const FOOT_Y=BODY_H, FOOT_RX=22, FOOT_RY=12;
+// Output jack position in scope SVG space
+const SCOPE_JACK_X=SCOPE_W-1, SCOPE_JACK_Y=BODY_H/2;
+
+function knobSVG(id, cx, cy, val, min, max, topLbl, botLbl) {
+  const norm=(val-min)/(max-min), angle=-135+norm*270, rad=(angle-90)*Math.PI/180;
+  const nx=cx+Math.cos(rad)*(KNOB_R-5), ny=cy+Math.sin(rad)*(KNOB_R-5);
+  const r=KNOB_R+5, sA=(-135-90)*Math.PI/180;
+  const sx=cx+Math.cos(sA)*r, sy=cy+Math.sin(sA)*r;
+  const ex=cx+Math.cos(rad)*r, ey=cy+Math.sin(rad)*r, large=(angle+135)>180?1:0;
+  return `<g class="knob-group" id="${id}">
+    <path d="M ${cx+Math.cos(sA)*r} ${cy+Math.sin(sA)*r} A ${r} ${r} 0 1 1 ${cx+Math.cos((135-90)*Math.PI/180)*r} ${cy+Math.sin((135-90)*Math.PI/180)*r}"
+      fill="none" stroke="${CREAM_4}" stroke-width="1.1" stroke-linecap="round" opacity="0.38"/>
+    <path d="M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}"
+      fill="none" stroke="${GOLD_DIM}" stroke-width="1.3" stroke-linecap="round" class="knob-arc"/>
+    <circle cx="${cx}" cy="${cy}" r="${KNOB_R}" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${KNOB_R-7}" fill="none" stroke="${CREAM_4}" stroke-width="0.5" opacity="0.4"/>
+    <circle cx="${nx}" cy="${ny}" r="1.8" fill="${GOLD_DIM}" class="knob-notch"/>
+    <text x="${cx}" y="${cy-KNOB_R-7}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${GOLD}" letter-spacing="0.16em" opacity="0.7">${topLbl}</text>
+    <text x="${cx}" y="${cy+KNOB_R+14}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${INK_4}" letter-spacing="0.16em">${botLbl}</text>
+  </g>`;
+}
+
+function waveBtnsSVG(chIdx, cx, y) {
+  const sp=34, count=WAVE_TYPES.length, startX=cx-(count*sp)/2+sp/2;
+  return WAVE_TYPES.map((w,i)=>{
+    const bx=startX+i*sp, active=ch[chIdx].wave===w, col=chIdx===0?GOLD:CH2_COLOR;
+    return `<g class="wave-btn" data-ch="${chIdx}" data-wave="${w}" style="cursor:pointer">
+      <rect x="${bx-14}" y="${y-9}" width="28" height="18" rx="2"
+        fill="${active?CREAM_3:CREAM_2}" stroke="${active?GOLD_DIM:CREAM_4}" stroke-width="${active?1.1:.7}"/>
+      <text x="${bx}" y="${y+4}" text-anchor="middle" font-family="'JetBrains Mono',monospace"
+        font-size="5.8" fill="${active?col:INK_4}" letter-spacing="0.05em">${w}</text>
+    </g>`;
+  }).join('');
+}
+
+function miniScreenSVG(x, y, w, h, chIdx) {
+  const col=chIdx===0?GOLD_DIM:CH2_COLOR, lbl=chIdx===0?'CH1':'CH2';
+  return `
+    <rect x="${x-2}" y="${y-2}" width="${w+4}" height="${h+4}" rx="3" fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${INK}" fill-opacity="0.03" stroke="${col}" stroke-width="0.9"/>
+    <text x="${x+5}" y="${y+10}" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${col}" letter-spacing="0.18em" opacity="0.7">${lbl}</text>
+  `;
+}
+
+function buildScopeSVG() {
+  const defs=`<defs><filter id="pg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  const body=`<rect x="1" y="1" width="${SCOPE_W-2}" height="${BODY_H-2}" rx="7" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1.4"/>`;
+  const feet=`
+    <ellipse cx="80" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+    <ellipse cx="${SCOPE_W-80}" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>`;
+
+  // Title strip
+  const title=`
+    <circle cx="28" cy="${TITLE_H/2}" r="7" fill="none" stroke="${CREAM_4}" stroke-width="0.9"/>
+    <line x1="28" y1="${TITLE_H/2-10}" x2="28" y2="${TITLE_H/2-4}" stroke="${CREAM_4}" stroke-width="0.9"/>
+    <circle cx="${SCOPE_W-30}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <circle cx="${SCOPE_W-48}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <circle cx="${SCOPE_W-66}" cy="${TITLE_H/2}" r="3.5" fill="${GOLD}" fill-opacity="0.5" stroke="${GOLD_DIM}" stroke-width="0.8"/>
+    <text x="${SCOPE_W/2}" y="${TITLE_H/2+2}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="500" fill="${INK_3}" letter-spacing="0.38em">WAVEFORM ADDER</text>
+    <text x="${SCOPE_W/2}" y="${TITLE_H/2+15}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" font-weight="300" fill="${INK_4}" letter-spacing="0.28em" opacity="0.65">REV 3.113</text>
+    <line x1="20" y1="${SEP_Y}" x2="${SCOPE_W-20}" y2="${SEP_Y}" stroke="${CREAM_4}" stroke-width="0.8" opacity="0.7"/>`;
+
+  // Screen
+  const bezel=`<rect x="${SCREEN_X-10}" y="${SCREEN_Y-10}" width="${SCREEN_W+20}" height="${SCREEN_H+20}" rx="4" fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>`;
+  const screen=`<rect x="${SCREEN_X}" y="${SCREEN_Y}" width="${SCREEN_W}" height="${SCREEN_H}" rx="2" fill="${INK}" fill-opacity="0.03" stroke="${GOLD_DIM}" stroke-width="1.2"/>`;
+
+  let grid='', ticks='';
+  for(let i=1;i<10;i++){const x=SCREEN_X+(SCREEN_W/10)*i,mid=i===5;grid+=`<line x1="${x}" y1="${SCREEN_Y}" x2="${x}" y2="${SCREEN_Y+SCREEN_H}" stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;}
+  for(let j=1;j<8;j++){const y=SCREEN_Y+(SCREEN_H/8)*j,mid=j===4;grid+=`<line x1="${SCREEN_X}" y1="${y}" x2="${SCREEN_X+SCREEN_W}" y2="${y}" stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;}
+  const cx0=SCREEN_X+SCREEN_W/2,cy0=SCREEN_Y+SCREEN_H/2;
+  for(let k=0;k<=40;k++){const tx=SCREEN_X+(SCREEN_W/40)*k;ticks+=`<line x1="${tx}" y1="${cy0-2}" x2="${tx}" y2="${cy0+2}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;}
+  for(let k=0;k<=32;k++){const ty=SCREEN_Y+(SCREEN_H/32)*k;ticks+=`<line x1="${cx0-2}" y1="${ty}" x2="${cx0+2}" y2="${ty}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;}
+
+  const screenLbls=`
+    <text x="${SCREEN_X+10}" y="${SCREEN_Y+14}" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD_BRIGHT}" letter-spacing="0.2em" opacity="0.75">CH3</text>
+    <text x="${SCREEN_X+SCREEN_W-10}" y="${SCREEN_Y+14}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD}" letter-spacing="0.18em" opacity="0.45">SUM</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+7}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">+V</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H/2+3}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">0</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H-2}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">−V</text>`;
+
+  const minis=miniScreenSVG(MINI1_X,MINI_Y,MINI_W,MINI_H,0)+miniScreenSVG(MINI2_X,MINI_Y,MINI_W,MINI_H,1);
+
+  const chLbls=`
+    <text x="${CH1_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${GOLD}" letter-spacing="0.28em" opacity="0.85">CH1</text>
+    <text x="${CH2_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${CH2_COLOR}" letter-spacing="0.28em" opacity="0.85">CH2</text>
+    <line x1="${CH1_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH1_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${GOLD_DIM}" stroke-width="0.6" opacity="0.3"/>
+    <line x1="${CH2_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH2_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${CH2_COLOR}" stroke-width="0.6" opacity="0.3"/>`;
+
+  const knobs=knobSVG('k1freq',CH1_CX-36,KNOB_ROW,ch[0].freq,0.5,4,'TIME/DIV','FREQ')
+    +knobSVG('k1amp',CH1_CX+36,KNOB_ROW,ch[0].amp,0.1,1,'VOLTS/DIV','AMPL')
+    +knobSVG('k2freq',CH2_CX-36,KNOB_ROW,ch[1].freq,0.5,4,'TIME/DIV','FREQ')
+    +knobSVG('k2amp',CH2_CX+36,KNOB_ROW,ch[1].amp,0.1,1,'VOLTS/DIV','AMPL');
+
+  const btns=waveBtnsSVG(0,CH1_CX,BTN_ROW)+waveBtnsSVG(1,CH2_CX,BTN_ROW);
+
+  const divCtr=`
+    <line x1="${SCOPE_W/2}" y1="${CTRL_TOP+2}" x2="${SCOPE_W/2}" y2="${BODY_H-18}" stroke="${CREAM_4}" stroke-width="0.8" opacity="0.45"/>
+    <text x="${SCOPE_W/2}" y="${KNOB_ROW+8}" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" font-weight="300" fill="${INK_3}" opacity="0.22">+</text>`;
+
+  // Output jack on right side
+  const outJack=`
+    <g id="scopeJackGroup">
+      <rect x="${SCOPE_W-18}" y="${BODY_H/2-12}" width="18" height="24" rx="3" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+      <circle cx="${SCOPE_W-9}" cy="${BODY_H/2}" r="6.5" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="0.9"/>
+      <circle cx="${SCOPE_W-9}" cy="${BODY_H/2}" r="2.5" fill="${CREAM_4}"/>
+      <text x="${SCOPE_W-22}" y="${BODY_H/2-16}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" letter-spacing="0.12em" opacity="0.7">OUTPUT</text>
+    </g>
+    <rect id="scopeJackRef" x="${SCOPE_W-9}" y="${BODY_H/2}" width="1" height="1" fill="none"/>`;
+
+  return `<svg viewBox="0 0 ${SCOPE_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg" id="scopeSVG">
+    ${defs}${body}${feet}${title}${bezel}${screen}${grid}${ticks}${screenLbls}
+    ${minis}${chLbls}${knobs}${btns}${divCtr}${outJack}
+  </svg>`;
+}
+
+// ────────────────────────────────────────
+// SPEAKER SVG  (gramophone horn)
+// ────────────────────────────────────────
+const SP_W=260, SP_H=500;
+const BOX_X=12, BOX_Y=250, BOX_W=236, BOX_H=178;
+const BOX_CX=BOX_X+BOX_W/2;       // 130
+const HORN_BELL_Y=22;
+const HORN_BELL_HW=118;            // half-width of bell
+const HORN_THROAT_HW=12;
+const JACK_X=BOX_X, JACK_Y=BOX_Y+90;  // input socket
+
+function buildSpeakerSVG() {
+  // Horn outline path
+  const lx0=BOX_CX-HORN_THROAT_HW, rx0=BOX_CX+HORN_THROAT_HW;
+  const lBell=BOX_CX-HORN_BELL_HW, rBell=BOX_CX+HORN_BELL_HW;
+  const hornPath=`M ${lx0} ${BOX_Y}
+    C ${lx0-22} ${BOX_Y-50} ${lBell+12} ${HORN_BELL_Y+55} ${lBell} ${HORN_BELL_Y}
+    Q ${BOX_CX} ${HORN_BELL_Y-20} ${rBell} ${HORN_BELL_Y}
+    C ${rBell-12} ${HORN_BELL_Y+55} ${rx0+22} ${BOX_Y-50} ${rx0} ${BOX_Y} Z`;
+
+  // Ribs (horizontal lines across horn at various heights)
+  const ribData=[
+    {y:BOX_Y-30, hw:22},{y:BOX_Y-62,hw:42},{y:BOX_Y-96,hw:66},
+    {y:BOX_Y-130,hw:88},{y:BOX_Y-162,hw:106},{y:BOX_Y-192,hw:118},
+  ];
+  const ribs=ribData.map(({y,hw})=>`
+    <line x1="${BOX_CX-hw}" y1="${y}" x2="${BOX_CX+hw}" y2="${y}"
+      stroke="${GOLD_DIM}" stroke-width="0.9" opacity="0.22"/>`).join('');
+
+  // Throat connector
+  const throat=`<rect x="${BOX_CX-10}" y="${BOX_Y-6}" width="20" height="10" rx="4"
+    fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.9"/>`;
+
+  // Box body
+  const box=`<rect x="${BOX_X}" y="${BOX_Y}" width="${BOX_W}" height="${BOX_H}" rx="5"
+    fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1.3"/>`;
+
+  // Decorative inlay border
+  const inlay=`<rect x="${BOX_X+8}" y="${BOX_Y+8}" width="${BOX_W-16}" height="${BOX_H-16}" rx="3"
+    fill="none" stroke="${GOLD_DIM}" stroke-width="0.7" opacity="0.30"/>`;
+
+  // Panel horizontal lines
+  const panels=[BOX_Y+48,BOX_Y+96,BOX_Y+140].map(y=>
+    `<line x1="${BOX_X+22}" y1="${y}" x2="${BOX_X+BOX_W-22}" y2="${y}"
+      stroke="${CREAM_4}" stroke-width="0.6" opacity="0.5"/>`).join('');
+
+  // Corner diamonds
+  const cornerDiamonds=[[BOX_X+20,BOX_Y+20],[BOX_X+BOX_W-20,BOX_Y+20],
+    [BOX_X+20,BOX_Y+BOX_H-20],[BOX_X+BOX_W-20,BOX_Y+BOX_H-20]].map(([cx,cy])=>
+    `<polygon points="${cx},${cy-6} ${cx+6},${cy} ${cx},${cy+6} ${cx-6},${cy}"
+      fill="none" stroke="${GOLD_DIM}" stroke-width="0.8" opacity="0.4"/>`).join('');
+
+  // Speaker grill (concentric circles)
+  const gCX=BOX_CX, gCY=BOX_Y+72;
+  const grill=[0,1,2,3].map(i=>
+    `<circle cx="${gCX}" cy="${gCY}" r="${7+i*11}"
+      fill="none" stroke="${CREAM_4}" stroke-width="0.7" opacity="${0.6-i*0.1}"/>`).join('')
+    +`<circle cx="${gCX}" cy="${gCY}" r="3" fill="${CREAM_4}" opacity="0.35"/>`;
+
+  // Feet (3 small)
+  const feet=[BOX_X+28, BOX_CX, BOX_X+BOX_W-28].map(fx=>
+    `<ellipse cx="${fx}" cy="${BOX_Y+BOX_H}" rx="14" ry="7"
+      fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.9"/>`).join('');
+
+  // Input jack socket
+  const jackSock=`
+    <g id="speakerJackGroup" style="cursor:pointer">
+      <rect x="${JACK_X-12}" y="${JACK_Y-12}" width="24" height="24" rx="4"
+        fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+      <circle cx="${JACK_X}" cy="${JACK_Y}" r="7" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="0.9"/>
+      <circle id="jackHole" cx="${JACK_X}" cy="${JACK_Y}" r="2.8" fill="${CREAM_4}"/>
+      <text x="${JACK_X+16}" y="${JACK_Y-14}" font-family="'JetBrains Mono',monospace"
+        font-size="5.5" fill="${INK_4}" letter-spacing="0.14em" opacity="0.7">INPUT</text>
+    </g>
+    <rect id="speakerJackRef" x="${JACK_X}" y="${JACK_Y}" width="1" height="1" fill="none"/>`;
+
+  // Power indicator LED
+  const indicator=`
+    <circle id="connIndicator" cx="${BOX_CX+82}" cy="${BOX_Y+18}" r="4.5"
+      fill="${CREAM_4}" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <text x="${BOX_CX+91}" y="${BOX_Y+21}" font-family="'JetBrains Mono',monospace"
+      font-size="5" fill="${INK_4}" letter-spacing="0.1em" opacity="0.5">PWR</text>`;
+
+  // Unplug label (shown when connected)
+  const unplugBtn=`
+    <text id="unplugBtn" x="${BOX_CX}" y="${BOX_Y+BOX_H-8}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="6" fill="${GOLD}" letter-spacing="0.22em"
+      opacity="0" style="cursor:pointer;user-select:none">UNPLUG ×</text>`;
+
+  // Label
+  const lbl=`
+    <text x="${BOX_CX}" y="${BOX_Y+BOX_H+24}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="7" fill="${INK_4}" letter-spacing="0.28em">LS₁ · 8Ω</text>`;
+
+  // Bell sound-wave rings (drawn via JS on wire canvas)
+  // Reference point for JS to find bell center
+  const bellRef=`<rect id="hornBellRef" x="${BOX_CX}" y="${HORN_BELL_Y}" width="1" height="1" fill="none"/>`;
+
+  return `<svg viewBox="0 0 ${SP_W} ${SP_H}" xmlns="http://www.w3.org/2000/svg" id="speakerSVG">
+    <path d="${hornPath}" fill="${CREAM_2}" stroke="${GOLD_DIM}" stroke-width="1.3"/>
+    ${ribs}${throat}
+    ${box}${inlay}${panels}${cornerDiamonds}${grill}${feet}
+    ${jackSock}${indicator}${unplugBtn}${lbl}${bellRef}
+  </svg>`;
+}
+
+// ── Inject SVGs ──
+document.getElementById('scopeWrap').insertAdjacentHTML('afterbegin', buildScopeSVG());
+document.getElementById('speakerWrap').innerHTML = buildSpeakerSVG();
+
+// ── Canvas layout ──
+const mainCanvas  = document.getElementById('waveCanvas');
+const miniCanvas0 = document.getElementById('miniCanvas0');
+const miniCanvas1 = document.getElementById('miniCanvas1');
+
+function placeCanvas(el, svgX, svgY, svgW, svgH, s) {
+  el.style.left=`${svgX*s}px`; el.style.top=`${svgY*s}px`;
+  el.style.width=`${svgW*s}px`; el.style.height=`${svgH*s}px`;
+  el.width=Math.round(svgW*s*devicePixelRatio);
+  el.height=Math.round(svgH*s*devicePixelRatio);
+}
+
+function layoutAll() {
+  const rect=document.getElementById('scopeWrap').getBoundingClientRect();
+  const s=rect.width/SCOPE_W;
+  placeCanvas(mainCanvas,SCREEN_X,SCREEN_Y,SCREEN_W,SCREEN_H,s);
+  placeCanvas(miniCanvas0,MINI1_X,MINI_Y,MINI_W,MINI_H,s);
+  placeCanvas(miniCanvas1,MINI2_X,MINI_Y,MINI_W,MINI_H,s);
+  resizeWireCanvas();
+  if(!wireConnected) initChain();
+}
+window.addEventListener('resize', layoutAll);
+
+// ── Waveform drawing ──
+function drawTrace(ctx,W,H,sampleFn,color,glowColor,lineW,alpha,glowAlpha){
+  const mid=H/2;
+  ctx.save(); ctx.shadowColor=glowColor; ctx.shadowBlur=10*devicePixelRatio;
+  ctx.strokeStyle=color; ctx.lineWidth=lineW*devicePixelRatio; ctx.globalAlpha=glowAlpha; ctx.beginPath();
+  for(let px=0;px<W;px++){const y=mid-sampleFn(px/W,px)*(mid-5*devicePixelRatio); px===0?ctx.moveTo(px,y):ctx.lineTo(px,y);}
+  ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lineW*devicePixelRatio; ctx.lineJoin='round'; ctx.globalAlpha=alpha; ctx.beginPath();
+  for(let px=0;px<W;px++){const y=mid-sampleFn(px/W,px)*(mid-5*devicePixelRatio); px===0?ctx.moveTo(px,y):ctx.lineTo(px,y);}
+  ctx.stroke(); ctx.restore();
+}
+
+function drawMiniCanvas(canvas,chIdx){
+  const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const scroll=t*0.1, c=ch[chIdx];
+  const color=chIdx===0?GOLD:CH2_COLOR, glow=chIdx===0?GOLD_GLOW:CH2_GLOW;
+  drawTrace(ctx,W,H,(x,px)=>sampleWave(c.wave,x+scroll,c.freq,px)*c.amp,color,glow,1.2,0.82,0.22);
+}
+
+function drawMainCanvas(){
+  const ctx=mainCanvas.getContext('2d'), W=mainCanvas.width, H=mainCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  const scroll=t*0.1, maxAmp=ch[0].amp+ch[1].amp, norm=maxAmp>1?1/maxAmp:1;
+  const fn=(x,px)=>(sampleWave(ch[0].wave,x+scroll,ch[0].freq,px)*ch[0].amp
+    +sampleWave(ch[1].wave,x+scroll,ch[1].freq,px)*ch[1].amp)*norm;
+  drawTrace(ctx,W,H,fn,GOLD_BRIGHT,GOLD_GLOW,1.6,0.88,0.28);
+}
+
+// ────────────────────────────────────────
+// WIRE CANVAS & PHYSICS
+// ────────────────────────────────────────
+const wireCanvas=document.getElementById('wireCanvas');
+const wCtx=wireCanvas.getContext('2d');
+
+function resizeWireCanvas(){
+  wireCanvas.width=window.innerWidth*devicePixelRatio;
+  wireCanvas.height=window.innerHeight*devicePixelRatio;
+  wireCanvas.style.width=window.innerWidth+'px';
+  wireCanvas.style.height=window.innerHeight+'px';
+}
+resizeWireCanvas();
+
+function refPos(id){
+  const el=document.getElementById(id);
+  if(!el) return {x:0,y:0};
+  const r=el.getBoundingClientRect();
+  return {x:r.left+r.width/2, y:r.top+r.height/2};
+}
+
+const WIRE_SEGS=20, WIRE_GRAVITY=0.30, WIRE_DAMPING=0.88, SEG_LEN=12, SLACK=1.35;
+let chain=[];
+let wireDragging=false, wireConnected=false;
+let mouseX=0, mouseY=0;
+
+function initChain(){
+  const anchor=refPos('scopeJackRef');
+  const endX=anchor.x, endY=anchor.y+80;
+  chain=[];
+  for(let i=0;i<=WIRE_SEGS;i++){
+    const k=i/WIRE_SEGS;
+    const x=anchor.x+(endX-anchor.x)*k, y=anchor.y+(endY-anchor.y)*k;
+    chain.push({x,y,px:x,py:y});
+  }
+}
+
+function updateChain(){
+  if(wireConnected) return;
+  const anchor=refPos('scopeJackRef');
+  // Verlet
+  for(let i=1;i<chain.length-1;i++){
+    const p=chain[i], vx=(p.x-p.px)*WIRE_DAMPING, vy=(p.y-p.py)*WIRE_DAMPING;
+    p.px=p.x; p.py=p.y; p.x+=vx; p.y+=vy+WIRE_GRAVITY;
+  }
+  if(wireDragging){
+    const last=chain[chain.length-1];
+    last.x=mouseX; last.y=mouseY; last.px=mouseX; last.py=mouseY;
+  }
+  const rest=SEG_LEN*SLACK;
+  for(let iter=0;iter<4;iter++){
+    chain[0].x=anchor.x; chain[0].y=anchor.y;
+    if(wireDragging){chain[chain.length-1].x=mouseX; chain[chain.length-1].y=mouseY;}
+    for(let i=0;i<chain.length-1;i++){
+      const a=chain[i],b=chain[i+1];
+      const dx=b.x-a.x,dy=b.y-a.y,dist=Math.sqrt(dx*dx+dy*dy)||0.001;
+      const diff=(dist-rest)/dist*0.5;
+      if(i>0){a.x+=dx*diff; a.y+=dy*diff;}
+      const lastFix=wireDragging&&i===chain.length-2;
+      if(!lastFix){b.x-=dx*diff; b.y-=dy*diff;}
+    }
+    chain[0].x=anchor.x; chain[0].y=anchor.y;
+    if(wireDragging){chain[chain.length-1].x=mouseX; chain[chain.length-1].y=mouseY;}
+  }
+}
+
+function setConnectedChain(){
+  const a=refPos('scopeJackRef'), b=refPos('speakerJackRef');
+  const dist=Math.hypot(b.x-a.x, b.y-a.y);
+  const sag=Math.min(60, dist*0.18);
+  for(let i=0;i<=WIRE_SEGS;i++){
+    const k=i/WIRE_SEGS;
+    const x=a.x+(b.x-a.x)*k, y=a.y+(b.y-a.y)*k+Math.sin(k*Math.PI)*sag;
+    chain[i]={x,y,px:x,py:y};
+  }
+}
+
+function drawWireCanvas(){
+  const W=wireCanvas.width, H=wireCanvas.height;
+  wCtx.clearRect(0,0,W,H);
+  if(chain.length<2) return;
+  const dpr=devicePixelRatio;
+  wCtx.save(); wCtx.scale(dpr,dpr);
+
+  // Wire shadow
+  wCtx.save(); wCtx.strokeStyle='rgba(90,70,30,0.10)'; wCtx.lineWidth=4;
+  wCtx.lineCap='round'; wCtx.lineJoin='round'; wCtx.beginPath();
+  wCtx.moveTo(chain[0].x, chain[0].y+2);
+  for(let i=1;i<chain.length;i++) wCtx.lineTo(chain[i].x, chain[i].y+2);
+  wCtx.stroke(); wCtx.restore();
+
+  // Wire body (smooth bezier)
+  wCtx.save(); wCtx.strokeStyle=WIRE_COL; wCtx.lineWidth=2.4;
+  wCtx.lineCap='round'; wCtx.lineJoin='round'; wCtx.beginPath();
+  wCtx.moveTo(chain[0].x, chain[0].y);
+  for(let i=1;i<chain.length-1;i++){
+    const mx=(chain[i].x+chain[i+1].x)/2, my=(chain[i].y+chain[i+1].y)/2;
+    wCtx.quadraticCurveTo(chain[i].x, chain[i].y, mx, my);
+  }
+  wCtx.lineTo(chain[chain.length-1].x, chain[chain.length-1].y);
+  wCtx.stroke(); wCtx.restore();
+
+  // Wire highlight
+  wCtx.save(); wCtx.strokeStyle='rgba(220,185,90,0.22)'; wCtx.lineWidth=0.9;
+  wCtx.lineCap='round'; wCtx.beginPath();
+  wCtx.moveTo(chain[0].x-0.5, chain[0].y-0.5);
+  for(let i=1;i<chain.length;i++) wCtx.lineTo(chain[i].x-0.5, chain[i].y-0.5);
+  wCtx.stroke(); wCtx.restore();
+
+  // Plug (at end when not connected)
+  if(!wireConnected){
+    const end=chain[chain.length-1], prev=chain[chain.length-2];
+    drawPlug(end.x, end.y, prev);
+  }
+
+  // Horn rings when audio playing
+  drawHornRings();
+
+  wCtx.restore();
+}
+
+function drawPlug(x, y, prev){
+  const angle=Math.atan2(y-prev.y, x-prev.x);
+  wCtx.save(); wCtx.translate(x,y); wCtx.rotate(angle);
+  // Body
+  wCtx.fillStyle=CREAM_2; wCtx.strokeStyle=GOLD_DIM; wCtx.lineWidth=1;
+  wCtx.beginPath(); wCtx.roundRect(-20,-4.5,18,9,2); wCtx.fill(); wCtx.stroke();
+  // Ring groove
+  wCtx.strokeStyle=CREAM_4; wCtx.lineWidth=0.8;
+  wCtx.beginPath(); wCtx.moveTo(-12,-4.5); wCtx.lineTo(-12,4.5); wCtx.stroke();
+  // Tip shaft
+  wCtx.fillStyle=GOLD_DIM;
+  wCtx.beginPath(); wCtx.moveTo(-2,-3); wCtx.lineTo(8,0); wCtx.lineTo(-2,3); wCtx.closePath(); wCtx.fill();
+  // Tip dot
+  wCtx.fillStyle=GOLD;
+  wCtx.beginPath(); wCtx.arc(8,0,2.2,0,Math.PI*2); wCtx.fill();
+  wCtx.restore();
+}
+
+// ── Horn ring animation ──
+let ringPhase=0, audioAmplitude=0;
+function drawHornRings(){
+  if(!wireConnected||audioAmplitude<0.02) return;
+  const bell=refPos('hornBellRef');
+  const speakerRect=document.getElementById('speakerSVG').getBoundingClientRect();
+  const s=speakerRect.width/SP_W;
+  const bellR=HORN_BELL_HW*s;
+  ringPhase+=0.035;
+  for(let i=0;i<3;i++){
+    const p=((ringPhase+i/3)%1);
+    const r=bellR*(0.7+p*0.7);
+    const alpha=(1-p)*audioAmplitude*0.7;
+    if(alpha<=0.01) continue;
+    wCtx.save();
+    wCtx.strokeStyle=GOLD; wCtx.lineWidth=1.5; wCtx.globalAlpha=alpha;
+    wCtx.beginPath(); wCtx.arc(bell.x, bell.y, r, 0, Math.PI*2);
+    wCtx.stroke(); wCtx.restore();
+  }
+}
+
+// ── Wire events ──
+document.addEventListener('mousemove', e=>{
+  mouseX=e.clientX; mouseY=e.clientY;
+  if(wireDragging){
+    wireCanvas.style.pointerEvents='all';
+    wireCanvas.style.cursor='grabbing';
+    return;
+  }
+  if(wireConnected){ wireCanvas.style.pointerEvents='none'; return; }
+  const end=chain[chain.length-1];
+  const dist=Math.hypot(mouseX-end.x, mouseY-end.y);
+  const near=dist<24;
+  wireCanvas.style.pointerEvents=near?'all':'none';
+  wireCanvas.style.cursor=near?'grab':'default';
+  // Hint label
+  const hint=document.getElementById('plugHint');
+  hint.style.opacity=near?'1':'0';
+  hint.style.left=(end.x+14)+'px'; hint.style.top=(end.y-18)+'px';
+});
+
+wireCanvas.addEventListener('mousedown', e=>{
+  if(wireConnected||wireDragging) return;
+  const end=chain[chain.length-1];
+  if(Math.hypot(e.clientX-end.x, e.clientY-end.y)<24){
+    wireDragging=true; mouseX=e.clientX; mouseY=e.clientY;
+    document.getElementById('plugHint').style.opacity='0';
+  }
+});
+
+window.addEventListener('mouseup', e=>{
+  if(!wireDragging) return;
+  wireDragging=false;
+  const spJack=refPos('speakerJackRef');
+  if(Math.hypot(e.clientX-spJack.x, e.clientY-spJack.y)<40){
+    connect();
+  }
+});
+
+function connect(){
+  wireConnected=true;
+  setConnectedChain();
+  startAudio();
+  // Update visuals
+  document.getElementById('connIndicator').setAttribute('fill', GOLD);
+  document.getElementById('connIndicator').setAttribute('stroke', GOLD_DIM);
+  document.getElementById('jackHole').setAttribute('fill', GOLD_DIM);
+  document.getElementById('unplugBtn').style.opacity='0.75';
+  wireCanvas.style.pointerEvents='none';
+}
+
+function disconnect(){
+  wireConnected=false;
+  stopAudio();
+  initChain();
+  document.getElementById('connIndicator').setAttribute('fill', CREAM_4);
+  document.getElementById('connIndicator').setAttribute('stroke', CREAM_4);
+  document.getElementById('jackHole').setAttribute('fill', CREAM_4);
+  document.getElementById('unplugBtn').style.opacity='0';
+  audioAmplitude=0;
+}
+
+document.getElementById('unplugBtn').addEventListener('click', disconnect);
+document.getElementById('speakerJackGroup').addEventListener('click', ()=>{ if(wireConnected) disconnect(); });
+
+// ────────────────────────────────────────
+// AUDIO ENGINE
+// ────────────────────────────────────────
+let audioCtx=null, gainNode=null, scriptNode=null;
+let audioPhase=[0,0];
+
+function startAudio(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  const sr=audioCtx.sampleRate;
+  scriptNode=audioCtx.createScriptProcessor(2048,0,1);
+  gainNode=audioCtx.createGain();
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.38, audioCtx.currentTime+0.08);
+  scriptNode.onaudioprocess=e=>{
+    const out=e.outputBuffer.getChannelData(0);
+    let rms=0;
+    for(let i=0;i<out.length;i++){
+      const f0=ch[0].freq*150, f1=ch[1].freq*150;
+      audioPhase[0]+=(2*Math.PI*f0)/sr;
+      audioPhase[1]+=(2*Math.PI*f1)/sr;
+      if(audioPhase[0]>Math.PI*4000) audioPhase[0]-=Math.PI*4000;
+      if(audioPhase[1]>Math.PI*4000) audioPhase[1]-=Math.PI*4000;
+      const s0=sampleAudio(ch[0].wave,audioPhase[0])*ch[0].amp;
+      const s1=sampleAudio(ch[1].wave,audioPhase[1])*ch[1].amp;
+      const sum=(s0+s1)*0.42;
+      out[i]=Math.max(-1,Math.min(1,sum));
+      rms+=sum*sum;
+    }
+    audioAmplitude=Math.sqrt(rms/out.length);
+  };
+  scriptNode.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+}
+
+function stopAudio(){
+  if(!gainNode||!audioCtx) return;
+  gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.06);
+  setTimeout(()=>{
+    if(scriptNode){scriptNode.disconnect();scriptNode=null;}
+    if(gainNode){gainNode.disconnect();gainNode=null;}
+  },80);
+}
+
+// ────────────────────────────────────────
+// KNOB INTERACTIONS
+// ────────────────────────────────────────
+const KNOB_MAP={k1freq:[0,'freq',0.5,4],k1amp:[0,'amp',0.1,1],k2freq:[1,'freq',0.5,4],k2amp:[1,'amp',0.1,1]};
+const KNOB_CX={k1freq:CH1_CX-36,k1amp:CH1_CX+36,k2freq:CH2_CX-36,k2amp:CH2_CX+36};
+
+function updateKnobVisual(id,val,min,max){
+  const el=document.getElementById(id); if(!el)return;
+  const norm=(val-min)/(max-min), angle=-135+norm*270, rad=(angle-90)*Math.PI/180;
+  const cx=KNOB_CX[id],cy=KNOB_ROW;
+  const nx=cx+Math.cos(rad)*(KNOB_R-5), ny=cy+Math.sin(rad)*(KNOB_R-5);
+  const notch=el.querySelector('.knob-notch');
+  if(notch){notch.setAttribute('cx',nx);notch.setAttribute('cy',ny);}
+  const r=KNOB_R+5, sA=(-135-90)*Math.PI/180;
+  const sx=cx+Math.cos(sA)*r, sy=cy+Math.sin(sA)*r;
+  const ex=cx+Math.cos(rad)*r, ey=cy+Math.sin(rad)*r;
+  const large=(angle+135)>180?1:0;
+  const arc=el.querySelector('.knob-arc');
+  if(arc) arc.setAttribute('d',`M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`);
+}
+
+Object.entries(KNOB_MAP).forEach(([id,[ci,prop,min,max]])=>{
+  const el=document.getElementById(id); if(!el)return;
+  let dragging=false,startY=0,startVal=0;
+  const begin=y=>{dragging=true;startY=y;startVal=ch[ci][prop];};
+  const move=y=>{if(!dragging)return;ch[ci][prop]=Math.max(min,Math.min(max,startVal+(startY-y)*((max-min)/160)));updateKnobVisual(id,ch[ci][prop],min,max);};
+  el.addEventListener('mousedown',e=>{begin(e.clientY);e.preventDefault();});
+  window.addEventListener('mousemove',e=>{move(e.clientY);});
+  window.addEventListener('mouseup',()=>{dragging=false;});
+  el.addEventListener('touchstart',e=>{begin(e.touches[0].clientY);e.preventDefault();},{passive:false});
+  window.addEventListener('touchmove',e=>{if(dragging)move(e.touches[0].clientY);});
+  window.addEventListener('touchend',()=>{dragging=false;});
+});
+
+// ── Wave buttons ──
+function updateWaveBtns(){
+  document.querySelectorAll('.wave-btn').forEach(g=>{
+    const ci=parseInt(g.dataset.ch),w=g.dataset.wave,active=ch[ci].wave===w;
+    const col=ci===0?GOLD:CH2_COLOR;
+    g.querySelector('rect').setAttribute('stroke',active?GOLD_DIM:CREAM_4);
+    g.querySelector('rect').setAttribute('fill',active?CREAM_3:CREAM_2);
+    g.querySelector('text').setAttribute('fill',active?col:INK_4);
+  });
+}
+document.querySelectorAll('.wave-btn').forEach(g=>{
+  g.addEventListener('click',()=>{ch[parseInt(g.dataset.ch)].wave=g.dataset.wave;updateWaveBtns();});
+});
+updateWaveBtns();
+
+// ────────────────────────────────────────
+// MAIN LOOP
+// ────────────────────────────────────────
+function loop(ts){
+  t=ts*0.00012;
+  drawMainCanvas();
+  drawMiniCanvas(miniCanvas0,0);
+  drawMiniCanvas(miniCanvas1,1);
+  updateChain();
+  if(wireConnected) setConnectedChain();
+  drawWireCanvas();
+  requestAnimationFrame(loop);
+}
+
+// Init
+layoutAll();
+initChain();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

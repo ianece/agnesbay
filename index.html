@@ -12,6 +12,8 @@
 
 <div id="cursor"></div>
 <canvas id="wire-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:9999;"></canvas>
+<canvas id="speaker-cable" style="position:fixed;inset:0;pointer-events:none;z-index:500;"></canvas>
+<div class="plug-hint" id="plugHint">drag to speaker</div>
 <div id="overlay"></div>
 <button id="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">NAV ▾</button>
 
@@ -281,11 +283,14 @@
     <p class="pb">Select a component from the navigation menu on the left to explore. Note that the waveform in the top left can update in real time via the probe, waveform adder, or by playing music.</p>
     <div class="div"></div>
 
-    <!-- Waveform adder — interactive scope, also feeds the sidebar oscilloscope -->
-    <div class="scope-wrap" id="scopeWrap">
-      <canvas class="screen-canvas" id="waveCanvas"></canvas>
-      <canvas class="screen-canvas" id="miniCanvas0"></canvas>
-      <canvas class="screen-canvas" id="miniCanvas1"></canvas>
+    <!-- Waveform adder + speaker — interactive scope feeds sidebar osc and audible output -->
+    <div class="modules-row" id="modulesRow">
+      <div class="scope-wrap" id="scopeWrap">
+        <canvas class="screen-canvas" id="waveCanvas"></canvas>
+        <canvas class="screen-canvas" id="miniCanvas0"></canvas>
+        <canvas class="screen-canvas" id="miniCanvas1"></canvas>
+      </div>
+      <div class="speaker-wrap" id="speakerWrap"></div>
     </div>
   </div>
 
@@ -293,16 +298,16 @@
   <div class="page" id="pg-about">
     <p class="ptag">R₁ · 10kΩ — About</p>
     <h1 class="ph">What is this place?</h1>
-    <p class="pb">I'm an engineer who works on advanced imaging systems. This is my website, which highlights none of that. Instead </p>
+    <p class="pb">I'm an engineer who works on advanced imaging systems. This is my website portfolio, which highlights some of my projects and hobbies, music, and even a store! </p>
     <div class="div"></div>
-    <p class="pb" style="margin-top:0">This portfolio is built the way I think: as a schematic. Every section is a component in a real amplifier circuit. Every navigation is signal flow.</p>
+    <p class="pb" style="margin-top:0">This portfolio is built as an interactive schematic. Every section is a component of an amplifier circuit. Every navigation is signal flow.</p>
   </div>
 
   <!-- MUSIC -->
 <div class="page" id="pg-music">
   <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
   <h1 class="ph">Signals &<br/>frequencies.</h1>
-  <p class="pb">Music is waves of energy through the air, acting as sound. It's the emotional side of physics, what grounds us and connects us all. My music is an attempt to embody those connections.</p>
+  <p class="pb">Like the electrons flowing through a circuit, or the light landing upon our atmosphere, music comes in waves of energy. If you're in space you'll need to hold the speaker against your head to hear these songs. I hope you enjoy!</p>
   <div class="div"></div>
 
   <!-- Now playing strip -->

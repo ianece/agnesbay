@@ -953,7 +953,7 @@ projSlot.addEventListener('transitionend', (e) => {
       case 'triangle': { const p=(x*freq)%1; return (p<0.5?4*p-1:3-4*p) + noiseF(x*0.03)*0.06; }
       case 'damped': {
         const env = Math.exp(-((px % 140) / 60));
-        return Math.sin(2*Math.PI*0.06*px + t*2.4)*env*1.2 + noiseF(px*0.05+t*0.6)*0.12;
+        return Math.sin(2*Math.PI*0.06*px*freq + t*2.4)*env*1.2 + noiseF(px*0.05+t*0.6)*0.12;
       }
       case 'noise': return ((Math.sin(px*127.1+x*311)*43758.5453) % 1) * 2 - 1;
     }
@@ -1081,10 +1081,10 @@ projSlot.addEventListener('transitionend', (e) => {
       <line x1="${CH1_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH1_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${GOLD_DIM}" stroke-width="0.6" opacity="0.3"/>
       <line x1="${CH2_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH2_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${CH2_COLOR}" stroke-width="0.6" opacity="0.3"/>`;
 
-    const k1f = knobSVG('k1freq', CH1_CX-36, KNOB_ROW, ch[0].freq, 0.5, 4, 'TIME/DIV','FREQ');
-    const k1a = knobSVG('k1amp',  CH1_CX+36, KNOB_ROW, ch[0].amp,  0.1, 1, 'VOLTS/DIV','AMPL');
-    const k2f = knobSVG('k2freq', CH2_CX-36, KNOB_ROW, ch[1].freq, 0.5, 4, 'TIME/DIV','FREQ');
-    const k2a = knobSVG('k2amp',  CH2_CX+36, KNOB_ROW, ch[1].amp,  0.1, 1, 'VOLTS/DIV','AMPL');
+    const k1f = knobSVG('k1freq', CH1_CX-36, KNOB_ROW, ch[0].freq, 0.5, 4, '','FREQ');
+    const k1a = knobSVG('k1amp',  CH1_CX+36, KNOB_ROW, ch[0].amp,  0.1, 1, '','AMPL');
+    const k2f = knobSVG('k2freq', CH2_CX-36, KNOB_ROW, ch[1].freq, 0.5, 4, '','FREQ');
+    const k2a = knobSVG('k2amp',  CH2_CX+36, KNOB_ROW, ch[1].amp,  0.1, 1, '','AMPL');
 
     const btns0 = waveBtnsSVG(0, CH1_CX, BTN_ROW);
     const btns1 = waveBtnsSVG(1, CH2_CX, BTN_ROW);
@@ -1094,13 +1094,23 @@ projSlot.addEventListener('transitionend', (e) => {
       <line x1="${divX}" y1="${CTRL_TOP+2}" x2="${divX}" y2="${BODY_H-18}" stroke="${CREAM_4}" stroke-width="0.8" opacity="0.45"/>
       <text x="${divX}" y="${KNOB_ROW+8}" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" font-weight="300" fill="${INK_3}" opacity="0.22">+</text>`;
 
+    /* Output jack on the right side — anchor for the draggable cable */
+    const outJack = `
+      <g>
+        <rect x="${SCOPE_W-18}" y="${BODY_H/2-12}" width="18" height="24" rx="3" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+        <circle cx="${SCOPE_W-9}" cy="${BODY_H/2}" r="6.5" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="0.9"/>
+        <circle cx="${SCOPE_W-9}" cy="${BODY_H/2}" r="2.5" fill="${CREAM_4}"/>
+        <text x="${SCOPE_W-22}" y="${BODY_H/2-16}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" letter-spacing="0.12em" opacity="0.7">OUTPUT</text>
+      </g>
+      <rect id="scopeJackRef" x="${SCOPE_W-9}" y="${BODY_H/2}" width="1" height="1" fill="none"/>`;
+
     return `<svg viewBox="0 0 ${SCOPE_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
       ${body}${feet}${titleDecor}${title}${sep}
       ${bezel}${screen}${grid}${ticks}${screenLabels}
       ${mini0}${mini1}
       ${chLabels}${k1f}${k1a}${k2f}${k2a}
       ${btns0}${btns1}
-      ${divider}
+      ${divider}${outJack}
     </svg>`;
   }
 
@@ -1187,12 +1197,15 @@ projSlot.addEventListener('transitionend', (e) => {
        sampleWave(ch[1].wave, x+scroll, ch[1].freq, px) * ch[1].amp) * norm;
   }
 
-  /* Animation — runs continuously so state is fresh even when home is hidden */
+  /* Animation — runs continuously so state is fresh even when home is hidden.
+     Cable physics + drawing are folded in once the cable system is set up. */
+  let cableTickFn = null; // assigned later when cable system is initialized
   function animate(ts) {
-    t = ts*0.00012;
+    t = ts*0.0005416; // +18% scroll speed
     drawMain(mainCanvas);
     drawMini(miniCanvas0, 0);
     drawMini(miniCanvas1, 1);
+    if (cableTickFn) cableTickFn();
     requestAnimationFrame(animate);
   }
   requestAnimationFrame(animate);
@@ -1264,6 +1277,388 @@ projSlot.addEventListener('transitionend', (e) => {
     });
   });
   updateWaveBtns();
+
+  /* ──────────────────────────────────────────────────────────
+     SPEAKER (gramophone horn) — sits to the right of the scope.
+     User drags a cable from the scope's OUTPUT jack to the speaker's
+     INPUT jack to make the SUM trace audible.
+     ────────────────────────────────────────────────────────── */
+  const speakerWrap = document.getElementById('speakerWrap');
+  const cableCanvas = document.getElementById('speaker-cable');
+  const plugHint    = document.getElementById('plugHint');
+  const cableCtx    = cableCanvas ? cableCanvas.getContext('2d') : null;
+  const WIRE_COL    = '#7A6030';
+
+  /* Speaker SVG layout */
+  const SP_W = 260, SP_H = 500;
+  const BOX_X = 12, BOX_Y = 250, BOX_W = 236, BOX_H = 178;
+  const BOX_CX = BOX_X + BOX_W/2;
+  const HORN_BELL_Y = 22;
+  const HORN_BELL_HW = 118;
+  const HORN_THROAT_HW = 12;
+  const SP_JACK_X = BOX_X, SP_JACK_Y = BOX_Y + 90;
+
+  function buildSpeakerSVG() {
+    const lx0 = BOX_CX - HORN_THROAT_HW, rx0 = BOX_CX + HORN_THROAT_HW;
+    const lBell = BOX_CX - HORN_BELL_HW, rBell = BOX_CX + HORN_BELL_HW;
+    const hornPath = `M ${lx0} ${BOX_Y}
+      C ${lx0-22} ${BOX_Y-50} ${lBell+12} ${HORN_BELL_Y+55} ${lBell} ${HORN_BELL_Y}
+      Q ${BOX_CX} ${HORN_BELL_Y-20} ${rBell} ${HORN_BELL_Y}
+      C ${rBell-12} ${HORN_BELL_Y+55} ${rx0+22} ${BOX_Y-50} ${rx0} ${BOX_Y} Z`;
+
+    const ribData = [
+      {y:BOX_Y-30, hw:22},{y:BOX_Y-62,hw:42},{y:BOX_Y-96,hw:66},
+      {y:BOX_Y-130,hw:88},{y:BOX_Y-162,hw:106},{y:BOX_Y-192,hw:118},
+    ];
+    const ribs = ribData.map(({y,hw}) =>
+      `<line x1="${BOX_CX-hw}" y1="${y}" x2="${BOX_CX+hw}" y2="${y}" stroke="${GOLD_DIM}" stroke-width="0.9" opacity="0.22"/>`
+    ).join('');
+
+    const throat = `<rect x="${BOX_CX-10}" y="${BOX_Y-6}" width="20" height="10" rx="4" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.9"/>`;
+    const box = `<rect x="${BOX_X}" y="${BOX_Y}" width="${BOX_W}" height="${BOX_H}" rx="5" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1.3"/>`;
+    const inlay = `<rect x="${BOX_X+8}" y="${BOX_Y+8}" width="${BOX_W-16}" height="${BOX_H-16}" rx="3" fill="none" stroke="${GOLD_DIM}" stroke-width="0.7" opacity="0.30"/>`;
+    const panels = [BOX_Y+48,BOX_Y+96,BOX_Y+140].map(y =>
+      `<line x1="${BOX_X+22}" y1="${y}" x2="${BOX_X+BOX_W-22}" y2="${y}" stroke="${CREAM_4}" stroke-width="0.6" opacity="0.5"/>`
+    ).join('');
+    const cornerDiamonds = [[BOX_X+20,BOX_Y+20],[BOX_X+BOX_W-20,BOX_Y+20],
+      [BOX_X+20,BOX_Y+BOX_H-20],[BOX_X+BOX_W-20,BOX_Y+BOX_H-20]].map(([cx,cy]) =>
+      `<polygon points="${cx},${cy-6} ${cx+6},${cy} ${cx},${cy+6} ${cx-6},${cy}" fill="none" stroke="${GOLD_DIM}" stroke-width="0.8" opacity="0.4"/>`
+    ).join('');
+    const gCX = BOX_CX, gCY = BOX_Y + 72;
+    const grill = [0,1,2,3].map(i =>
+      `<circle cx="${gCX}" cy="${gCY}" r="${7+i*11}" fill="none" stroke="${CREAM_4}" stroke-width="0.7" opacity="${0.6-i*0.1}"/>`
+    ).join('') + `<circle cx="${gCX}" cy="${gCY}" r="3" fill="${CREAM_4}" opacity="0.35"/>`;
+    const sFeet = [BOX_X+28, BOX_CX, BOX_X+BOX_W-28].map(fx =>
+      `<ellipse cx="${fx}" cy="${BOX_Y+BOX_H}" rx="14" ry="7" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.9"/>`
+    ).join('');
+    const jackSock = `
+      <g class="speaker-jack-group" id="speakerJackGroup">
+        <rect x="${SP_JACK_X-12}" y="${SP_JACK_Y-12}" width="24" height="24" rx="4" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+        <circle cx="${SP_JACK_X}" cy="${SP_JACK_Y}" r="7" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="0.9"/>
+        <circle id="jackHole" cx="${SP_JACK_X}" cy="${SP_JACK_Y}" r="2.8" fill="${CREAM_4}"/>
+        <text x="${SP_JACK_X+16}" y="${SP_JACK_Y-14}" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" letter-spacing="0.14em" opacity="0.7">INPUT</text>
+      </g>
+      <rect id="speakerJackRef" x="${SP_JACK_X}" y="${SP_JACK_Y}" width="1" height="1" fill="none"/>`;
+    const indicator = `
+      <circle id="connIndicator" cx="${BOX_CX+82}" cy="${BOX_Y+18}" r="4.5" fill="${CREAM_4}" stroke="${CREAM_4}" stroke-width="0.8"/>
+      <text x="${BOX_CX+91}" y="${BOX_Y+21}" font-family="'JetBrains Mono',monospace" font-size="5" fill="${INK_4}" letter-spacing="0.1em" opacity="0.5">PWR</text>`;
+    const unplugBtn = `
+      <text id="unplugBtn" class="unplug-btn" x="${BOX_CX}" y="${BOX_Y+BOX_H-8}" text-anchor="middle"
+        font-family="'JetBrains Mono',monospace" font-size="6" fill="${GOLD}" letter-spacing="0.22em" opacity="0">UNPLUG ×</text>`;
+    const lbl = `
+      <text x="${BOX_CX}" y="${BOX_Y+BOX_H+24}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="${INK_4}" letter-spacing="0.28em">LS₁ · 8Ω</text>`;
+    const bellRef = `<rect id="hornBellRef" x="${BOX_CX}" y="${HORN_BELL_Y}" width="1" height="1" fill="none"/>`;
+
+    return `<svg viewBox="0 0 ${SP_W} ${SP_H}" xmlns="http://www.w3.org/2000/svg">
+      <path d="${hornPath}" fill="${CREAM_2}" stroke="${GOLD_DIM}" stroke-width="1.3"/>
+      ${ribs}${throat}
+      ${box}${inlay}${panels}${cornerDiamonds}${grill}${sFeet}
+      ${jackSock}${indicator}${unplugBtn}${lbl}${bellRef}
+    </svg>`;
+  }
+
+  if (speakerWrap) speakerWrap.innerHTML = buildSpeakerSVG();
+
+  /* ── Cable physics (Verlet chain dangling from scope output jack) ── */
+  function refPos(id) {
+    const el = document.getElementById(id);
+    if (!el) return { x:0, y:0 };
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
+  function homeVisible() {
+    return wrap.getBoundingClientRect().width > 0;
+  }
+
+  const WIRE_SEGS = 20, WIRE_GRAVITY = 0.30, WIRE_DAMPING = 0.88, SEG_LEN = 12, SLACK = 1.35;
+  let cableChain = [];
+  let cableDragging = false, cableConnected = false;
+  let cableMouseX = 0, cableMouseY = 0;
+
+  function initCable() {
+    const anchor = refPos('scopeJackRef');
+    const endX = anchor.x, endY = anchor.y + 80;
+    cableChain = [];
+    for (let i = 0; i <= WIRE_SEGS; i++) {
+      const k = i / WIRE_SEGS;
+      const x = anchor.x + (endX-anchor.x)*k;
+      const y = anchor.y + (endY-anchor.y)*k;
+      cableChain.push({ x, y, px:x, py:y });
+    }
+  }
+  function setConnectedCable() {
+    const a = refPos('scopeJackRef'), b = refPos('speakerJackRef');
+    const dist = Math.hypot(b.x-a.x, b.y-a.y);
+    const sag = Math.min(60, dist * 0.18);
+    for (let i = 0; i <= WIRE_SEGS; i++) {
+      const k = i / WIRE_SEGS;
+      const x = a.x + (b.x-a.x)*k;
+      const y = a.y + (b.y-a.y)*k + Math.sin(k*Math.PI)*sag;
+      cableChain[i] = { x, y, px:x, py:y };
+    }
+  }
+  function updateCable() {
+    if (!cableChain.length) return;
+    if (cableConnected) { setConnectedCable(); return; }
+    const anchor = refPos('scopeJackRef');
+    for (let i = 1; i < cableChain.length-1; i++) {
+      const p = cableChain[i];
+      const vx = (p.x - p.px) * WIRE_DAMPING;
+      const vy = (p.y - p.py) * WIRE_DAMPING;
+      p.px = p.x; p.py = p.y;
+      p.x += vx; p.y += vy + WIRE_GRAVITY;
+    }
+    if (cableDragging) {
+      const last = cableChain[cableChain.length-1];
+      last.x = cableMouseX; last.y = cableMouseY;
+      last.px = cableMouseX; last.py = cableMouseY;
+    }
+    const rest = SEG_LEN * SLACK;
+    for (let iter = 0; iter < 4; iter++) {
+      cableChain[0].x = anchor.x; cableChain[0].y = anchor.y;
+      if (cableDragging) {
+        cableChain[cableChain.length-1].x = cableMouseX;
+        cableChain[cableChain.length-1].y = cableMouseY;
+      }
+      for (let i = 0; i < cableChain.length-1; i++) {
+        const a = cableChain[i], b = cableChain[i+1];
+        const dx = b.x-a.x, dy = b.y-a.y;
+        const d = Math.sqrt(dx*dx+dy*dy) || 0.001;
+        const diff = (d-rest)/d * 0.5;
+        if (i > 0) { a.x += dx*diff; a.y += dy*diff; }
+        const lastFix = cableDragging && i === cableChain.length-2;
+        if (!lastFix) { b.x -= dx*diff; b.y -= dy*diff; }
+      }
+      cableChain[0].x = anchor.x; cableChain[0].y = anchor.y;
+      if (cableDragging) {
+        cableChain[cableChain.length-1].x = cableMouseX;
+        cableChain[cableChain.length-1].y = cableMouseY;
+      }
+    }
+  }
+
+  function resizeCableCanvas() {
+    if (!cableCanvas) return;
+    cableCanvas.width  = window.innerWidth  * devicePixelRatio;
+    cableCanvas.height = window.innerHeight * devicePixelRatio;
+    cableCanvas.style.width  = window.innerWidth + 'px';
+    cableCanvas.style.height = window.innerHeight + 'px';
+  }
+  resizeCableCanvas();
+  window.addEventListener('resize', () => { resizeCableCanvas(); if (!cableConnected) initCable(); });
+
+  function drawPlug(x, y, prev) {
+    const angle = Math.atan2(y - prev.y, x - prev.x);
+    cableCtx.save();
+    cableCtx.translate(x, y); cableCtx.rotate(angle);
+    cableCtx.fillStyle = CREAM_2; cableCtx.strokeStyle = GOLD_DIM; cableCtx.lineWidth = 1;
+    cableCtx.beginPath(); cableCtx.roundRect(-20, -4.5, 18, 9, 2); cableCtx.fill(); cableCtx.stroke();
+    cableCtx.strokeStyle = CREAM_4; cableCtx.lineWidth = 0.8;
+    cableCtx.beginPath(); cableCtx.moveTo(-12, -4.5); cableCtx.lineTo(-12, 4.5); cableCtx.stroke();
+    cableCtx.fillStyle = GOLD_DIM;
+    cableCtx.beginPath();
+    cableCtx.moveTo(-2,-3); cableCtx.lineTo(8,0); cableCtx.lineTo(-2,3); cableCtx.closePath(); cableCtx.fill();
+    cableCtx.fillStyle = GOLD;
+    cableCtx.beginPath(); cableCtx.arc(8, 0, 2.2, 0, Math.PI*2); cableCtx.fill();
+    cableCtx.restore();
+  }
+
+  let ringPhase = 0, audioAmplitude = 0;
+  function drawHornRings() {
+    if (!cableConnected || audioAmplitude < 0.02) return;
+    const bell = refPos('hornBellRef');
+    const speakerSVG = speakerWrap && speakerWrap.querySelector('svg');
+    if (!speakerSVG) return;
+    const sRect = speakerSVG.getBoundingClientRect();
+    const s = sRect.width / SP_W;
+    const bellR = HORN_BELL_HW * s;
+    ringPhase += 0.035;
+    for (let i = 0; i < 3; i++) {
+      const p = ((ringPhase + i/3) % 1);
+      const r = bellR * (0.7 + p * 0.7);
+      const alpha = (1 - p) * audioAmplitude * 0.7;
+      if (alpha <= 0.01) continue;
+      cableCtx.save();
+      cableCtx.strokeStyle = GOLD; cableCtx.lineWidth = 1.5; cableCtx.globalAlpha = alpha;
+      cableCtx.beginPath(); cableCtx.arc(bell.x, bell.y, r, 0, Math.PI*2);
+      cableCtx.stroke(); cableCtx.restore();
+    }
+  }
+
+  function drawCable() {
+    if (!cableCtx) return;
+    const W = cableCanvas.width, H = cableCanvas.height;
+    cableCtx.clearRect(0, 0, W, H);
+    if (!homeVisible() || cableChain.length < 2) return;
+    const dpr = devicePixelRatio;
+    cableCtx.save(); cableCtx.scale(dpr, dpr);
+
+    /* shadow */
+    cableCtx.save(); cableCtx.strokeStyle = 'rgba(90,70,30,0.10)'; cableCtx.lineWidth = 4;
+    cableCtx.lineCap = 'round'; cableCtx.lineJoin = 'round'; cableCtx.beginPath();
+    cableCtx.moveTo(cableChain[0].x, cableChain[0].y + 2);
+    for (let i = 1; i < cableChain.length; i++) cableCtx.lineTo(cableChain[i].x, cableChain[i].y + 2);
+    cableCtx.stroke(); cableCtx.restore();
+
+    /* body */
+    cableCtx.save(); cableCtx.strokeStyle = WIRE_COL; cableCtx.lineWidth = 2.4;
+    cableCtx.lineCap = 'round'; cableCtx.lineJoin = 'round'; cableCtx.beginPath();
+    cableCtx.moveTo(cableChain[0].x, cableChain[0].y);
+    for (let i = 1; i < cableChain.length-1; i++) {
+      const mx = (cableChain[i].x + cableChain[i+1].x) / 2;
+      const my = (cableChain[i].y + cableChain[i+1].y) / 2;
+      cableCtx.quadraticCurveTo(cableChain[i].x, cableChain[i].y, mx, my);
+    }
+    cableCtx.lineTo(cableChain[cableChain.length-1].x, cableChain[cableChain.length-1].y);
+    cableCtx.stroke(); cableCtx.restore();
+
+    /* highlight */
+    cableCtx.save(); cableCtx.strokeStyle = 'rgba(220,185,90,0.22)'; cableCtx.lineWidth = 0.9;
+    cableCtx.lineCap = 'round'; cableCtx.beginPath();
+    cableCtx.moveTo(cableChain[0].x - 0.5, cableChain[0].y - 0.5);
+    for (let i = 1; i < cableChain.length; i++) cableCtx.lineTo(cableChain[i].x - 0.5, cableChain[i].y - 0.5);
+    cableCtx.stroke(); cableCtx.restore();
+
+    if (!cableConnected) {
+      const end = cableChain[cableChain.length-1];
+      const prev = cableChain[cableChain.length-2];
+      drawPlug(end.x, end.y, prev);
+    }
+    drawHornRings();
+    cableCtx.restore();
+  }
+
+  /* Initialize cable chain after layout settles */
+  initCable();
+  if (window.ResizeObserver) new ResizeObserver(() => { if (!cableConnected) initCable(); }).observe(wrap);
+
+  /* ── Cable drag/connect interaction ── */
+  document.addEventListener('mousemove', e => {
+    cableMouseX = e.clientX; cableMouseY = e.clientY;
+    if (!cableCanvas) return;
+    if (cableDragging) {
+      cableCanvas.style.pointerEvents = 'all';
+      return;
+    }
+    if (cableConnected || !homeVisible() || !cableChain.length) {
+      cableCanvas.style.pointerEvents = 'none';
+      if (plugHint) plugHint.style.opacity = '0';
+      return;
+    }
+    const end = cableChain[cableChain.length-1];
+    const dist = Math.hypot(cableMouseX-end.x, cableMouseY-end.y);
+    const near = dist < 24;
+    cableCanvas.style.pointerEvents = near ? 'all' : 'none';
+    if (plugHint) {
+      plugHint.style.opacity = near ? '1' : '0';
+      plugHint.style.left = (end.x + 14) + 'px';
+      plugHint.style.top  = (end.y - 18) + 'px';
+    }
+  });
+
+  if (cableCanvas) cableCanvas.addEventListener('mousedown', e => {
+    if (cableConnected || cableDragging || !cableChain.length) return;
+    const end = cableChain[cableChain.length-1];
+    if (Math.hypot(e.clientX-end.x, e.clientY-end.y) < 24) {
+      cableDragging = true;
+      cableMouseX = e.clientX; cableMouseY = e.clientY;
+      if (plugHint) plugHint.style.opacity = '0';
+    }
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (!cableDragging) return;
+    cableDragging = false;
+    const sp = refPos('speakerJackRef');
+    if (Math.hypot(e.clientX-sp.x, e.clientY-sp.y) < 40) {
+      connectCable();
+    }
+  });
+
+  function connectCable() {
+    cableConnected = true;
+    setConnectedCable();
+    startSpeakerAudio();
+    const ind = document.getElementById('connIndicator');
+    if (ind) { ind.setAttribute('fill', GOLD); ind.setAttribute('stroke', GOLD_DIM); }
+    const hole = document.getElementById('jackHole');
+    if (hole) hole.setAttribute('fill', GOLD_DIM);
+    const ub = document.getElementById('unplugBtn');
+    if (ub) ub.style.opacity = '0.75';
+    if (cableCanvas) cableCanvas.style.pointerEvents = 'none';
+  }
+  function disconnectCable() {
+    cableConnected = false;
+    stopSpeakerAudio();
+    initCable();
+    const ind = document.getElementById('connIndicator');
+    if (ind) { ind.setAttribute('fill', CREAM_4); ind.setAttribute('stroke', CREAM_4); }
+    const hole = document.getElementById('jackHole');
+    if (hole) hole.setAttribute('fill', CREAM_4);
+    const ub = document.getElementById('unplugBtn');
+    if (ub) ub.style.opacity = '0';
+    audioAmplitude = 0;
+  }
+  document.addEventListener('click', e => {
+    const target = e.target;
+    if (!target) return;
+    if (target.id === 'unplugBtn' && cableConnected) disconnectCable();
+    else if (target.closest && target.closest('#speakerJackGroup') && cableConnected) disconnectCable();
+  });
+
+  /* ── Audio engine for the SUM trace (shares the page-wide audioCtx) ── */
+  let spkScriptNode = null, spkGainNode = null;
+  const audioPhase = [0, 0];
+  function sampleAudio(wave, phase) {
+    switch (wave) {
+      case 'sine':     return Math.sin(phase);
+      case 'square':   return Math.sign(Math.sin(phase));
+      case 'saw':      { const p = ((phase/Math.PI) % 2 + 2) % 2; return p - 1; }
+      case 'triangle': { const p = ((phase/Math.PI) % 2 + 2) % 2; return p < 1 ? 2*p-1 : 3-2*p; }
+      case 'damped':   { const env = Math.exp(-(phase % (Math.PI*4))/(Math.PI*2)); return Math.sin(phase*2)*env; }
+      case 'noise':    return Math.random()*2 - 1;
+    }
+    return 0;
+  }
+  function startSpeakerAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const sr = audioCtx.sampleRate;
+    spkScriptNode = audioCtx.createScriptProcessor(2048, 0, 1);
+    spkGainNode = audioCtx.createGain();
+    spkGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    spkGainNode.gain.linearRampToValueAtTime(0.30, audioCtx.currentTime + 0.08);
+    spkScriptNode.onaudioprocess = e => {
+      const out = e.outputBuffer.getChannelData(0);
+      let rms = 0;
+      for (let i = 0; i < out.length; i++) {
+        const f0 = ch[0].freq * 150, f1 = ch[1].freq * 150;
+        audioPhase[0] += (2*Math.PI*f0)/sr;
+        audioPhase[1] += (2*Math.PI*f1)/sr;
+        if (audioPhase[0] > Math.PI*4000) audioPhase[0] -= Math.PI*4000;
+        if (audioPhase[1] > Math.PI*4000) audioPhase[1] -= Math.PI*4000;
+        const s0 = sampleAudio(ch[0].wave, audioPhase[0]) * ch[0].amp;
+        const s1 = sampleAudio(ch[1].wave, audioPhase[1]) * ch[1].amp;
+        const sum = (s0 + s1) * 0.42;
+        out[i] = Math.max(-1, Math.min(1, sum));
+        rms += sum*sum;
+      }
+      audioAmplitude = Math.sqrt(rms / out.length);
+    };
+    spkScriptNode.connect(spkGainNode);
+    spkGainNode.connect(audioCtx.destination);
+  }
+  function stopSpeakerAudio() {
+    if (!spkGainNode || !audioCtx) return;
+    spkGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.06);
+    setTimeout(() => {
+      if (spkScriptNode) { spkScriptNode.disconnect(); spkScriptNode = null; }
+      if (spkGainNode)   { spkGainNode.disconnect();   spkGainNode = null; }
+    }, 80);
+  }
+
+  /* Hook the cable physics + drawing into the existing animate loop */
+  cableTickFn = () => { updateCable(); drawCable(); };
 
   /* Public hooks for the sidebar oscilloscope */
   window.wf = {
