@@ -52,7 +52,7 @@ function oscTogglePlay() {
     fadeAudioOutThenPause(currentAudio);
     vizWrap.classList.remove('active');
     document.getElementById('track-' + currentIdx).classList.remove('playing');
-    waveTarget = 'sine'; waveMode = 'sine';
+    waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
     window._audioTimeData = null;
     document.getElementById('osc-play-icon').style.display  = 'block';
     document.getElementById('osc-pause-icon').style.display = 'none';
@@ -125,8 +125,7 @@ function playTrack(idx) {
       fadeAudioOutThenPause(currentAudio);
       vizWrap.classList.remove('active');
       document.getElementById('track-' + idx).classList.remove('playing');
-      waveTarget = 'sine';
-      waveMode   = 'sine';
+      waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
       window._audioTimeData = null;
     }
     return;
@@ -161,8 +160,7 @@ function playTrack(idx) {
   audio.addEventListener('timeupdate', () => setProgress(idx, audio.currentTime, audio.duration));
   audio.addEventListener('ended', () => {
     clearActive();
-    waveTarget = 'sine';
-    waveMode   = 'sine';
+    waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
     window._audioTimeData = null;
     if (idx + 1 < TRACKS.length) playTrack(idx + 1);
   });
@@ -396,6 +394,13 @@ function noiseF(x) {
 function getWaveSample(mode, x, t, H) {
   const phase = t * 0.038;
   switch(mode) {
+    case 'adder': {
+      /* Mirror the SUM trace from the home-page waveform adder */
+      const wf = window.wf;
+      if (!wf) return Math.sin(2*Math.PI*0.046*x + phase) + noiseF(x*0.038+t*0.008)*0.18;
+      const W = 90; // sidebar osc canvas width
+      return wf.sumSample(x, W);
+    }
     case 'sine':
       return Math.sin(2*Math.PI*0.046*x + phase) + noiseF(x*0.038+t*0.008)*0.18;
     case 'damped': {
@@ -503,6 +508,7 @@ const componentWireMap = {
   'cg-contact':  ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
 };
 
+/* Per-component waves only fire while the probe is on a nav component (hover). */
 const componentWaveMap = {
   'cg-home':     'sine',
   'cg-about':    'square',
@@ -512,13 +518,14 @@ const componentWaveMap = {
   'cg-contact':  'pulse',
 };
 
+/* Default waveform for every section is the adder's SUM trace. */
 const sectionWaveMap = {
-  home:     'sine',
-  about:    'square',
-  music:    'chaotic',
-  projects: 'damped',
-  shop:     'sawtooth',
-  contact:  'pulse',
+  home:     'adder',
+  about:    'adder',
+  music:    'adder',
+  projects: 'adder',
+  shop:     'adder',
+  contact:  'adder',
 };
 
 let current = 'home';
@@ -547,8 +554,10 @@ function nav(section, componentId) {
     const el = document.getElementById(id); if(el) el.classList.add('lit');
   });
   animateDot(componentId || section);
-  // Set the oscilloscope waveform for this section
-  waveTarget = sectionWaveMap[section] || 'sine';
+  /* Don't touch waveTarget here — the probe is still over the component the
+     user just clicked, so its mouseenter-set waveform should stay visible
+     until the probe actually moves off. The mouseleave handler will then
+     restore sectionWaveMap[current] (= 'adder'). */
   current = section;
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
 }
@@ -901,3 +910,373 @@ window.addEventListener('resize', redrawIfOpen);
 projSlot.addEventListener('transitionend', (e) => {
   if (e.propertyName === 'width') redrawIfOpen();
 });
+
+/* ══════════════════════════════════════
+   WAVEFORM ADDER (home-page interactive scope)
+   Renders into #scopeWrap. Exposes window.wf so the sidebar oscilloscope can
+   read the same channel state and draw the SUM trace as its default waveform.
+   ══════════════════════════════════════ */
+(() => {
+  const wrap = document.getElementById('scopeWrap');
+  if (!wrap) return;
+
+  /* Tokens */
+  const GOLD       = '#C8A84B';
+  const GOLD_BRIGHT= '#E5C76B';
+  const GOLD_DIM   = '#A8893A';
+  const GOLD_GLOW  = 'rgba(200,168,75,0.28)';
+  const CREAM_2    = '#EDE5D4';
+  const CREAM_3    = '#E3D8C3';
+  const CREAM_4    = '#D0C4A8';
+  const INK        = '#221A0C';
+  const INK_3      = '#7A6A4A';
+  const INK_4      = '#A89878';
+  const CH2_COLOR  = '#7A9E8A';
+  const CH2_GLOW   = 'rgba(122,158,138,0.25)';
+
+  const WAVE_TYPES = ['sine','square','saw','triangle','damped','noise'];
+
+  /* Channel state — exposed on window.wf */
+  const ch = [
+    { freq: 1.2, amp: 0.65, wave: 'sine'   },
+    { freq: 2.0, amp: 0.40, wave: 'square' },
+  ];
+  let t = 0;
+
+  /* Per-mode sample function. Reuses the existing global noiseF from script.js. */
+  function sampleWave(wave, x, freq, px) {
+    const phase = x * freq * Math.PI * 2;
+    switch (wave) {
+      case 'sine':     return Math.sin(phase) + noiseF(x*0.038)*0.08;
+      case 'square':   return Math.sign(Math.sin(phase)) + noiseF(x*0.03)*0.06;
+      case 'saw':      return 2*((x*freq)%1) - 1 + noiseF(x*0.03)*0.06;
+      case 'triangle': { const p=(x*freq)%1; return (p<0.5?4*p-1:3-4*p) + noiseF(x*0.03)*0.06; }
+      case 'damped': {
+        const env = Math.exp(-((px % 140) / 60));
+        return Math.sin(2*Math.PI*0.06*px + t*2.4)*env*1.2 + noiseF(px*0.05+t*0.6)*0.12;
+      }
+      case 'noise': return ((Math.sin(px*127.1+x*311)*43758.5453) % 1) * 2 - 1;
+    }
+    return 0;
+  }
+
+  /* Layout constants (match waveform_adder.htm) */
+  const SCOPE_W = 960, BODY_H = 530, SVG_H = 560;
+  const TITLE_H = 52, SEP_Y = TITLE_H;
+  const SCREEN_X = 62, SCREEN_Y = SEP_Y + 10, SCREEN_W = SCOPE_W - 124, SCREEN_H = 248;
+  const CTRL_TOP = SCREEN_Y + SCREEN_H + 14;
+  const MINI_W = 112, MINI_H = 62;
+  const CH1_CX = 240, CH2_CX = SCOPE_W - 240;
+  const MINI1_X = CH1_CX - MINI_W/2, MINI2_X = CH2_CX - MINI_W/2;
+  const MINI_Y = CTRL_TOP + 4;
+  const KNOB_R = 22;
+  const KNOB_ROW = MINI_Y + MINI_H + 42;
+  const BTN_ROW = KNOB_ROW + KNOB_R + 36;
+  const FOOT_Y = BODY_H, FOOT_RX = 22, FOOT_RY = 12;
+
+  /* SVG builders */
+  function knobSVG(id, cx, cy, val, min, max, topLbl, botLbl) {
+    const norm = (val-min)/(max-min);
+    const angle = -135 + norm*270;
+    const rad = (angle-90)*Math.PI/180;
+    const nx = cx + Math.cos(rad)*(KNOB_R-5);
+    const ny = cy + Math.sin(rad)*(KNOB_R-5);
+    const r = KNOB_R+5;
+    const sA = (-135-90)*Math.PI/180;
+    const sx = cx+Math.cos(sA)*r, sy = cy+Math.sin(sA)*r;
+    const ex = cx+Math.cos(rad)*r, ey = cy+Math.sin(rad)*r;
+    const large = (angle+135)>180?1:0;
+    return `<g class="knob-group" id="${id}">
+      <path d="M ${cx+Math.cos(sA)*r} ${cy+Math.sin(sA)*r} A ${r} ${r} 0 1 1 ${cx+Math.cos((135-90)*Math.PI/180)*r} ${cy+Math.sin((135-90)*Math.PI/180)*r}"
+        fill="none" stroke="${CREAM_4}" stroke-width="1.1" stroke-linecap="round" opacity="0.38"/>
+      <path d="M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}"
+        fill="none" stroke="${GOLD_DIM}" stroke-width="1.3" stroke-linecap="round" class="knob-arc"/>
+      <circle cx="${cx}" cy="${cy}" r="${KNOB_R}" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1"/>
+      <circle cx="${cx}" cy="${cy}" r="${KNOB_R-7}" fill="none" stroke="${CREAM_4}" stroke-width="0.5" opacity="0.4"/>
+      <circle cx="${nx}" cy="${ny}" r="1.8" fill="${GOLD_DIM}" class="knob-notch"/>
+      <text x="${cx}" y="${cy-KNOB_R-7}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${GOLD}" letter-spacing="0.16em" opacity="0.7">${topLbl}</text>
+      <text x="${cx}" y="${cy+KNOB_R+14}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${INK_4}" letter-spacing="0.16em">${botLbl}</text>
+    </g>`;
+  }
+
+  function waveBtnsSVG(chIdx, cx, y) {
+    const sp = 34, count = WAVE_TYPES.length;
+    const startX = cx - (count*sp)/2 + sp/2;
+    return WAVE_TYPES.map((w,i)=>{
+      const bx = startX + i*sp;
+      const active = ch[chIdx].wave===w;
+      const col = chIdx===0 ? GOLD : CH2_COLOR;
+      return `<g class="wave-btn" data-ch="${chIdx}" data-wave="${w}">
+        <rect x="${bx-14}" y="${y-9}" width="28" height="18" rx="2"
+          fill="${active?CREAM_3:CREAM_2}" stroke="${active?GOLD_DIM:CREAM_4}" stroke-width="${active?1.1:0.7}"/>
+        <text x="${bx}" y="${y+4}" text-anchor="middle" font-family="'JetBrains Mono',monospace"
+          font-size="5.8" fill="${active?col:INK_4}" letter-spacing="0.05em">${w}</text>
+      </g>`;
+    }).join('');
+  }
+
+  function miniScreenSVG(x, y, w, h, chIdx) {
+    const col = chIdx===0 ? GOLD_DIM : CH2_COLOR;
+    const lbl = chIdx===0 ? 'CH1' : 'CH2';
+    return `
+      <rect x="${x-2}" y="${y-2}" width="${w+4}" height="${h+4}" rx="3" fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${INK}" fill-opacity="0.04" stroke="${col}" stroke-width="0.9"/>
+      <text x="${x+5}" y="${y+10}" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${col}" letter-spacing="0.18em" opacity="0.7">${lbl}</text>
+    `;
+  }
+
+  function buildSVG() {
+    const body = `<rect x="1" y="1" width="${SCOPE_W-2}" height="${BODY_H-2}" rx="7" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1.4"/>`;
+    const feet = `
+      <ellipse cx="80" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+      <ellipse cx="${SCOPE_W-80}" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>`;
+    const titleDecor = `
+      <circle cx="${SCOPE_W-30}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+      <circle cx="${SCOPE_W-48}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+      <circle cx="${SCOPE_W-66}" cy="${TITLE_H/2}" r="3.5" fill="${GOLD}" fill-opacity="0.5" stroke="${GOLD_DIM}" stroke-width="0.8"/>
+      <circle cx="28" cy="${TITLE_H/2}" r="7" fill="none" stroke="${CREAM_4}" stroke-width="0.9"/>
+      <line x1="28" y1="${TITLE_H/2-10}" x2="28" y2="${TITLE_H/2-4}" stroke="${CREAM_4}" stroke-width="0.9"/>`;
+    const title = `
+      <text x="${SCOPE_W/2}" y="${TITLE_H/2+2}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="500" fill="${INK_3}" letter-spacing="0.38em">WAVEFORM ADDER</text>
+      <text x="${SCOPE_W/2}" y="${TITLE_H/2+15}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" font-weight="300" fill="${INK_4}" letter-spacing="0.28em" opacity="0.65">REV 3.113</text>`;
+    const sep = `<line x1="20" y1="${SEP_Y}" x2="${SCOPE_W-20}" y2="${SEP_Y}" stroke="${CREAM_4}" stroke-width="0.8" opacity="0.7"/>`;
+
+    const bx = SCREEN_X-10, by = SCREEN_Y-10;
+    const bezel = `<rect x="${bx}" y="${by}" width="${SCREEN_W+20}" height="${SCREEN_H+20}" rx="4" fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>`;
+    const screen = `<rect x="${SCREEN_X}" y="${SCREEN_Y}" width="${SCREEN_W}" height="${SCREEN_H}" rx="2" fill="${INK}" fill-opacity="0.03" stroke="${GOLD_DIM}" stroke-width="1.2"/>`;
+
+    const gC=10, gR=8;
+    let grid='', ticks='';
+    for (let i=1;i<gC;i++){
+      const x=SCREEN_X+(SCREEN_W/gC)*i, mid=i===gC/2;
+      grid+=`<line x1="${x}" y1="${SCREEN_Y}" x2="${x}" y2="${SCREEN_Y+SCREEN_H}" stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;
+    }
+    for (let j=1;j<gR;j++){
+      const y=SCREEN_Y+(SCREEN_H/gR)*j, mid=j===gR/2;
+      grid+=`<line x1="${SCREEN_X}" y1="${y}" x2="${SCREEN_X+SCREEN_W}" y2="${y}" stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;
+    }
+    const cx0=SCREEN_X+SCREEN_W/2, cy0=SCREEN_Y+SCREEN_H/2;
+    for (let k=0;k<=40;k++){
+      const tx=SCREEN_X+(SCREEN_W/40)*k;
+      ticks+=`<line x1="${tx}" y1="${cy0-2}" x2="${tx}" y2="${cy0+2}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;
+    }
+    for (let k=0;k<=32;k++){
+      const ty=SCREEN_Y+(SCREEN_H/32)*k;
+      ticks+=`<line x1="${cx0-2}" y1="${ty}" x2="${cx0+2}" y2="${ty}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;
+    }
+
+    const screenLabels = `
+      <text x="${SCREEN_X+10}" y="${SCREEN_Y+14}" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD_BRIGHT}" letter-spacing="0.2em" opacity="0.75">CH3</text>
+      <text x="${SCREEN_X+SCREEN_W-10}" y="${SCREEN_Y+14}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD}" letter-spacing="0.18em" opacity="0.45">SUM</text>
+      <text x="${SCREEN_X-5}" y="${SCREEN_Y+7}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">+V</text>
+      <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H/2+3}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">0</text>
+      <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H-2}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">−V</text>`;
+
+    const mini0 = miniScreenSVG(MINI1_X, MINI_Y, MINI_W, MINI_H, 0);
+    const mini1 = miniScreenSVG(MINI2_X, MINI_Y, MINI_W, MINI_H, 1);
+
+    const chLabels = `
+      <text x="${CH1_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${GOLD}" letter-spacing="0.28em" opacity="0.85">CH1</text>
+      <text x="${CH2_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${CH2_COLOR}" letter-spacing="0.28em" opacity="0.85">CH2</text>
+      <line x1="${CH1_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH1_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${GOLD_DIM}" stroke-width="0.6" opacity="0.3"/>
+      <line x1="${CH2_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH2_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${CH2_COLOR}" stroke-width="0.6" opacity="0.3"/>`;
+
+    const k1f = knobSVG('k1freq', CH1_CX-36, KNOB_ROW, ch[0].freq, 0.5, 4, 'TIME/DIV','FREQ');
+    const k1a = knobSVG('k1amp',  CH1_CX+36, KNOB_ROW, ch[0].amp,  0.1, 1, 'VOLTS/DIV','AMPL');
+    const k2f = knobSVG('k2freq', CH2_CX-36, KNOB_ROW, ch[1].freq, 0.5, 4, 'TIME/DIV','FREQ');
+    const k2a = knobSVG('k2amp',  CH2_CX+36, KNOB_ROW, ch[1].amp,  0.1, 1, 'VOLTS/DIV','AMPL');
+
+    const btns0 = waveBtnsSVG(0, CH1_CX, BTN_ROW);
+    const btns1 = waveBtnsSVG(1, CH2_CX, BTN_ROW);
+
+    const divX = SCOPE_W/2;
+    const divider = `
+      <line x1="${divX}" y1="${CTRL_TOP+2}" x2="${divX}" y2="${BODY_H-18}" stroke="${CREAM_4}" stroke-width="0.8" opacity="0.45"/>
+      <text x="${divX}" y="${KNOB_ROW+8}" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="20" font-weight="300" fill="${INK_3}" opacity="0.22">+</text>`;
+
+    return `<svg viewBox="0 0 ${SCOPE_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
+      ${body}${feet}${titleDecor}${title}${sep}
+      ${bezel}${screen}${grid}${ticks}${screenLabels}
+      ${mini0}${mini1}
+      ${chLabels}${k1f}${k1a}${k2f}${k2a}
+      ${btns0}${btns1}
+      ${divider}
+    </svg>`;
+  }
+
+  wrap.insertAdjacentHTML('afterbegin', buildSVG());
+
+  /* Canvas placement */
+  const mainCanvas  = document.getElementById('waveCanvas');
+  const miniCanvas0 = document.getElementById('miniCanvas0');
+  const miniCanvas1 = document.getElementById('miniCanvas1');
+
+  function placeCanvas(el, svgX, svgY, svgW, svgH, s) {
+    el.style.left   = `${svgX*s}px`;
+    el.style.top    = `${svgY*s}px`;
+    el.style.width  = `${svgW*s}px`;
+    el.style.height = `${svgH*s}px`;
+    el.width  = Math.max(1, Math.round(svgW*s*devicePixelRatio));
+    el.height = Math.max(1, Math.round(svgH*s*devicePixelRatio));
+  }
+
+  function layoutAll() {
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width === 0) return; // home is hidden — skip
+    const s = rect.width / SCOPE_W;
+    placeCanvas(mainCanvas,  SCREEN_X, SCREEN_Y, SCREEN_W, SCREEN_H, s);
+    placeCanvas(miniCanvas0, MINI1_X,  MINI_Y,   MINI_W,   MINI_H,   s);
+    placeCanvas(miniCanvas1, MINI2_X,  MINI_Y,   MINI_W,   MINI_H,   s);
+  }
+  layoutAll();
+  window.addEventListener('resize', layoutAll);
+  /* Re-layout when home becomes visible (display: none → block) */
+  if (window.ResizeObserver) new ResizeObserver(layoutAll).observe(wrap);
+
+  /* Trace drawing */
+  function drawTrace(ctx, W, H, sampleFn, color, glowColor, lineW, alpha, glowAlpha) {
+    const mid = H/2;
+    ctx.save();
+    ctx.shadowColor = glowColor; ctx.shadowBlur = 10*devicePixelRatio;
+    ctx.strokeStyle = color; ctx.lineWidth = lineW*devicePixelRatio;
+    ctx.globalAlpha = glowAlpha; ctx.beginPath();
+    for (let px=0; px<W; px++) {
+      const y = mid - sampleFn(px/W, px)*(mid-5*devicePixelRatio);
+      px===0 ? ctx.moveTo(px,y) : ctx.lineTo(px,y);
+    }
+    ctx.stroke(); ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = lineW*devicePixelRatio;
+    ctx.lineJoin = 'round'; ctx.globalAlpha = alpha; ctx.beginPath();
+    for (let px=0; px<W; px++) {
+      const y = mid - sampleFn(px/W, px)*(mid-5*devicePixelRatio);
+      px===0 ? ctx.moveTo(px,y) : ctx.lineTo(px,y);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+
+  function drawMini(canvas, chIdx) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    if (W === 0 || H === 0) return;
+    ctx.clearRect(0,0,W,H);
+    const scroll = t*0.1;
+    const c = ch[chIdx];
+    const color = chIdx===0 ? GOLD : CH2_COLOR;
+    const glow  = chIdx===0 ? GOLD_GLOW : CH2_GLOW;
+    const fn = (x, px) => sampleWave(c.wave, x+scroll, c.freq, px) * c.amp;
+    drawTrace(ctx, W, H, fn, color, glow, 1.2, 0.82, 0.22);
+  }
+
+  function drawMain(canvas) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    if (W === 0 || H === 0) return;
+    ctx.clearRect(0,0,W,H);
+    drawTrace(ctx, W, H, sumSampler(W), GOLD_BRIGHT, GOLD_GLOW, 1.6, 0.88, 0.28);
+  }
+
+  /* Build a sampler that produces the same SUM trace shown on the main scope.
+     Used by both the main canvas and (via window.wf) the sidebar oscilloscope. */
+  function sumSampler(W) {
+    const scroll = t*0.1;
+    const maxAmp = ch[0].amp + ch[1].amp;
+    const norm = maxAmp > 1 ? 1/maxAmp : 1;
+    return (x, px) =>
+      (sampleWave(ch[0].wave, x+scroll, ch[0].freq, px) * ch[0].amp +
+       sampleWave(ch[1].wave, x+scroll, ch[1].freq, px) * ch[1].amp) * norm;
+  }
+
+  /* Animation — runs continuously so state is fresh even when home is hidden */
+  function animate(ts) {
+    t = ts*0.00012;
+    drawMain(mainCanvas);
+    drawMini(miniCanvas0, 0);
+    drawMini(miniCanvas1, 1);
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+
+  /* Knob interaction */
+  const KNOB_MAP = {
+    k1freq:[0,'freq',0.5,4], k1amp:[0,'amp',0.1,1],
+    k2freq:[1,'freq',0.5,4], k2amp:[1,'amp',0.1,1],
+  };
+  const KNOB_CX = {
+    k1freq:CH1_CX-36, k1amp:CH1_CX+36,
+    k2freq:CH2_CX-36, k2amp:CH2_CX+36,
+  };
+
+  function updateKnobVisual(id, val, min, max) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const norm = (val-min)/(max-min);
+    const angle = -135+norm*270;
+    const rad = (angle-90)*Math.PI/180;
+    const cx = KNOB_CX[id], cy = KNOB_ROW;
+    const nx = cx+Math.cos(rad)*(KNOB_R-5);
+    const ny = cy+Math.sin(rad)*(KNOB_R-5);
+    const notch = el.querySelector('.knob-notch');
+    if (notch) { notch.setAttribute('cx',nx); notch.setAttribute('cy',ny); }
+    const r=KNOB_R+5;
+    const sA=(-135-90)*Math.PI/180;
+    const sx=cx+Math.cos(sA)*r, sy=cy+Math.sin(sA)*r;
+    const ex=cx+Math.cos(rad)*r, ey=cy+Math.sin(rad)*r;
+    const large=(angle+135)>180?1:0;
+    const arc=el.querySelector('.knob-arc');
+    if (arc) arc.setAttribute('d',`M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`);
+  }
+
+  Object.entries(KNOB_MAP).forEach(([id,[chIdx,prop,min,max]]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let dragging=false, startY=0, startVal=0;
+    const begin = y => { dragging=true; startY=y; startVal=ch[chIdx][prop]; };
+    const move = y => {
+      if (!dragging) return;
+      const dy = startY - y;
+      ch[chIdx][prop] = Math.max(min, Math.min(max, startVal + dy*((max-min)/160)));
+      updateKnobVisual(id, ch[chIdx][prop], min, max);
+    };
+    el.addEventListener('mousedown', e => { begin(e.clientY); e.preventDefault(); });
+    window.addEventListener('mousemove', e => move(e.clientY));
+    window.addEventListener('mouseup',  () => { dragging=false; });
+    el.addEventListener('touchstart', e => { begin(e.touches[0].clientY); e.preventDefault(); }, { passive:false });
+    window.addEventListener('touchmove', e => { if (dragging) move(e.touches[0].clientY); });
+    window.addEventListener('touchend', () => { dragging=false; });
+  });
+
+  /* Wave-type buttons */
+  function updateWaveBtns() {
+    document.querySelectorAll('.scope-wrap .wave-btn').forEach(g => {
+      const ci = parseInt(g.dataset.ch), w = g.dataset.wave;
+      const active = ch[ci].wave === w;
+      const col = ci===0 ? GOLD : CH2_COLOR;
+      g.querySelector('rect').setAttribute('stroke', active?GOLD_DIM:CREAM_4);
+      g.querySelector('rect').setAttribute('fill',   active?CREAM_3:CREAM_2);
+      g.querySelector('text').setAttribute('fill',   active?col:INK_4);
+    });
+  }
+  document.querySelectorAll('.scope-wrap .wave-btn').forEach(g => {
+    g.addEventListener('click', () => {
+      ch[parseInt(g.dataset.ch)].wave = g.dataset.wave;
+      updateWaveBtns();
+    });
+  });
+  updateWaveBtns();
+
+  /* Public hooks for the sidebar oscilloscope */
+  window.wf = {
+    ch,
+    sampleWave,
+    sumSample(x, W) {
+      const scroll = t*0.1;
+      const maxAmp = ch[0].amp + ch[1].amp;
+      const norm = maxAmp > 1 ? 1/maxAmp : 1;
+      const xn = x / W;
+      return (sampleWave(ch[0].wave, xn+scroll, ch[0].freq, x) * ch[0].amp +
+              sampleWave(ch[1].wave, xn+scroll, ch[1].freq, x) * ch[1].amp) * norm;
+    },
+    getT: () => t,
+  };
+})();

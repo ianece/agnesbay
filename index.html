@@ -278,29 +278,14 @@
   <div class="page active" id="pg-home">
     <p class="ptag">VCC · +12V — Home</p>
     <h1 class="ph">Hello there!</h1>
-    <p class="pb">Select a component from the navigation menu on the left to explore, or browse the suggested options below.</p>
+    <p class="pb">Select a component from the navigation menu on the left to explore. Note that the waveform in the top left can update in real time via the probe, waveform adder, or by playing music.</p>
     <div class="div"></div>
-    <div class="card-row">
-      <div class="card" onclick="nav('music')">
-        <p class="card-eyebrow">Latest <span class="new-dot"></span></p>
-        <h3>New Track Out</h3>
-        <p>Just dropped a new ambient piece — processed through a custom reverb chain. Have a listen.</p>
-      </div>
-      <div class="card" onclick="nav('projects')">
-        <p class="card-eyebrow">Project Update</p>
-        <h3>Neo 80 Build</h3>
-        <p>Jade case, Kintsugi keycaps. Almost done — finishing the sound dampening this week.</p>
-      </div>
-      <div class="card" onclick="nav('shop')">
-        <p class="card-eyebrow">Shop <span class="new-dot"></span></p>
-        <h3>New Drop</h3>
-        <p>Fresh beats, sample packs, and hardware kits. Check the store.</p>
-      </div>
-      <div class="card">
-        <p class="card-eyebrow">Reading</p>
-        <h3>Currently Into</h3>
-        <p>The Art of Electronics + whatever's in my Spotify Discover Weekly this week.</p>
-      </div>
+
+    <!-- Waveform adder — interactive scope, also feeds the sidebar oscilloscope -->
+    <div class="scope-wrap" id="scopeWrap">
+      <canvas class="screen-canvas" id="waveCanvas"></canvas>
+      <canvas class="screen-canvas" id="miniCanvas0"></canvas>
+      <canvas class="screen-canvas" id="miniCanvas1"></canvas>
     </div>
   </div>
 

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c \"c:/Users/Ian/agnesbay website/script.js\")"
+    ]
+  }
+}

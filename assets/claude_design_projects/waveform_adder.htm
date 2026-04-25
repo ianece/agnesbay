@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var A=["https://claude.ai","https://preview.claude.ai","https://eap-omelette.claude.ai"];var L=30000;var u=3000;document.addEventListener("DOMContentLoaded",()=>{const V=window.Babel;const $="om-src-id";if(V&&V.registerPlugin&&!(V.availablePlugins&&V.availablePlugins[$])){V.registerPlugin($,({types:Q})=>({visitor:{JSXOpeningElement(W,X){const K=W.node;if(K.name&&K.name.type==="JSXMemberExpression")return;for(let J=0;J<K.attributes.length;J++){const w=K.attributes[J];if(w.type==="JSXAttribute"&&w.name&&w.name.name==="data-om-id")return}const z=X.file&&X.file.opts&&X.file.opts.filename||"?";const k=K.loc&&K.loc.start;const C=`jsx:${z}:${K.start??0}:${k?k.line:0}:${k?k.column+1:0}`;K.attributes.push(Q.jsxAttribute(Q.jsxIdentifier("data-om-id"),Q.stringLiteral(C)))}}}))}const Z=["transform-react-jsx-source",$];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Q,W)=>{const X=Q.getAttribute("data-plugins")||"";const K=Z.filter((z)=>X.indexOf(z)<0);if(K.length){Q.setAttribute("data-plugins",X?`${X},${K.join(",")}`:K.join(","))}if(!Q.hasAttribute("data-filename")){Q.setAttribute("data-filename",Q.getAttribute("src")||`inline-${W}`)}})});var b=window.parent;if(b&&b!==window){const V=(z,k)=>{try{b.postMessage({__omelette_log:true,type:z,data:k},"*")}catch{}};["log","warn","error"].forEach((z)=>{const k=console[z];console[z]=(...C)=>{const J=C.map((w)=>{try{return typeof w==="object"?JSON.stringify(w):String(w)}catch{try{return String(w)}catch{return"[unstringifiable]"}}}).join(" ");V(z,J);k.apply(console,C)}});window.addEventListener("error",(z)=>{const k=z.target;if(k&&k!==window&&k.tagName){const C=k.src||k.href||"";V("resource_error",`${k.tagName} failed to load: ${C}`)}else{V("error",`${z.message||"Unknown error"} at ${z.filename||"?"}:${z.lineno||0}:${z.colno||0}`)}},true);window.addEventListener("unhandledrejection",(z)=>{const k=z.reason;const C=k instanceof Error?`${k.message} ${k.stack}`:String(k);V("error",`Unhandled rejection: ${C}`)});const $=()=>{try{b.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")$();else window.addEventListener("load",$);if(window.ResizeObserver)new ResizeObserver($).observe(document.documentElement);const Z={};let Q=0;window.claude={complete(z){return new Promise((k,C)=>{if(!A.length){C(new Error("claude.complete: no parent origin"));return}const J=`c${++Q}`;const w=()=>setTimeout(()=>{delete Z[J];C(new Error(`claude.complete: no data for ${L/1000}s`))},L);const Y=w();Z[J]={resolve:k,reject:C,text:"",t:Y,arm:w};try{for(const F of A){b.postMessage({__om_api:true,id:J,body:z},F)}}catch(F){clearTimeout(Y);delete Z[J];C(F)}})}};const W={};let X=0;window.omelette={writeFile:(z,k)=>new Promise((C,J)=>{if(!A.length){C();return}const w=`f${++X}`;const Y=setTimeout(()=>{delete W[w];C()},u);W[w]={resolve:C,reject:J,t:Y};try{for(const F of A){b.postMessage({__om_file:true,id:w,op:"write",path:z,content:k},F)}}catch{clearTimeout(Y);delete W[w];C()}})};const K=(z)=>{try{return JSON.stringify(z)}catch{return JSON.stringify(String(z))}};window.addEventListener("message",(z)=>{if(A.indexOf(z.origin)<0)return;if(z.source!==b)return;const k=z.data;if(!k)return;if(k.__om_file_r){const w=W[k.id];if(!w)return;clearTimeout(w.t);delete W[k.id];if(k.ok)w.resolve();else w.reject(new Error(k.error||"write failed"));return}if(k.__om_api_r){const w=Z[k.id];if(!w)return;if(k.error!=null){clearTimeout(w.t);delete Z[k.id];w.reject(new Error(k.error));return}if(k.chunk!=null){clearTimeout(w.t);w.t=w.arm();w.text+=k.chunk;return}if(k.done){clearTimeout(w.t);delete Z[k.id];w.resolve(k.text!=null?k.text:w.text);return}return}if(!k.__om_eval)return;const C=k;const J=(w)=>{z.source.postMessage({...w,__om_eval_r:1,id:C.id},z.origin)};try{const w=(0,eval)(C.code);if(w&&typeof w.then==="function"){w.then((Y)=>J({ok:1,v:K(Y)}),(Y)=>J({ok:0,e:String(Y)}))}else{J({ok:1,v:K(w)})}}catch(w){J({ok:0,e:String(w)})}})}})();
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ian ECE — Waveform Adder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="colors_and_type.css"/>
+<style>
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--cream); }
+  body::after {
+    content:''; position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.032'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:9000; opacity:0.7;
+  }
+  .stage {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .header {
+    display:flex; justify-content:space-between; align-items:baseline;
+    width:min(960px,94vw); margin-bottom:14px;
+  }
+  .site-name {
+    font-family:var(--font-serif); font-size:21px; font-weight:300;
+    font-style:italic; color:var(--ink); letter-spacing:0.02em;
+  }
+  .ref-tag {
+    font-family:var(--font-mono); font-size:8px; letter-spacing:0.3em;
+    color:var(--gold); text-transform:uppercase; opacity:0.8;
+  }
+  .scope-wrap { position:relative; width:min(960px,94vw); }
+  .scope-svg  { width:100%; display:block; }
+  .screen-canvas { position:absolute; }
+  .footer {
+    width:min(960px,94vw); margin-top:10px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .footer-lede {
+    font-family:var(--font-serif); font-size:14px; font-weight:300;
+    font-style:italic; color:var(--ink-3);
+  }
+  .footer-nav { display:flex; gap:24px; }
+  .footer-nav a {
+    font-family:var(--font-mono); font-size:8px; letter-spacing:0.24em;
+    color:var(--ink-4); text-decoration:none; text-transform:uppercase; transition:color 150ms;
+  }
+  .footer-nav a:hover { color:var(--gold); }
+  .knob-group { cursor:grab; user-select:none; }
+  .knob-group:active { cursor:grabbing; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="header">
+    <span class="site-name">Ian Christensen</span>
+    <span class="ref-tag">ECE · Signal Analysis</span>
+  </div>
+  <div class="scope-wrap" id="scopeWrap">
+    <canvas class="screen-canvas" id="waveCanvas"></canvas>
+    <canvas class="screen-canvas" id="miniCanvas0"></canvas>
+    <canvas class="screen-canvas" id="miniCanvas1"></canvas>
+  </div>
+  <div class="footer">
+    <span class="footer-lede">ECE · imaging · RF · music</span>
+    <nav class="footer-nav">
+      <a href="#">About</a><a href="#">Projects</a>
+      <a href="#">Music</a><a href="#">Shop</a><a href="#">Contact</a>
+    </nav>
+  </div>
+</div>
+
+<script>
+// ── Tokens ──
+const GOLD       = '#C8A84B';
+const GOLD_BRIGHT= '#E5C76B';
+const GOLD_DIM   = '#A8893A';
+const GOLD_GLOW  = 'rgba(200,168,75,0.28)';
+const CREAM_2    = '#EDE5D4';
+const CREAM_3    = '#E3D8C3';
+const CREAM_4    = '#D0C4A8';
+const INK        = '#221A0C';
+const INK_3      = '#7A6A4A';
+const INK_4      = '#A89878';
+const CH2_COLOR  = '#7A9E8A';
+const CH2_GLOW   = 'rgba(122,158,138,0.25)';
+
+// ── Waveforms ──
+const WAVE_TYPES = ['sine','square','saw','triangle','damped','noise'];
+
+// ── State ──
+const ch = [
+  { freq:1.2, amp:0.65, wave:'sine' },
+  { freq:2.0, amp:0.40, wave:'square' },
+];
+let t = 0;
+
+// Harmonic noise — matches agnesbay source exactly
+function noiseF(x) {
+  return Math.sin(x*1.7)*0.50 + Math.sin(x*3.13)*0.25
+       + Math.sin(x*5.97)*0.13 + Math.sin(x*11.41)*0.07
+       + Math.sin(x*23.7)*0.03;
+}
+
+function sampleWave(wave, x, freq, px) {
+  const phase = x * freq * Math.PI * 2;
+  switch (wave) {
+    case 'sine':     return Math.sin(phase) + noiseF(x*0.038)*0.08;
+    case 'square':   return Math.sign(Math.sin(phase)) + noiseF(x*0.03)*0.06;
+    case 'saw':      return 2*((x*freq)%1) - 1 + noiseF(x*0.03)*0.06;
+    case 'triangle': { const p=(x*freq)%1; return (p<0.5?4*p-1:3-4*p) + noiseF(x*0.03)*0.06; }
+    case 'damped': {
+      // px = pixel position; use repeating 140px envelope as in agnesbay
+      const env = Math.exp(-((px % 140) / 60));
+      return Math.sin(2*Math.PI*0.06*px + t*2.4) * env * 1.2
+           + noiseF(px*0.05 + t*0.6) * 0.12;
+    }
+    case 'noise': return (Math.sin(px*127.1+x*311)*43758.5453)%1 * 2 - 1;
+  }
+  return 0;
+}
+
+// ── Layout constants ──
+const SCOPE_W   = 960;
+const BODY_H    = 530;
+const SVG_H     = 560;   // includes feet below body
+
+// Title strip
+const TITLE_H   = 52;
+const SEP_Y     = TITLE_H;
+
+// Screen
+const SCREEN_X  = 62;
+const SCREEN_Y  = SEP_Y + 10;
+const SCREEN_W  = SCOPE_W - 124;
+const SCREEN_H  = 248;
+
+// Controls
+const CTRL_TOP  = SCREEN_Y + SCREEN_H + 14;  // ~324
+
+// Mini screens
+const MINI_W    = 112;
+const MINI_H    = 62;
+const CH1_CX    = 240;
+const CH2_CX    = SCOPE_W - 240;
+const MINI1_X   = CH1_CX - MINI_W/2;
+const MINI2_X   = CH2_CX - MINI_W/2;
+const MINI_Y    = CTRL_TOP + 4;
+
+// Knobs & buttons
+const KNOB_R    = 22;
+const KNOB_ROW  = MINI_Y + MINI_H + 42;
+const BTN_ROW   = KNOB_ROW + KNOB_R + 36;
+
+// Feet
+const FOOT_Y    = BODY_H;
+const FOOT_RX   = 22;
+const FOOT_RY   = 12;
+
+// ── SVG builder ──
+function knobSVG(id, cx, cy, val, min, max, topLbl, botLbl) {
+  const norm  = (val-min)/(max-min);
+  const angle = -135 + norm*270;
+  const rad   = (angle-90)*Math.PI/180;
+  const nx = cx + Math.cos(rad)*(KNOB_R-5);
+  const ny = cy + Math.sin(rad)*(KNOB_R-5);
+  const r  = KNOB_R+5;
+  const sA = (-135-90)*Math.PI/180;
+  const sx = cx+Math.cos(sA)*r, sy = cy+Math.sin(sA)*r;
+  const ex = cx+Math.cos(rad)*r, ey = cy+Math.sin(rad)*r;
+  const large = (angle+135)>180?1:0;
+  return `<g class="knob-group" id="${id}">
+    <path d="M ${cx+Math.cos(sA)*r} ${cy+Math.sin(sA)*r} A ${r} ${r} 0 1 1 ${cx+Math.cos((135-90)*Math.PI/180)*r} ${cy+Math.sin((135-90)*Math.PI/180)*r}"
+      fill="none" stroke="${CREAM_4}" stroke-width="1.1" stroke-linecap="round" opacity="0.38"/>
+    <path d="M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}"
+      fill="none" stroke="${GOLD_DIM}" stroke-width="1.3" stroke-linecap="round" class="knob-arc"/>
+    <circle cx="${cx}" cy="${cy}" r="${KNOB_R}" fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${KNOB_R-7}" fill="none" stroke="${CREAM_4}" stroke-width="0.5" opacity="0.4"/>
+    <circle cx="${nx}" cy="${ny}" r="1.8" fill="${GOLD_DIM}" class="knob-notch"/>
+    <text x="${cx}" y="${cy-KNOB_R-7}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${GOLD}" letter-spacing="0.16em" opacity="0.7">${topLbl}</text>
+    <text x="${cx}" y="${cy+KNOB_R+14}" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="6" fill="${INK_4}" letter-spacing="0.16em">${botLbl}</text>
+  </g>`;
+}
+
+function waveBtnsSVG(chIdx, cx, y) {
+  const sp = 34, count = WAVE_TYPES.length;
+  const startX = cx - (count*sp)/2 + sp/2;
+  return WAVE_TYPES.map((w,i)=>{
+    const bx = startX + i*sp;
+    const active = ch[chIdx].wave===w;
+    const col = chIdx===0 ? GOLD : CH2_COLOR;
+    return `<g class="wave-btn" data-ch="${chIdx}" data-wave="${w}" style="cursor:pointer">
+      <rect x="${bx-14}" y="${y-9}" width="28" height="18" rx="2"
+        fill="${active?CREAM_3:CREAM_2}" stroke="${active?GOLD_DIM:CREAM_4}" stroke-width="${active?1.1:0.7}"/>
+      <text x="${bx}" y="${y+4}" text-anchor="middle" font-family="'JetBrains Mono',monospace"
+        font-size="5.8" fill="${active?col:INK_4}" letter-spacing="0.05em">${w}</text>
+    </g>`;
+  }).join('');
+}
+
+function miniScreenSVG(id, x, y, w, h, chIdx) {
+  const col = chIdx===0 ? GOLD_DIM : CH2_COLOR;
+  const lbl = chIdx===0 ? 'CH1' : 'CH2';
+  return `
+    <rect x="${x-2}" y="${y-2}" width="${w+4}" height="${h+4}" rx="3"
+      fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2"
+      fill="${INK}" fill-opacity="0.04" stroke="${col}" stroke-width="0.9"/>
+    <text x="${x+5}" y="${y+10}" font-family="'JetBrains Mono',monospace" font-size="5.5"
+      fill="${col}" letter-spacing="0.18em" opacity="0.7">${lbl}</text>
+  `;
+}
+
+function buildSVG() {
+  const defs = `<defs>
+    <filter id="pg" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="mg" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>`;
+
+  // Body
+  const body = `<rect x="1" y="1" width="${SCOPE_W-2}" height="${BODY_H-2}" rx="7"
+    fill="${CREAM_2}" stroke="${CREAM_4}" stroke-width="1.4"/>`;
+
+  // Feet
+  const feet = `
+    <ellipse cx="80" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}"
+      fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+    <ellipse cx="${SCOPE_W-80}" cy="${FOOT_Y}" rx="${FOOT_RX}" ry="${FOOT_RY}"
+      fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="1"/>
+  `;
+
+  // ── Title strip ──
+  const titleDecor = `
+    <!-- decorative LED dots -->
+    <circle cx="${SCOPE_W-30}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <circle cx="${SCOPE_W-48}" cy="${TITLE_H/2}" r="3.5" fill="${CREAM_3}" stroke="${CREAM_4}" stroke-width="0.8"/>
+    <circle cx="${SCOPE_W-66}" cy="${TITLE_H/2}" r="3.5" fill="${GOLD}" fill-opacity="0.5" stroke="${GOLD_DIM}" stroke-width="0.8"/>
+    <!-- power symbol hint -->
+    <circle cx="28" cy="${TITLE_H/2}" r="7" fill="none" stroke="${CREAM_4}" stroke-width="0.9"/>
+    <line x1="28" y1="${TITLE_H/2-10}" x2="28" y2="${TITLE_H/2-4}" stroke="${CREAM_4}" stroke-width="0.9"/>
+  `;
+
+  const title = `
+    <text x="${SCOPE_W/2}" y="${TITLE_H/2+2}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="11" font-weight="500"
+      fill="${INK_3}" letter-spacing="0.38em">WAVEFORM ADDER</text>
+    <text x="${SCOPE_W/2}" y="${TITLE_H/2+15}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="7" font-weight="300"
+      fill="${INK_4}" letter-spacing="0.28em" opacity="0.65">REV 3.113</text>
+  `;
+
+  const sep = `<line x1="20" y1="${SEP_Y}" x2="${SCOPE_W-20}" y2="${SEP_Y}"
+    stroke="${CREAM_4}" stroke-width="0.8" opacity="0.7"/>`;
+
+  // Screen
+  const bx = SCREEN_X-10, by = SCREEN_Y-10;
+  const bezel = `<rect x="${bx}" y="${by}" width="${SCREEN_W+20}" height="${SCREEN_H+20}" rx="4"
+    fill="none" stroke="${CREAM_4}" stroke-width="0.8"/>`;
+  const screen = `<rect x="${SCREEN_X}" y="${SCREEN_Y}" width="${SCREEN_W}" height="${SCREEN_H}" rx="2"
+    fill="${INK}" fill-opacity="0.03" stroke="${GOLD_DIM}" stroke-width="1.2"/>`;
+
+  // Graticule
+  const gC=10, gR=8;
+  let grid='', ticks='';
+  for(let i=1;i<gC;i++){
+    const x=SCREEN_X+(SCREEN_W/gC)*i, mid=i===gC/2;
+    grid+=`<line x1="${x}" y1="${SCREEN_Y}" x2="${x}" y2="${SCREEN_Y+SCREEN_H}"
+      stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;
+  }
+  for(let j=1;j<gR;j++){
+    const y=SCREEN_Y+(SCREEN_H/gR)*j, mid=j===gR/2;
+    grid+=`<line x1="${SCREEN_X}" y1="${y}" x2="${SCREEN_X+SCREEN_W}" y2="${y}"
+      stroke="${GOLD_DIM}" stroke-width="0.5" stroke-dasharray="${mid?'4,3':'2,5'}" opacity="${mid?.20:.08}"/>`;
+  }
+  const cx0=SCREEN_X+SCREEN_W/2, cy0=SCREEN_Y+SCREEN_H/2;
+  for(let k=0;k<=40;k++){
+    const tx=SCREEN_X+(SCREEN_W/40)*k;
+    ticks+=`<line x1="${tx}" y1="${cy0-2}" x2="${tx}" y2="${cy0+2}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;
+  }
+  for(let k=0;k<=32;k++){
+    const ty=SCREEN_Y+(SCREEN_H/32)*k;
+    ticks+=`<line x1="${cx0-2}" y1="${ty}" x2="${cx0+2}" y2="${ty}" stroke="${GOLD_DIM}" stroke-width="0.5" opacity="0.22"/>`;
+  }
+
+  const screenLabels = `
+    <text x="${SCREEN_X+10}" y="${SCREEN_Y+14}" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD_BRIGHT}" letter-spacing="0.2em" opacity="0.75">CH3</text>
+    <text x="${SCREEN_X+SCREEN_W-10}" y="${SCREEN_Y+14}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="7" fill="${GOLD}" letter-spacing="0.18em" opacity="0.45">SUM</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+7}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">+V</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H/2+3}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">0</text>
+    <text x="${SCREEN_X-5}" y="${SCREEN_Y+SCREEN_H-2}" text-anchor="end" font-family="'JetBrains Mono',monospace" font-size="5.5" fill="${INK_4}" opacity="0.35">−V</text>
+  `;
+
+  // Mini screens (SVG frame only — canvas overlaid by JS)
+  const mini0 = miniScreenSVG('m0', MINI1_X, MINI_Y, MINI_W, MINI_H, 0);
+  const mini1 = miniScreenSVG('m1', MINI2_X, MINI_Y, MINI_W, MINI_H, 1);
+
+  // Channel labels
+  const chLabels = `
+    <text x="${CH1_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${GOLD}" letter-spacing="0.28em" opacity="0.85">CH1</text>
+    <text x="${CH2_CX}" y="${MINI_Y+MINI_H+18}" text-anchor="middle"
+      font-family="'JetBrains Mono',monospace" font-size="7.5" fill="${CH2_COLOR}" letter-spacing="0.28em" opacity="0.85">CH2</text>
+    <line x1="${CH1_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH1_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${GOLD_DIM}" stroke-width="0.6" opacity="0.3"/>
+    <line x1="${CH2_CX-22}" y1="${MINI_Y+MINI_H+22}" x2="${CH2_CX+22}" y2="${MINI_Y+MINI_H+22}" stroke="${CH2_COLOR}" stroke-width="0.6" opacity="0.3"/>
+  `;
+
+  // Knobs (FREQ left, AMPL right of each cluster)
+  const k1f = knobSVG('k1freq', CH1_CX-36, KNOB_ROW, ch[0].freq, 0.5, 4,  'TIME/DIV','FREQ');
+  const k1a = knobSVG('k1amp',  CH1_CX+36, KNOB_ROW, ch[0].amp,  0.1, 1,  'VOLTS/DIV','AMPL');
+  const k2f = knobSVG('k2freq', CH2_CX-36, KNOB_ROW, ch[1].freq, 0.5, 4,  'TIME/DIV','FREQ');
+  const k2a = knobSVG('k2amp',  CH2_CX+36, KNOB_ROW, ch[1].amp,  0.1, 1,  'VOLTS/DIV','AMPL');
+
+  const btns0 = waveBtnsSVG(0, CH1_CX, BTN_ROW);
+  const btns1 = waveBtnsSVG(1, CH2_CX, BTN_ROW);
+
+  // Centre divider + plus
+  const divX = SCOPE_W/2;
+  const divider = `
+    <line x1="${divX}" y1="${CTRL_TOP+2}" x2="${divX}" y2="${BODY_H-18}"
+      stroke="${CREAM_4}" stroke-width="0.8" opacity="0.45"/>
+    <text x="${divX}" y="${KNOB_ROW+8}" text-anchor="middle"
+      font-family="'Cormorant Garamond',serif" font-size="20" font-weight="300"
+      fill="${INK_3}" opacity="0.22">+</text>
+  `;
+
+  return `<svg viewBox="0 0 ${SCOPE_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">
+    ${defs}${body}${feet}${titleDecor}${title}${sep}
+    ${bezel}${screen}${grid}${ticks}${screenLabels}
+    ${mini0}${mini1}
+    ${chLabels}${k1f}${k1a}${k2f}${k2a}
+    ${btns0}${btns1}
+    ${divider}
+  </svg>`;
+}
+
+// ── Inject SVG ──
+const wrap = document.getElementById('scopeWrap');
+wrap.insertAdjacentHTML('afterbegin', buildSVG());
+
+// ── Canvas layout ──
+const mainCanvas  = document.getElementById('waveCanvas');
+const miniCanvas0 = document.getElementById('miniCanvas0');
+const miniCanvas1 = document.getElementById('miniCanvas1');
+
+function placeCanvas(el, svgX, svgY, svgW, svgH, s) {
+  el.style.left   = `${svgX*s}px`;
+  el.style.top    = `${svgY*s}px`;
+  el.style.width  = `${svgW*s}px`;
+  el.style.height = `${svgH*s}px`;
+  el.width  = Math.round(svgW*s*devicePixelRatio);
+  el.height = Math.round(svgH*s*devicePixelRatio);
+}
+
+function layoutAll() {
+  const rect = wrap.getBoundingClientRect();
+  const s = rect.width / SCOPE_W;
+  placeCanvas(mainCanvas,  SCREEN_X, SCREEN_Y, SCREEN_W, SCREEN_H, s);
+  placeCanvas(miniCanvas0, MINI1_X,  MINI_Y,   MINI_W,   MINI_H,   s);
+  placeCanvas(miniCanvas1, MINI2_X,  MINI_Y,   MINI_W,   MINI_H,   s);
+}
+
+window.addEventListener('resize', layoutAll);
+layoutAll();
+
+// ── Draw helpers ──
+function drawTrace(ctx, W, H, sampleFn, color, glowColor, lineW, alpha, glowAlpha) {
+  const mid = H/2;
+  // Glow
+  ctx.save();
+  ctx.shadowColor = glowColor; ctx.shadowBlur = 10*devicePixelRatio;
+  ctx.strokeStyle = color; ctx.lineWidth = lineW*devicePixelRatio;
+  ctx.globalAlpha = glowAlpha; ctx.beginPath();
+  for(let px=0;px<W;px++){
+    const y = mid - sampleFn(px/W, px)*(mid-5*devicePixelRatio);
+    px===0 ? ctx.moveTo(px,y) : ctx.lineTo(px,y);
+  }
+  ctx.stroke(); ctx.restore();
+  // Trace
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = lineW*devicePixelRatio;
+  ctx.lineJoin = 'round'; ctx.globalAlpha = alpha; ctx.beginPath();
+  for(let px=0;px<W;px++){
+    const y = mid - sampleFn(px/W, px)*(mid-5*devicePixelRatio);
+    px===0 ? ctx.moveTo(px,y) : ctx.lineTo(px,y);
+  }
+  ctx.stroke(); ctx.restore();
+}
+
+function drawMini(canvas, chIdx) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const scroll = t*0.1;
+  const c = ch[chIdx];
+  const color = chIdx===0 ? GOLD : CH2_COLOR;
+  const glow  = chIdx===0 ? GOLD_GLOW : CH2_GLOW;
+  const fn = (x, px) => sampleWave(c.wave, x+scroll, c.freq, px) * c.amp;
+  drawTrace(ctx, W, H, fn, color, glow, 1.2, 0.82, 0.22);
+}
+
+function drawMain(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const scroll = t*0.1;
+  const maxAmp = ch[0].amp + ch[1].amp;
+  const norm = maxAmp > 1 ? 1/maxAmp : 1;
+  const fn = (x, px) =>
+    (sampleWave(ch[0].wave, x+scroll, ch[0].freq, px)*ch[0].amp +
+     sampleWave(ch[1].wave, x+scroll, ch[1].freq, px)*ch[1].amp) * norm;
+  drawTrace(ctx, W, H, fn, GOLD_BRIGHT, GOLD_GLOW, 1.6, 0.88, 0.28);
+}
+
+function animate(ts) {
+  t = ts*0.00012;
+  drawMain(mainCanvas);
+  drawMini(miniCanvas0, 0);
+  drawMini(miniCanvas1, 1);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// ── Knob interaction ──
+const KNOB_MAP = {
+  k1freq:[0,'freq',0.5,4], k1amp:[0,'amp',0.1,1],
+  k2freq:[1,'freq',0.5,4], k2amp:[1,'amp',0.1,1],
+};
+const KNOB_CX = {
+  k1freq:CH1_CX-36, k1amp:CH1_CX+36,
+  k2freq:CH2_CX-36, k2amp:CH2_CX+36,
+};
+
+function updateKnobVisual(id, val, min, max) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  const norm = (val-min)/(max-min);
+  const angle = -135+norm*270;
+  const rad = (angle-90)*Math.PI/180;
+  const cx = KNOB_CX[id], cy = KNOB_ROW;
+  const nx = cx+Math.cos(rad)*(KNOB_R-5);
+  const ny = cy+Math.sin(rad)*(KNOB_R-5);
+  const notch = el.querySelector('.knob-notch');
+  if(notch){notch.setAttribute('cx',nx);notch.setAttribute('cy',ny);}
+  const r=KNOB_R+5;
+  const sA=(-135-90)*Math.PI/180;
+  const sx=cx+Math.cos(sA)*r, sy=cy+Math.sin(sA)*r;
+  const ex=cx+Math.cos(rad)*r, ey=cy+Math.sin(rad)*r;
+  const large=(angle+135)>180?1:0;
+  const arc=el.querySelector('.knob-arc');
+  if(arc) arc.setAttribute('d',`M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`);
+}
+
+Object.entries(KNOB_MAP).forEach(([id,[chIdx,prop,min,max]])=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  let dragging=false, startY=0, startVal=0;
+  const begin=y=>{dragging=true;startY=y;startVal=ch[chIdx][prop];};
+  const move=y=>{
+    if(!dragging)return;
+    const dy=startY-y;
+    ch[chIdx][prop]=Math.max(min,Math.min(max,startVal+dy*((max-min)/160)));
+    updateKnobVisual(id,ch[chIdx][prop],min,max);
+  };
+  el.addEventListener('mousedown',e=>{begin(e.clientY);e.preventDefault();});
+  window.addEventListener('mousemove',e=>{move(e.clientY);});
+  window.addEventListener('mouseup',()=>{dragging=false;});
+  el.addEventListener('touchstart',e=>{begin(e.touches[0].clientY);e.preventDefault();},{passive:false});
+  window.addEventListener('touchmove',e=>{if(dragging)move(e.touches[0].clientY);});
+  window.addEventListener('touchend',()=>{dragging=false;});
+});
+
+// ── Wave buttons ──
+function updateWaveBtns() {
+  document.querySelectorAll('.wave-btn').forEach(g=>{
+    const ci=parseInt(g.dataset.ch), w=g.dataset.wave;
+    const active=ch[ci].wave===w;
+    const col=ci===0?GOLD:CH2_COLOR;
+    g.querySelector('rect').setAttribute('stroke',active?GOLD_DIM:CREAM_4);
+    g.querySelector('rect').setAttribute('fill',  active?CREAM_3:CREAM_2);
+    g.querySelector('text').setAttribute('fill',  active?col:INK_4);
+  });
+}
+document.querySelectorAll('.wave-btn').forEach(g=>{
+  g.addEventListener('click',()=>{
+    ch[parseInt(g.dataset.ch)].wave=g.dataset.wave;
+    updateWaveBtns();
+  });
+});
+updateWaveBtns();
+</script>
+</body>
+</html>
