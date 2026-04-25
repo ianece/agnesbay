@@ -14,9 +14,34 @@ const CFG = {
 };
 /* ══════════════════════════════════════ */
 
+/* Anti-click fade: 40ms ramp on every play/pause to avoid the discontinuity click */
+const ANTI_CLICK_FADE = 0.04; // seconds
+
+function fadeAudioIn() {
+  if (!gainNode || !audioCtx) return;
+  const t = audioCtx.currentTime;
+  gainNode.gain.cancelScheduledValues(t);
+  gainNode.gain.setValueAtTime(0, t);
+  gainNode.gain.linearRampToValueAtTime(1, t + ANTI_CLICK_FADE);
+}
+
+function fadeAudioOutThenPause(audio) {
+  if (!gainNode || !audioCtx || !audio) {
+    if (audio) audio.pause();
+    return;
+  }
+  const t = audioCtx.currentTime;
+  const cur = gainNode.gain.value;
+  gainNode.gain.cancelScheduledValues(t);
+  gainNode.gain.setValueAtTime(cur, t);
+  gainNode.gain.linearRampToValueAtTime(0, t + ANTI_CLICK_FADE);
+  setTimeout(() => audio.pause(), ANTI_CLICK_FADE * 1000 + 10);
+}
+
 function oscTogglePlay() {
   if (!currentAudio) return;
   if (currentAudio.paused) {
+    fadeAudioIn();
     currentAudio.play();
     vizWrap.classList.add('active');
     document.getElementById('track-' + currentIdx).classList.add('playing');
@@ -24,7 +49,7 @@ function oscTogglePlay() {
     document.getElementById('osc-play-icon').style.display  = 'none';
     document.getElementById('osc-pause-icon').style.display = 'block';
   } else {
-    currentAudio.pause();
+    fadeAudioOutThenPause(currentAudio);
     vizWrap.classList.remove('active');
     document.getElementById('track-' + currentIdx).classList.remove('playing');
     waveTarget = 'sine'; waveMode = 'sine';
@@ -42,7 +67,7 @@ const TRACKS = [
   // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },
 ];
 
-let audioCtx = null, analyser = null, source = null;
+let audioCtx = null, analyser = null, source = null, gainNode = null;
 let currentAudio = null, currentIdx = -1;
 const vizWrap = document.getElementById('viz-wrap');
 const nowPlaying = document.getElementById('now-playing');
@@ -92,11 +117,12 @@ function playTrack(idx) {
   /* If same track — toggle pause */
   if (currentIdx === idx && currentAudio) {
     if (currentAudio.paused) {
+      fadeAudioIn();
       currentAudio.play();
       vizWrap.classList.add('active');
       document.getElementById('track-' + idx).classList.add('playing');
     } else {
-      currentAudio.pause();
+      fadeAudioOutThenPause(currentAudio);
       vizWrap.classList.remove('active');
       document.getElementById('track-' + idx).classList.remove('playing');
       waveTarget = 'sine';
@@ -113,12 +139,17 @@ function playTrack(idx) {
   }
   clearActive();
 
-  /* Set up Web Audio API on first play (requires user gesture) */
+  /* Set up Web Audio API on first play (requires user gesture).
+     Graph: source → analyser → gainNode → destination. The gainNode lets us
+     ramp volume over a few ms on play/pause to suppress the discontinuity click. */
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 128;
-    analyser.connect(audioCtx.destination);
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 1;
+    analyser.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
   }
 
   const audio = new Audio();
@@ -141,6 +172,7 @@ function playTrack(idx) {
   source = audioCtx.createMediaElementSource(audio);
   source.connect(analyser);
 
+  fadeAudioIn();
   audio.play().then(() => {
     currentAudio = audio;
     currentIdx = idx;
