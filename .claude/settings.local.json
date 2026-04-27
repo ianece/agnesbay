@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -c \"c:/Users/Ian/agnesbay website/script.js\")"
+      "Bash(node -c \"c:/Users/Ian/agnesbay website/script.js\")",
+      "Bash(python -c \"import fitz; print\\(fitz.__version__\\)\")",
+      "Bash(python -c \"import pypdfium2; print\\('pypdfium2 ok'\\)\")",
+      "Bash(python -c \"import pdf2image; print\\('pdf2image ok'\\)\")"
     ]
   }
 }
