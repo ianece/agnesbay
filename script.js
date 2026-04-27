@@ -715,16 +715,8 @@ function openProject(card) {
   const tpl = card.querySelector('template.proj-detail-source');
   projDetail.innerHTML = tpl ? tpl.innerHTML : '';
   projDetailWrap.setAttribute('aria-hidden', 'false');
-
-  /* Inject the power switch to the RIGHT of the detail's h2 title */
-  const h2 = projDetail.querySelector('h2');
-  if (h2) {
-    const row = document.createElement('div');
-    row.className = 'proj-title-row';
-    h2.parentNode.insertBefore(row, h2);
-    row.appendChild(h2);
-    row.appendChild(buildPowerSwitch());
-  }
+  /* Tag the wrap with the project key so per-project styling can scope to it. */
+  projDetailWrap.dataset.proj = card.dataset.proj || '';
 
   projPage.classList.add('project-expanded');
 
@@ -740,13 +732,14 @@ function openProject(card) {
 
   document.body.classList.add('proj-open');
 
-  /* Draw schematic once layout has settled; initial render shows lever open,
-     then we close the switch (power on) for the drop-in animation. */
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    drawSchematic({ state: 'off' });
+  /* Wait until the slot card has finished its width transition before drawing
+     the op-amp connector — otherwise the card is still 0-wide and the wire
+     terminates at the sidebar's edge. Once drawn (lever open), close the
+     switch so the load wire animates on and the card excites. */
+  setTimeout(() => {
     drawOpampConnector();
-    setTimeout(() => flipSwitch(true), 300);
-  }));
+    flipSwitch(true);
+  }, 460);
 }
 
 function closeProject() {
@@ -764,6 +757,7 @@ function closeProject() {
         projSlot.innerHTML = '';
         projDetail.innerHTML = '';
         schemSvg.innerHTML = '';
+        delete projDetailWrap.dataset.proj;
       }
     }, 450);
   }, 440);
@@ -782,7 +776,7 @@ function flipSwitch(on) {
     document.body.classList.remove('proj-power-on');
   }
   animatePhysicalLever(on ? 0 : 180);
-  animateSchematicLever(on ? 0 : 58);
+  animateSchematicLever(on ? 0 : 180);
 }
 
 /* Rotate the physical switch's lever group around the hub center (50, 55) */
@@ -814,107 +808,36 @@ function animatePhysicalLever(targetDeg) {
   physLeverRaf = requestAnimationFrame(tick);
 }
 
-/* ── Schematic SVG: wires from the slotted card down past page content to the
-   two accent borders of the selected project's meta-grid. A schematic switch
-   is placed in-line with the left wire, aligned with (and controlled by) the
-   physical toggle next to the detail h2. ── */
+/* The old proj-schematic SVG (SW₁ + meta-grid c-wires) is no longer drawn.
+   The op-amp connector now provides the entire visual: op-amp → switch → card. */
 let leverRaf = null;
-let leverCoords = null; // { hingeX, hingeY, length }
+let leverCoords = null; // { hingeX, hingeY } — the inline switch hinge in viewport coords
 
 function drawSchematic({ state = 'off' } = {}) {
-  if (!projPage.classList.contains('project-expanded')) return;
-  const slotCard = projSlot.querySelector('.proj-card');
-  if (!slotCard) return;
-  const sw = getPowerSwitch();
-  if (!sw) return;
-  const metaGrid = projDetail.querySelector('.proj-meta-grid');
-  if (!metaGrid) { schemSvg.innerHTML = ''; return; }
-
-  const pageRect  = projPage.getBoundingClientRect();
-  const cardRect  = slotCard.getBoundingClientRect();
-  const metaRect  = metaGrid.getBoundingClientRect();
-
-  const W = pageRect.width;
-  const H = pageRect.height;
-
-  /* Card terminals: two points on the card's bottom edge.
-     Left terminal is indented to leave room for the in-line schematic switch.
-     Right terminal hugs close to the card's right edge. */
-  const termInsetA = Math.min(80, cardRect.width * 0.22); // left wire — through switch
-  const termInsetB = 28;                                   // right wire — direct, near edge
-  const termAX = cardRect.left  - pageRect.left + termInsetA;
-  const termBX = cardRect.right - pageRect.left - termInsetB;
-  const termY  = cardRect.bottom - pageRect.top + 4;
-
-  /* The two accent lines (meta-grid's top/bottom borders), in page coords */
-  const accentTopY    = metaRect.top    - pageRect.top;
-  const accentBottomY = metaRect.bottom - pageRect.top;
-
-  /* Schematic switch — sits in line with the left power wire, just above the
-     top accent line. The op-amp connector now provides the visual feed into
-     SW₁ from the side, so no separate control link is drawn. */
-  const swColumnX = termAX;
-  const swY1 = Math.max(termY + 60, accentTopY - 64);  // hinge
-  const swL  = 28;
-  const swY2 = swY1 + swL;                              // fixed contact
-  leverCoords = { hingeX: swColumnX, hingeY: swY1, length: swL };
-
-  schemSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  schemSvg.setAttribute('preserveAspectRatio', 'none');
-  schemSvg.style.width  = W + 'px';
-  schemSvg.style.height = H + 'px';
-
-  schemSvg.innerHTML = `
-    <!-- Left power wire: card terminal → schematic switch hinge -->
-    <line class="c-wire" x1="${termAX}" y1="${termY}" x2="${swColumnX}" y2="${swY1}" />
-    <!-- Left power wire: switch contact → top accent line -->
-    <line class="c-wire" x1="${swColumnX}" y1="${swY2}" x2="${termAX}" y2="${accentTopY}" />
-    <!-- Right power wire: card terminal → bottom accent line (continuous, passes over meta grid) -->
-    <line class="c-wire" x1="${termBX}" y1="${termY}" x2="${termBX}" y2="${accentBottomY}" />
-
-    <!-- Tap nodes on the accent lines -->
-    <circle class="c-node c-tap" cx="${termAX}" cy="${accentTopY}" r="3" />
-    <circle class="c-node c-tap" cx="${termBX}" cy="${accentBottomY}" r="3" />
-
-    <!-- Schematic switch: hinge + fixed contact, lever rotates around hinge -->
-    <circle class="c-node" cx="${swColumnX}" cy="${swY1}" r="3.2" />
-    <circle class="c-node" cx="${swColumnX}" cy="${swY2}" r="3.2" />
-    <g id="sch-lever-g" transform="rotate(0 ${swColumnX} ${swY1})">
-      <line class="c-lever" x1="${swColumnX}" y1="${swY1}" x2="${swColumnX}" y2="${swY2}" />
-      <circle class="c-lever-tip" cx="${swColumnX}" cy="${swY2}" r="2.4" />
-    </g>
-
-    <text class="c-label" x="${swColumnX + 10}" y="${swY1 + swL/2 + 3}">SW₁</text>
-  `;
-
-  /* Apply initial lever angle without animation */
-  const leverG = document.getElementById('sch-lever-g');
-  if (leverG) {
-    const deg = state === 'on' ? 0 : 58;
-    leverG.setAttribute('transform', `rotate(${deg} ${swColumnX} ${swY1})`);
-    leverG.dataset.deg = String(deg);
-  }
+  if (schemSvg) schemSvg.innerHTML = '';
 }
 
+/* Animate SW₁'s lever on the inline industrial switch. The lever group
+   (#oc-lever-g) lives inside the embedded ps-svg whose viewBox is 100×100,
+   so the rotation pivot (50, 55) is in inner-viewBox coords, not viewport
+   coords. On = 0° (lever up / closed), Off = 180° (lever down / open). */
 function animateSchematicLever(targetDeg) {
-  const leverG = document.getElementById('sch-lever-g');
-  if (!leverG || !leverCoords) return;
+  const leverG = document.getElementById('oc-lever-g');
+  if (!leverG) return;
   if (leverRaf) cancelAnimationFrame(leverRaf);
-  const { hingeX, hingeY } = leverCoords;
-  const startDeg = parseFloat(leverG.dataset.deg || '0');
+  const startDeg = parseFloat(leverG.dataset.deg || '180');
   const delta = targetDeg - startDeg;
   const dur = 450;
   const t0 = performance.now();
   function tick(now) {
     const t = Math.min(1, (now - t0) / dur);
-    /* ease-out-back for a slight overshoot on close, smooth on open */
     const c = 1.4;
     const eased = 1 + c * Math.pow(t - 1, 3) + (c - 0.5) * Math.pow(t - 1, 2);
     const deg = startDeg + delta * (t < 1 ? eased : 1);
-    leverG.setAttribute('transform', `rotate(${deg} ${hingeX} ${hingeY})`);
+    leverG.setAttribute('transform', `rotate(${deg.toFixed(2)} 50 55)`);
     if (t < 1) leverRaf = requestAnimationFrame(tick);
     else {
-      leverG.setAttribute('transform', `rotate(${targetDeg} ${hingeX} ${hingeY})`);
+      leverG.setAttribute('transform', `rotate(${targetDeg} 50 55)`);
       leverG.dataset.deg = String(targetDeg);
       leverRaf = null;
     }
@@ -949,43 +872,50 @@ projSlot.addEventListener('transitionend', (e) => {
   if (e.propertyName === 'width') redrawIfOpen();
 });
 
-/* Draws the cross-page wire from the op-amp output (sidebar) to the project's
-   schematic switch (SW₁). Path: out of op-amp → past sidebar → horizontal under
-   the project title → down to SW₁ hinge. Same dashed-flow theme as the nav. */
+/* Draws the cross-page wire from the op-amp output (sidebar) into the
+   relocated project card, with the inline SW₁ industrial switch in line.
+   Source side (op-amp → SW₁ left lug) is always live; load side
+   (SW₁ right lug → card) only flows when SW₁ is closed. */
 function drawOpampConnector() {
   const oc = document.getElementById('opamp-connector');
   if (!oc) return;
-  if (!projPage.classList.contains('project-expanded') || !leverCoords) {
+  if (!projPage.classList.contains('project-expanded')) {
     oc.innerHTML = '';
+    leverCoords = null;
     return;
   }
   const opampLine = document.querySelector('#cg-music line[x1="130"]');
   const sidebarEl = document.getElementById('sidebar');
-  if (!opampLine || !sidebarEl) return;
+  const cardEl    = projSlot.querySelector('.proj-card');
+  if (!opampLine || !sidebarEl || !cardEl) return;
 
   const ooBox = opampLine.getBoundingClientRect();
   const startX = ooBox.right;
   const startY = (ooBox.top + ooBox.bottom) / 2;
 
-  const projPageRect = projPage.getBoundingClientRect();
-  const hingeX = projPageRect.left + leverCoords.hingeX;
-  const hingeY = projPageRect.top + leverCoords.hingeY;
-
   const sidebarRect = sidebarEl.getBoundingClientRect();
   const exitX = sidebarRect.right + 16;
 
-  /* Pick a y just below the project header — wire passes underneath the
-     title text in the empty band before the meta-grid. */
-  const baseEl = projPage.querySelector('.proj-header-text .div')
-              || projPage.querySelector('.proj-header-text .pb')
-              || projPage.querySelector('.proj-header-text .ph');
-  let underY = startY + 60;
-  if (baseEl) {
-    const bRect = baseEl.getBoundingClientRect();
-    underY = bRect.bottom + 18;
-  }
-  underY = Math.max(underY, startY + 24);
-  underY = Math.min(underY, hingeY - 28);
+  /* Card terminal: middle of card's left edge. */
+  const cardRect = cardEl.getBoundingClientRect();
+  const cardX = cardRect.left;
+  const cardY = cardRect.top + cardRect.height / 2;
+
+  /* SW₁ — embedded industrial switch. Inner SVG viewBox is 100×100; the
+     left lug center sits at (12, 46) and the right lug at (88, 46) in
+     inner coords, so we translate that into viewport positions for the
+     wire termination points and align the switch on the wire's y. */
+  const SW_SIZE  = 64;
+  const SW_SCALE = SW_SIZE / 100;
+  const wireY     = cardY;
+  const swCenterX = (exitX + cardX) / 2;
+  const swTopX    = swCenterX - SW_SIZE / 2;
+  /* Place vertically so the lugs (inner y=46) sit exactly on wireY. */
+  const swTopY    = wireY - 46 * SW_SCALE;
+  const lugY      = wireY;
+  const leftLugX  = swTopX + 12 * SW_SCALE;
+  const rightLugX = swTopX + 88 * SW_SCALE;
+  leverCoords = { hingeX: swCenterX, hingeY: wireY };
 
   const W = window.innerWidth;
   const H = window.innerHeight;
@@ -994,32 +924,103 @@ function drawOpampConnector() {
   oc.setAttribute('height', H);
 
   const f = (n) => n.toFixed(1);
-  const d = `M ${f(startX)} ${f(startY)} `
-          + `L ${f(exitX)}  ${f(startY)} `
-          + `L ${f(exitX)}  ${f(underY)} `
-          + `L ${f(hingeX)} ${f(underY)} `
-          + `L ${f(hingeX)} ${f(hingeY)}`;
+  /* Source-side (always live): op-amp out → exit → jog to wireY → SW₁ left lug */
+  const dSrc = `M ${f(startX)} ${f(startY)} `
+             + `L ${f(exitX)}  ${f(startY)} `
+             + `L ${f(exitX)}  ${f(lugY)} `
+             + `L ${f(leftLugX)} ${f(lugY)}`;
+  /* Load-side (flows when on): SW₁ right lug → card terminal */
+  const dLoad = `M ${f(rightLugX)} ${f(lugY)} L ${f(cardX)} ${f(lugY)}`;
 
-  /* Reuse the existing nodes if present so the dash animation doesn't restart
-     on every scroll/resize tick. Only replace markup on first draw. */
-  let path = oc.querySelector('.oc-wire');
-  if (!path) {
+  /* Build the structure once; subsequent draws only update attributes so
+     the dashed flow animation doesn't restart on scroll/resize ticks. */
+  let pathSrc = oc.querySelector('.oc-wire-src');
+  if (!pathSrc) {
     oc.innerHTML = `
-      <path class="oc-wire" d="" />
+      <path class="oc-wire oc-wire-src" d="" />
+      <path class="oc-wire oc-wire-load" d="" />
       <circle class="oc-tap oc-tap-start" r="3" />
       <circle class="oc-tap oc-tap-end"   r="3" />
-      <text class="oc-label">U₁ OUT</text>
+      <text class="oc-label oc-label-src">U₁ OUT</text>
+      <g class="oc-switch" role="button" aria-label="Toggle SW₁">
+        <svg class="ps-embed" viewBox="0 0 100 100">
+          <rect class="ps-lug" x="6"  y="42" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="12" cy="46" r="1.4"/>
+          <rect class="ps-lug" x="6"  y="60" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="12" cy="64" r="1.4"/>
+          <rect class="ps-lug" x="82" y="42" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="88" cy="46" r="1.4"/>
+          <rect class="ps-lug" x="82" y="60" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="88" cy="64" r="1.4"/>
+          <rect class="ps-body" x="18" y="40" width="64" height="30" rx="1.2"/>
+          <path class="ps-gear" d="${SWITCH_GEAR_PATH}"/>
+          <circle class="ps-hub-ring"   cx="50" cy="55" r="7.5"/>
+          <circle class="ps-hub-center" cx="50" cy="55" r="2.2"/>
+          <path class="ps-pointer" d="M46.8,65 L53.2,65 L52,71 L48,71 Z"/>
+          <g id="oc-lever-g" class="ps-lever-group" transform="rotate(180 50 55)">
+            <rect class="ps-lever" x="46.5" y="14" width="7" height="42" rx="3.5"/>
+          </g>
+        </svg>
+        <rect class="oc-switch-hit" />
+      </g>
+      <text class="oc-label oc-label-sw">SW₁</text>
     `;
-    path = oc.querySelector('.oc-wire');
+    pathSrc = oc.querySelector('.oc-wire-src');
+    /* Initial lever angle reflects current power state (set once). */
+    const leverG = oc.querySelector('#oc-lever-g');
+    if (leverG) {
+      const isOn = projPage.classList.contains('power-on');
+      const deg = isOn ? 0 : 180;
+      leverG.setAttribute('transform', `rotate(${deg} 50 55)`);
+      leverG.dataset.deg = String(deg);
+    }
   }
-  path.setAttribute('d', d);
-  const t1 = oc.querySelector('.oc-tap-start');
-  const t2 = oc.querySelector('.oc-tap-end');
-  const lb = oc.querySelector('.oc-label');
-  if (t1) { t1.setAttribute('cx', f(startX)); t1.setAttribute('cy', f(startY)); }
-  if (t2) { t2.setAttribute('cx', f(hingeX)); t2.setAttribute('cy', f(hingeY)); }
-  if (lb) { lb.setAttribute('x', f(exitX + 6)); lb.setAttribute('y', f(startY - 6)); }
+
+  pathSrc.setAttribute('d', dSrc);
+  oc.querySelector('.oc-wire-load').setAttribute('d', dLoad);
+
+  const tStart = oc.querySelector('.oc-tap-start');
+  const tEnd   = oc.querySelector('.oc-tap-end');
+  const labS   = oc.querySelector('.oc-label-src');
+  const labW   = oc.querySelector('.oc-label-sw');
+  if (tStart) { tStart.setAttribute('cx', f(startX)); tStart.setAttribute('cy', f(startY)); }
+  if (tEnd)   { tEnd.setAttribute('cx', f(cardX));   tEnd.setAttribute('cy', f(lugY)); }
+  if (labS)   { labS.setAttribute('x', f(exitX + 6)); labS.setAttribute('y', f(startY - 6)); }
+  if (labW)   {
+    labW.setAttribute('x', f(swCenterX));
+    labW.setAttribute('y', f(swTopY + SW_SIZE + 12));
+    labW.setAttribute('text-anchor', 'middle');
+  }
+
+  const psSvg = oc.querySelector('.ps-embed');
+  if (psSvg) {
+    psSvg.setAttribute('x', f(swTopX));
+    psSvg.setAttribute('y', f(swTopY));
+    psSvg.setAttribute('width',  SW_SIZE);
+    psSvg.setAttribute('height', SW_SIZE);
+  }
+  const hit = oc.querySelector('.oc-switch-hit');
+  if (hit) {
+    hit.setAttribute('x', f(swTopX - 4));
+    hit.setAttribute('y', f(swTopY - 4));
+    hit.setAttribute('width',  f(SW_SIZE + 8));
+    hit.setAttribute('height', f(SW_SIZE + 8));
+  }
 }
+
+/* Click on SW₁ — opens the switch and returns to the projects grid.
+   closeProject() flips the lever first (which removes body.proj-power-on, so
+   the load-side wire's flow and the card's pulse both stop the instant the
+   click registers), then tears down once the lever animation has played. */
+(() => {
+  const oc = document.getElementById('opamp-connector');
+  if (!oc) return;
+  oc.addEventListener('click', e => {
+    if (!projPage || !projPage.classList.contains('project-expanded')) return;
+    if (!e.target.closest('.oc-switch')) return;
+    closeProject();
+  });
+})();
 
 /* ══════════════════════════════════════
    WAVEFORM ADDER (home-page interactive scope)

@@ -670,7 +670,9 @@ body.music-active .now-playing { display: block; }
   transition: none; /* animation is JS-driven for reliable cross-browser rotation */
 }
 
-/* ── SLOTTED CARD ── */
+/* ── SLOTTED CARD ──
+   When expanded the card replaces the page-level project title. The header
+   text is hidden and the slot moves to the left, taking the title's space. */
 .proj-selected-slot {
   flex: 0 0 0;
   width: 0;
@@ -678,7 +680,7 @@ body.music-active .now-playing { display: block; }
   overflow: hidden;
   pointer-events: none;
   align-self: flex-start;
-  margin-top: 30px;
+  margin-top: 0;
   transition: flex-basis .45s cubic-bezier(.16,1,.3,1),
               width .45s cubic-bezier(.16,1,.3,1),
               opacity .28s ease;
@@ -694,10 +696,37 @@ body.music-active .now-playing { display: block; }
   border-color: var(--gold-dim);
   background: #EEE6D0;
   box-shadow: 0 8px 24px rgba(168, 137, 58, 0.10);
+  transition: border-color .4s, background .4s, box-shadow .4s;
+}
+/* Card excitation: when power flows, the card's border lights up and its
+   shadow pulses with a soft gold glow. */
+body.proj-power-on .proj-selected-slot .proj-card {
+  border-color: var(--gold);
+  background: #F4ECD6;
+  animation: card-excite 2.4s ease-in-out infinite;
+}
+@keyframes card-excite {
+  0%, 100% {
+    box-shadow: 0 0 22px rgba(200, 168, 75, 0.22),
+                0 8px 24px rgba(168, 137, 58, 0.16);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(229, 199, 107, 0.42),
+                0 8px 28px rgba(168, 137, 58, 0.22);
+  }
 }
 
 /* Grid collapses when expanded */
 #pg-projects.project-expanded .proj-grid {
+  display: none;
+}
+
+/* The detail's sub-tag + project-name h2 + lede paragraph all duplicate
+   information that's already on the slot card (which now serves as the
+   page header), so they're suppressed in the rendered detail. */
+.proj-detail .proj-sub,
+.proj-detail h2,
+.proj-detail .proj-lede {
   display: none;
 }
 
@@ -784,11 +813,27 @@ body.proj-open #opamp-connector {
   stroke-linejoin: round;
   stroke-dasharray: 3 4;
   animation: oc-flow 1.6s linear infinite;
-  transition: stroke .35s, stroke-width .35s;
+  transition: stroke .35s, stroke-width .35s, opacity .35s;
 }
+/* Source-side wire (op-amp → switch hinge) is always live. */
 body.proj-power-on .oc-wire {
   stroke: var(--gold);
   stroke-width: 1.6;
+}
+/* Load-side wire (switch contact → card) only carries current when the
+   switch is closed. Off: muted, no flow — and the opacity drops instantly
+   the moment SW₁ opens (no fade), so the branch visibly goes dead at the
+   start of the lever's swing. On: bright, animated, smooth fade-in. */
+.oc-wire-load {
+  opacity: 0.18;
+  animation: none;
+  stroke-dasharray: 3 4;
+  transition: opacity 0s, stroke .35s, stroke-width .35s;
+}
+body.proj-power-on .oc-wire-load {
+  opacity: 1;
+  animation: oc-flow 1.6s linear infinite;
+  transition: opacity .35s, stroke .35s, stroke-width .35s;
 }
 @keyframes oc-flow {
   to { stroke-dashoffset: -14; }
@@ -804,6 +849,44 @@ body.proj-power-on .oc-wire {
   fill: var(--ink-4);
   letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+/* In-line SW₁ — the industrial power switch (gear + lugs + body + lever),
+   embedded inside the connector SVG and clickable. */
+.oc-switch { pointer-events: auto; cursor: none; }
+.oc-switch-hit { fill: transparent; stroke: none; }
+.ps-embed {
+  color: var(--gold-dim);
+  overflow: visible;
+  transition: color .35s ease;
+}
+body.proj-power-on .ps-embed { color: var(--gold); }
+.ps-embed .ps-lug,
+.ps-embed .ps-body,
+.ps-embed .ps-hub-ring,
+.ps-embed .ps-hub-center,
+.ps-embed .ps-pointer,
+.ps-embed .ps-lever,
+.ps-embed .ps-gear {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill .4s ease, stroke .25s ease;
+}
+.ps-embed .ps-lug-hole {
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.9;
+}
+body.proj-power-on .ps-embed .ps-body {
+  fill: var(--gold);
+  fill-opacity: 0.22;
+}
+.ps-embed .ps-lever-group {
+  transition: none; /* JS-driven rotation */
 }
 
 /* Detail wrap — inline, full content-width */
@@ -919,6 +1002,36 @@ body.proj-power-on .oc-wire {
   color: var(--ink-4);
   text-transform: uppercase;
   margin-top: 10px;
+}
+
+/* ── Per-project layout: 3D Reconstruction (cv-project) ──
+   The two-column grid leaves dead space in this project because many
+   single-column figures are followed immediately by full-width text
+   sections, and several figures are taller than they need to be. Collapse
+   to a single readable column and cap image dimensions. Text content and
+   order are unchanged — this is purely layout. */
+.proj-detail-wrap[data-proj="cv-project"] .proj-body {
+  grid-template-columns: minmax(0, 820px);
+  justify-content: center;
+  gap: 26px;
+}
+.proj-detail-wrap[data-proj="cv-project"] .proj-body .span-2 {
+  grid-column: 1 / -1;
+}
+.proj-detail-wrap[data-proj="cv-project"] .proj-figure {
+  text-align: center;
+}
+.proj-detail-wrap[data-proj="cv-project"] .proj-figure img {
+  width: auto;
+  max-width: 100%;
+  max-height: 360px;
+  margin: 0 auto;
+}
+.proj-detail-wrap[data-proj="cv-project"] .proj-figure figcaption {
+  text-align: left;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Placeholders for user-supplied media */
