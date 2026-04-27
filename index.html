@@ -17,10 +17,44 @@
 <div id="overlay"></div>
 <button id="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">NAV ▾</button>
 
+<!-- Top dock — visualizer travels across pages here while music is playing -->
+<div id="music-top-dock" aria-hidden="true">
+  <div class="viz-wrap" id="viz-wrap"><!-- bars injected by JS --></div>
+</div>
+
+<!-- Cross-page connector: when a project is opened, links the op-amp (U₁)
+     output in the nav to the selected project's schematic switch (SW₁).
+     Same dashed-flow theme as the nav menu wires. Drawn by JS. -->
+<svg id="opamp-connector" aria-hidden="true"></svg>
+
 <div id="shell">
 
 <!-- ══════════════ SIDEBAR ══════════════ -->
 <aside id="sidebar">
+
+  <!-- Now-playing marquee — sits above sidebar header while music plays -->
+  <div class="now-playing" id="now-playing" aria-hidden="true">
+    <div class="np-marquee">
+      <div class="np-line">
+        <span class="np-dot"></span>
+        <span class="np-text">Now playing</span>
+        <span class="np-sep">·</span>
+        <span class="np-title-mq" data-np-title>—</span>
+        <span class="np-sep">·</span>
+        <span class="np-time-mq" data-np-time>0:00 / 0:00</span>
+        <span class="np-dash">———</span>
+      </div>
+      <div class="np-line" aria-hidden="true">
+        <span class="np-dot"></span>
+        <span class="np-text">Now playing</span>
+        <span class="np-sep">·</span>
+        <span class="np-title-mq" data-np-title>—</span>
+        <span class="np-sep">·</span>
+        <span class="np-time-mq" data-np-time>0:00 / 0:00</span>
+        <span class="np-dash">———</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Kintsugi cracks -->
   <svg id="sidebar-cracks" viewBox="0 0 310 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
@@ -60,8 +94,8 @@
         <svg id="osc-play-icon" viewBox="0 0 10 10" width="9" height="9" style="fill:var(--gold);display:block;">
           <polygon points="2,1 9,5 2,9"/>
         </svg>
-        <svg id="osc-pause-icon" viewBox="0 0 10 10" width="9" height="9" style="fill:var(--gold);display:none;">
-          <rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/>
+        <svg id="osc-pause-icon" viewBox="0 0 10 10" width="9" height="9" style="fill:var(--gold);display:none;" aria-label="Stop">
+          <rect x="1.5" y="1.5" width="7" height="7"/>
         </svg>
       </button>
       <canvas id="osc" width="90" height="32" style="display:block; opacity:0.85;"></canvas>
@@ -310,18 +344,6 @@
   <p class="pb">Like the electrons flowing through a circuit, or the light landing upon our atmosphere, music comes in waves of energy. If you're in space you'll need to hold the speaker against your head to hear these songs. I hope you enjoy!</p>
   <div class="div"></div>
 
-  <!-- Now playing strip -->
-  <div class="now-playing" id="now-playing">
-    <div class="np-dot"></div>
-    <span class="np-text">Now playing —</span>
-    <span class="np-title" id="np-title">haze to come [DEMO]</span>
-  </div>
-
-  <!-- Visualizer -->
-  <div class="viz-wrap" id="viz-wrap">
-    <!-- bars injected by JS -->
-  </div>
-
   <!-- Track list -->
   <div class="player-wrap" id="player-wrap">
 
@@ -522,7 +544,7 @@
 
           <div class="proj-body">
             <figure class="proj-figure span-2">
-              <img src="assets/prettybay.jpeg" alt="GreenKeeper field test"/>
+              <img src="assets\images\gkgifsmall.gif" alt="GreenKeeper field test"/>
               <figcaption>Fig. 01 — Field test, back lawn, August 2025</figcaption>
             </figure>
 
@@ -532,8 +554,8 @@
               <p>Sensor fusion is a straightforward EKF written in Python — borrowed structure from a robot_localization config, tuned the covariances over about two weeks of field testing.</p>
             </div>
             <figure class="proj-figure">
-              <img src="assets/hero.png" alt="Vision model output"/>
-              <figcaption>Fig. 02 — Obstacle detector output</figcaption>
+              <img src="assets\images\cv_fig.png" alt="Vision model output"/>
+              <figcaption>Fig. 02 — Yolov8n + MiDaS Output</figcaption>
             </figure>
 
             <figure class="proj-figure">

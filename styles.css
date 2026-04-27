@@ -99,7 +99,21 @@ body::after {
   transition: opacity .35s, stroke .3s;
   pointer-events: none;
 }
-.wire.lit { opacity: 1; stroke: var(--gold-bright); filter: url(#glow); }
+.wire.lit { opacity: 1; stroke: var(--gold-bright); stroke-width: 1.8; }
+
+/* Constant flow toward ground on the selected component's lead wires.
+   Implemented as an animated stroke-dashoffset rather than per-frame JS so
+   it stays subtle and doesn't trip up Firefox/Chrome SVG filter rendering. */
+.wire.flow {
+  stroke-dasharray: 3 4;
+  animation: wire-flow 1.6s linear infinite;
+}
+/* w3b runs left→right in path coords but current goes right→left toward
+   the main rail (and on to ground), so reverse the flow on that one wire. */
+#w3b.flow { animation-direction: reverse; }
+@keyframes wire-flow {
+  to { stroke-dashoffset: -14; }
+}
 
 /* Junction dot */
 .jct {
@@ -107,26 +121,29 @@ body::after {
   transition: opacity .3s, fill .3s;
   pointer-events: none;
 }
-.jct.lit { opacity: 1; fill: var(--gold-bright); filter: url(#glow); }
+.jct.lit { opacity: 1; fill: var(--gold-bright); }
 
 /* Component groups */
 .cg { cursor: none; }
-.cg:hover .sym { stroke: var(--gold-bright); filter: url(#glow); }
+.cg:hover .sym { stroke: var(--gold-bright); stroke-width: 2; }
 .cg:hover .ref { fill: var(--gold); }
 .cg:hover .lbl { fill: var(--gold-dim); }
 .cg:hover .hit { fill: var(--gold-glow); }
-.cg.active .sym { stroke: var(--gold-bright); filter: url(#glow); }
+.cg.active .sym { stroke: var(--gold-bright); stroke-width: 2; }
 .cg.active .ref { fill: var(--gold); }
 .cg.active .lbl { fill: var(--gold); }
 
-/* Component symbol strokes */
+/* Component symbol strokes.
+   Note: SVG filters (url(#glow)) on degenerate-bbox lines drop out in
+   Chrome/Edge — entire symbols (e.g. the home VCC bars) can vanish. We
+   emphasize active/hover state via brighter stroke + extra width instead. */
 .sym {
   fill: none;
   stroke: var(--gold-dim);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: stroke .25s, filter .25s;
+  transition: stroke .25s, stroke-width .25s;
 }
 .sym-fill {
   fill: var(--cream-2);
@@ -134,11 +151,11 @@ body::after {
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  transition: stroke .25s, filter .25s;
+  transition: stroke .25s, stroke-width .25s;
 }
 /* active fill variant */
-.cg:hover .sym-fill { stroke: var(--gold-bright); filter: url(#glow); }
-.cg.active .sym-fill { stroke: var(--gold-bright); filter: url(#glow); }
+.cg:hover .sym-fill { stroke: var(--gold-bright); stroke-width: 2; }
+.cg.active .sym-fill { stroke: var(--gold-bright); stroke-width: 2; }
 
 /* Hit area (invisible, for hover) */
 .hit { fill: transparent; stroke: none; }
@@ -325,7 +342,7 @@ body::after {
 .shop-item-price { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.08em; }
 
 /* Mobile */
-#mob-toggle { display: none; position: fixed; top: 13px; right: 14px; z-index: 600; background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 3px; padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.15em; cursor: pointer; }
+#mob-toggle { display: none; position: fixed; top: 13px; right: 14px; z-index: 600; background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 3px; padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.15em; cursor: none; }
 
 @media (max-width: 780px) {
   :root { --sidebar-w: 270px; }
@@ -456,14 +473,36 @@ body::after {
 }
 
 /* Visualizer */
+/* ── MUSIC TOP DOCK ──
+   Visualizer travels here from the music page while audio is playing,
+   docked at the very top of the page above all other content. */
+:root { --music-dock-h: 0px; }
+body.music-active { --music-dock-h: 56px; }
+
+#music-top-dock {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--music-dock-h);
+  background: var(--cream-2);
+  border-bottom: 1px solid var(--cream-4);
+  overflow: hidden;
+  z-index: 600;
+  transition: height .35s cubic-bezier(.4,0,.2,1);
+  display: flex; align-items: center;
+  padding: 0 22px;
+}
+
+/* Push sidebar + main down so the dock isn't covering them */
+#sidebar { top: var(--music-dock-h); transition: top .35s cubic-bezier(.4,0,.2,1); }
+#main { padding-top: var(--music-dock-h); transition: padding-top .35s cubic-bezier(.4,0,.2,1); }
+
 .viz-wrap {
-  margin-top: 36px;
-  height: 48px;
+  height: 38px;
+  width: 100%;
   display: flex;
   align-items: flex-end;
   gap: 2px;
   opacity: 0;
-  transition: opacity .4s;
+  transition: opacity .35s;
 }
 .viz-wrap.active { opacity: 1; }
 .viz-bar {
@@ -475,37 +514,63 @@ body::after {
   opacity: 0.6;
 }
 
-/* Now playing strip */
+/* ── NOW-PLAYING SCROLLING TITLE ──
+   Sits at the very top of the sidebar (above the Ian Christensen heading
+   and oscilloscope) while music plays. Marquee-style horizontal scroll. */
 .now-playing {
-  margin-top: 28px;
-  padding: 14px 18px;
-  background: var(--cream-2);
-  border: 1px solid var(--cream-4);
-  border-radius: 5px;
   display: none;
+  height: 28px;
+  border-bottom: 1px solid var(--cream-4);
+  background: var(--cream-2);
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+body.music-active .now-playing { display: block; }
+
+.np-marquee {
+  display: flex;
+  width: max-content;
+  height: 100%;
   align-items: center;
-  gap: 14px;
+  animation: np-scroll 24s linear infinite;
+  will-change: transform;
 }
-.now-playing.visible { display: flex; }
-.np-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--gold);
-  flex-shrink: 0;
-  animation: pulse 1.4s ease-in-out infinite;
+@keyframes np-scroll {
+  to { transform: translateX(-50%); }
 }
-.np-text {
+.np-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 36px;
+  white-space: nowrap;
   font-family: 'JetBrains Mono', monospace;
   font-size: 8.5px;
   color: var(--gold);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  flex: 1;
 }
-.np-title {
-  font-size: 15px;
+.np-line .np-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.np-line .np-sep,
+.np-line .np-dash { color: var(--gold-dim); letter-spacing: 0; }
+.np-line .np-title-mq {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
   font-style: italic;
   color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.np-line .np-time-mq {
+  color: var(--ink-3);
+  letter-spacing: 0.05em;
 }
 
 /* ── PROJECT EXPAND (in-page) ── */
@@ -659,12 +724,6 @@ body::after {
   stroke-linejoin: round;
   opacity: 0.85;
 }
-.proj-schematic .c-wire-control {
-  stroke: var(--gold-dim);
-  stroke-width: 1.1;
-  stroke-dasharray: 3 3;
-  opacity: 0.55;
-}
 .proj-schematic .c-node {
   fill: var(--cream-2);
   stroke: var(--gold-dim);
@@ -697,6 +756,54 @@ body::after {
 #pg-projects.project-expanded.power-on .proj-schematic .c-wire {
   stroke: var(--gold);
   opacity: 1;
+}
+
+/* ── OP-AMP → PROJECT SWITCH CONNECTOR ──
+   Fixed-position SVG that draws when a project is open. Carries the same
+   dashed-flow theme as the nav wires for visual continuity. */
+#opamp-connector {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 550;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+body.proj-open #opamp-connector {
+  opacity: 0.95;
+  transition: opacity .4s ease .2s;
+}
+.oc-wire {
+  fill: none;
+  stroke: var(--gold-dim);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 3 4;
+  animation: oc-flow 1.6s linear infinite;
+  transition: stroke .35s, stroke-width .35s;
+}
+body.proj-power-on .oc-wire {
+  stroke: var(--gold);
+  stroke-width: 1.6;
+}
+@keyframes oc-flow {
+  to { stroke-dashoffset: -14; }
+}
+.oc-tap {
+  fill: var(--gold);
+  stroke: var(--gold-dim);
+  stroke-width: 1.1;
+}
+.oc-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  fill: var(--ink-4);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 /* Detail wrap — inline, full content-width */

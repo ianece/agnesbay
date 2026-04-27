@@ -38,25 +38,43 @@ function fadeAudioOutThenPause(audio) {
   setTimeout(() => audio.pause(), ANTI_CLICK_FADE * 1000 + 10);
 }
 
-function oscTogglePlay() {
-  if (!currentAudio) return;
-  if (currentAudio.paused) {
-    fadeAudioIn();
-    currentAudio.play();
-    vizWrap.classList.add('active');
-    document.getElementById('track-' + currentIdx).classList.add('playing');
-    waveTarget = 'audio'; waveMode = 'audio';
-    document.getElementById('osc-play-icon').style.display  = 'none';
-    document.getElementById('osc-pause-icon').style.display = 'block';
-  } else {
+/* The button no longer pauses — it stops playback entirely and the dock,
+   marquee, and button itself all hide until music is started again. */
+function oscTogglePlay() { stopPlayback(); }
+
+function stopPlayback() {
+  if (currentAudio) {
     fadeAudioOutThenPause(currentAudio);
-    vizWrap.classList.remove('active');
-    document.getElementById('track-' + currentIdx).classList.remove('playing');
-    waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
-    window._audioTimeData = null;
-    document.getElementById('osc-play-icon').style.display  = 'block';
-    document.getElementById('osc-pause-icon').style.display = 'none';
+    setTimeout(() => {
+      if (currentAudio) {
+        try { currentAudio.currentTime = 0; } catch (e) {}
+        currentAudio.src = '';
+      }
+      currentAudio = null;
+      currentIdx = -1;
+    }, ANTI_CLICK_FADE * 1000 + 30);
+  } else {
+    currentIdx = -1;
   }
+  document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
+  vizWrap.classList.remove('active');
+  document.body.classList.remove('music-active');
+  const ppBtn = document.getElementById('osc-playpause');
+  if (ppBtn) ppBtn.style.display = 'none';
+  document.getElementById('osc-play-icon').style.display  = 'block';
+  document.getElementById('osc-pause-icon').style.display = 'none';
+  waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
+  waveMode = waveTarget;
+  window._audioTimeData = null;
+}
+
+/* Marquee helpers — both copies of title/time are kept in sync. */
+function setNowPlayingTitle(title) {
+  document.querySelectorAll('[data-np-title]').forEach(el => el.textContent = title);
+}
+function setNowPlayingTime(cur, dur) {
+  const txt = formatTime(cur || 0) + ' / ' + (isFinite(dur) ? formatTime(dur) : '—:——');
+  document.querySelectorAll('[data-np-time]').forEach(el => el.textContent = txt);
 }
 
 /* ── AUDIO PLAYER ── */
@@ -70,8 +88,6 @@ const TRACKS = [
 let audioCtx = null, analyser = null, source = null, gainNode = null;
 let currentAudio = null, currentIdx = -1;
 const vizWrap = document.getElementById('viz-wrap');
-const nowPlaying = document.getElementById('now-playing');
-const npTitle = document.getElementById('np-title');
 
 /* Build visualizer bars */
 const BAR_COUNT = 40;
@@ -100,34 +116,22 @@ function setProgress(idx, current, duration) {
   if (time) time.textContent = formatTime(current);
 }
 
+/* Reset playing-track UI between tracks. The dock + marquee stay up so the
+   transition between tracks is seamless — only stopPlayback() takes them down. */
 function clearActive() {
   document.querySelectorAll('.track-row').forEach(r => r.classList.remove('playing'));
   vizWrap.classList.remove('active');
-  nowPlaying.classList.remove('visible');
   waveTarget = 'sine'; waveMode = 'sine';
   window._audioTimeData = null;
-  const ppBtn = document.getElementById('osc-playpause');
-  if (ppBtn) ppBtn.style.display = 'none';
 }
 
 function playTrack(idx) {
   const track = TRACKS[idx];
   if (!track) return;
 
-  /* If same track — toggle pause */
+  /* Clicking the currently-playing track is a stop — pause is gone. */
   if (currentIdx === idx && currentAudio) {
-    if (currentAudio.paused) {
-      fadeAudioIn();
-      currentAudio.play();
-      vizWrap.classList.add('active');
-      document.getElementById('track-' + idx).classList.add('playing');
-    } else {
-      fadeAudioOutThenPause(currentAudio);
-      vizWrap.classList.remove('active');
-      document.getElementById('track-' + idx).classList.remove('playing');
-      waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
-      window._audioTimeData = null;
-    }
+    stopPlayback();
     return;
   }
 
@@ -156,13 +160,21 @@ function playTrack(idx) {
   audio.src = track.file;
   audio.preload = 'metadata';
 
-  audio.addEventListener('loadedmetadata', () => setDuration(idx, audio.duration));
-  audio.addEventListener('timeupdate', () => setProgress(idx, audio.currentTime, audio.duration));
+  audio.addEventListener('loadedmetadata', () => {
+    setDuration(idx, audio.duration);
+    setNowPlayingTime(audio.currentTime, audio.duration);
+  });
+  audio.addEventListener('timeupdate', () => {
+    setProgress(idx, audio.currentTime, audio.duration);
+    if (currentIdx === idx) setNowPlayingTime(audio.currentTime, audio.duration);
+  });
   audio.addEventListener('ended', () => {
-    clearActive();
-    waveTarget = (typeof sectionWaveMap !== 'undefined' ? sectionWaveMap[current] : null) || 'sine';
-    window._audioTimeData = null;
-    if (idx + 1 < TRACKS.length) playTrack(idx + 1);
+    if (idx + 1 < TRACKS.length) {
+      clearActive();
+      playTrack(idx + 1);
+    } else {
+      stopPlayback();
+    }
   });
 
   /* Connect to analyser */
@@ -176,12 +188,13 @@ function playTrack(idx) {
     currentIdx = idx;
     document.getElementById('track-' + idx).classList.add('playing');
     vizWrap.classList.add('active');
-    nowPlaying.classList.add('visible');
+    document.body.classList.add('music-active');
     const ppBtn = document.getElementById('osc-playpause');
     ppBtn.style.display = 'flex';
     document.getElementById('osc-play-icon').style.display  = 'none';
     document.getElementById('osc-pause-icon').style.display = 'block';
-    npTitle.textContent = track.title;
+    setNowPlayingTitle(track.title);
+    setNowPlayingTime(audio.currentTime, audio.duration);
     /* Also switch sidebar oscilloscope to chaotic/audio mode */
     waveTarget = 'audio';
   }).catch(e => console.warn('Playback error:', e));
@@ -240,6 +253,26 @@ let mouse = { x: CFG.anchorX + 60, y: CFG.anchorY + 40 };
 document.addEventListener('mousemove', e => {
   mouse.x = e.clientX;
   mouse.y = e.clientY;
+});
+
+/* Dock the cable's anchor (jack) just below the oscilloscope's bottom-right
+   corner so the probe wire visually plugs into the scope. The probe itself
+   still follows the mouse — only the anchor is fixed here. */
+function recomputeAnchorDock() {
+  const osc = document.getElementById('osc');
+  if (!osc) return;
+  const r = osc.getBoundingClientRect();
+  anchor.x = r.right - 4;
+  anchor.y = r.bottom + 6;
+}
+recomputeAnchorDock();
+window.addEventListener('load',   recomputeAnchorDock);
+window.addEventListener('resize', recomputeAnchorDock);
+/* Re-dock when the music dock pushes the sidebar up/down. */
+document.addEventListener('transitionend', e => {
+  if (e.target && e.target.id === 'sidebar' && e.propertyName === 'top') {
+    recomputeAnchorDock();
+  }
 });
 
 let chain = [];
@@ -508,6 +541,17 @@ const componentWireMap = {
   'cg-contact':  ['w0','w1','w2','w-fb-up','w3','w3b','w4','w5'],
 };
 
+/* Immediate input/output wires for each component — these get the constant
+   "current toward ground" dashed flow when the component is selected. */
+const componentLeadMap = {
+  'cg-home':     ['w-vcc', 'w0'],
+  'cg-about':    ['w0', 'w1'],
+  'cg-music':    ['w1', 'w2', 'w-fb-up'],
+  'cg-projects': ['w-fb-up', 'w3', 'w3b'],
+  'cg-shop':     ['w4', 'w5'],
+  'cg-contact':  ['w5'],
+};
+
 /* Per-component waves only fire while the probe is on a nav component (hover). */
 const componentWaveMap = {
   'cg-home':     'sine',
@@ -546,14 +590,17 @@ function nav(section, componentId) {
   } else {
     document.getElementById('cg-'+section).classList.add('active');
   }
-  document.querySelectorAll('.wire').forEach(w => w.classList.remove('lit'));
+  document.querySelectorAll('.wire').forEach(w => w.classList.remove('lit', 'flow'));
   document.querySelectorAll('.jct').forEach(j => j.classList.remove('lit'));
   // Use component wires for highlighting instead of section wires
   const wiresToLight = componentId ? (componentWireMap[componentId] || []) : (wireMap[section] || []);
   wiresToLight.forEach(id => {
     const el = document.getElementById(id); if(el) el.classList.add('lit');
   });
-  animateDot(componentId || section);
+  const leadKey = componentId || ('cg-' + section);
+  (componentLeadMap[leadKey] || []).forEach(id => {
+    const el = document.getElementById(id); if(el) el.classList.add('flow');
+  });
   /* Don't touch waveTarget here — the probe is still over the component the
      user just clicked, so its mouseenter-set waveform should stay visible
      until the probe actually moves off. The mouseleave handler will then
@@ -562,25 +609,10 @@ function nav(section, componentId) {
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
 }
 
-function animateDot(sectionOrComponentId) {
-  // If it's a component ID (starts with 'cg-'), use componentWireMap
-  const isComponentId = sectionOrComponentId.startsWith('cg-');
-  const wires = isComponentId ? componentWireMap[sectionOrComponentId] : wireMap[sectionOrComponentId];
-  if (!wires||!wires.length) return;
-  const lastWire = document.getElementById(wires[wires.length-1]);
-  if (!lastWire||!lastWire.getTotalLength) return;
-  const dot = document.getElementById('fdot');
-  const len = lastWire.getTotalLength();
-  let t = 0; dot.style.opacity = '1';
-  const anim = setInterval(() => {
-    t += 2.2;
-    if (t > len) { dot.style.opacity='0'; clearInterval(anim); return; }
-    const pt = lastWire.getPointAtLength(t);
-    dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
-  }, 13);
-}
-
 document.getElementById('cg-home').classList.add('active');
+componentLeadMap['cg-home'].forEach(id => {
+  const el = document.getElementById(id); if (el) el.classList.add('flow');
+});
 // Set initial waveform for home section
 waveTarget = sectionWaveMap['home'] || 'sine';
 
@@ -706,10 +738,13 @@ function openProject(card) {
     }
   });
 
+  document.body.classList.add('proj-open');
+
   /* Draw schematic once layout has settled; initial render shows lever open,
      then we close the switch (power on) for the drop-in animation. */
   requestAnimationFrame(() => requestAnimationFrame(() => {
     drawSchematic({ state: 'off' });
+    drawOpampConnector();
     setTimeout(() => flipSwitch(true), 300);
   }));
 }
@@ -719,8 +754,11 @@ function closeProject() {
   flipSwitch(false);
   setTimeout(() => {
     projPage.classList.remove('project-expanded', 'power-on');
+    document.body.classList.remove('proj-open', 'proj-power-on');
     projSlot.setAttribute('aria-hidden', 'true');
     projDetailWrap.setAttribute('aria-hidden', 'true');
+    const oc = document.getElementById('opamp-connector');
+    if (oc) oc.innerHTML = '';
     setTimeout(() => {
       if (!projPage.classList.contains('project-expanded')) {
         projSlot.innerHTML = '';
@@ -737,9 +775,11 @@ function flipSwitch(on) {
   if (on) {
     if (sw) { sw.classList.add('on'); sw.setAttribute('aria-pressed', 'true'); }
     projPage.classList.add('power-on');
+    document.body.classList.add('proj-power-on');
   } else {
     if (sw) { sw.classList.remove('on'); sw.setAttribute('aria-pressed', 'false'); }
     projPage.classList.remove('power-on');
+    document.body.classList.remove('proj-power-on');
   }
   animatePhysicalLever(on ? 0 : 180);
   animateSchematicLever(on ? 0 : 58);
@@ -792,7 +832,6 @@ function drawSchematic({ state = 'off' } = {}) {
 
   const pageRect  = projPage.getBoundingClientRect();
   const cardRect  = slotCard.getBoundingClientRect();
-  const psRect    = sw.getBoundingClientRect();
   const metaRect  = metaGrid.getBoundingClientRect();
 
   const W = pageRect.width;
@@ -811,26 +850,14 @@ function drawSchematic({ state = 'off' } = {}) {
   const accentTopY    = metaRect.top    - pageRect.top;
   const accentBottomY = metaRect.bottom - pageRect.top;
 
-  /* Physical switch — left edge as the "tap" point (switch sits to the right of
-     the h2, schematic switch is on the left, so the wire exits leftward). */
-  const physLeftX = psRect.left - pageRect.left;
-  const physMidY  = (psRect.top + psRect.bottom) / 2 - pageRect.top;
-
-  /* Schematic switch sits in the left wire, aligned vertically near the physical
-     switch so the control wire is short. Place it just above the top accent line. */
+  /* Schematic switch — sits in line with the left power wire, just above the
+     top accent line. The op-amp connector now provides the visual feed into
+     SW₁ from the side, so no separate control link is drawn. */
   const swColumnX = termAX;
   const swY1 = Math.max(termY + 60, accentTopY - 64);  // hinge
   const swL  = 28;
   const swY2 = swY1 + swL;                              // fixed contact
   leverCoords = { hingeX: swColumnX, hingeY: swY1, length: swL };
-
-  /* Control wire: from the physical switch's left edge, jog left to the switch
-     column, then vertically to the hinge. A short dashed connector. */
-  const controlPath =
-    `M ${physLeftX} ${physMidY} ` +
-    `H ${swColumnX - 18} ` +
-    `V ${swY1 + swL/2} ` +
-    `H ${swColumnX - 6}`;
 
   schemSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   schemSvg.setAttribute('preserveAspectRatio', 'none');
@@ -848,9 +875,6 @@ function drawSchematic({ state = 'off' } = {}) {
     <!-- Tap nodes on the accent lines -->
     <circle class="c-node c-tap" cx="${termAX}" cy="${accentTopY}" r="3" />
     <circle class="c-node c-tap" cx="${termBX}" cy="${accentBottomY}" r="3" />
-
-    <!-- Control wire from physical switch to schematic hinge -->
-    <path class="c-wire c-wire-control" d="${controlPath}" />
 
     <!-- Schematic switch: hinge + fixed contact, lever rotates around hinge -->
     <circle class="c-node" cx="${swColumnX}" cy="${swY1}" r="3.2" />
@@ -904,12 +928,98 @@ function redrawIfOpen() {
   const sw = getPowerSwitch();
   const isOn = sw && sw.classList.contains('on');
   drawSchematic({ state: isOn ? 'on' : 'off' });
+  drawOpampConnector();
 }
 
 window.addEventListener('resize', redrawIfOpen);
+window.addEventListener('scroll', () => {
+  /* Op-amp & switch positions are viewport-relative — keep the connector aligned. */
+  if (projPage.classList.contains('project-expanded')) drawOpampConnector();
+}, { passive: true });
+/* Sidebar slides down when the music dock opens/closes — re-anchor the wire. */
+const sidebarEl = document.getElementById('sidebar');
+if (sidebarEl) {
+  sidebarEl.addEventListener('transitionend', (e) => {
+    if (e.propertyName === 'top' && projPage.classList.contains('project-expanded')) {
+      drawOpampConnector();
+    }
+  });
+}
 projSlot.addEventListener('transitionend', (e) => {
   if (e.propertyName === 'width') redrawIfOpen();
 });
+
+/* Draws the cross-page wire from the op-amp output (sidebar) to the project's
+   schematic switch (SW₁). Path: out of op-amp → past sidebar → horizontal under
+   the project title → down to SW₁ hinge. Same dashed-flow theme as the nav. */
+function drawOpampConnector() {
+  const oc = document.getElementById('opamp-connector');
+  if (!oc) return;
+  if (!projPage.classList.contains('project-expanded') || !leverCoords) {
+    oc.innerHTML = '';
+    return;
+  }
+  const opampLine = document.querySelector('#cg-music line[x1="130"]');
+  const sidebarEl = document.getElementById('sidebar');
+  if (!opampLine || !sidebarEl) return;
+
+  const ooBox = opampLine.getBoundingClientRect();
+  const startX = ooBox.right;
+  const startY = (ooBox.top + ooBox.bottom) / 2;
+
+  const projPageRect = projPage.getBoundingClientRect();
+  const hingeX = projPageRect.left + leverCoords.hingeX;
+  const hingeY = projPageRect.top + leverCoords.hingeY;
+
+  const sidebarRect = sidebarEl.getBoundingClientRect();
+  const exitX = sidebarRect.right + 16;
+
+  /* Pick a y just below the project header — wire passes underneath the
+     title text in the empty band before the meta-grid. */
+  const baseEl = projPage.querySelector('.proj-header-text .div')
+              || projPage.querySelector('.proj-header-text .pb')
+              || projPage.querySelector('.proj-header-text .ph');
+  let underY = startY + 60;
+  if (baseEl) {
+    const bRect = baseEl.getBoundingClientRect();
+    underY = bRect.bottom + 18;
+  }
+  underY = Math.max(underY, startY + 24);
+  underY = Math.min(underY, hingeY - 28);
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  oc.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  oc.setAttribute('width', W);
+  oc.setAttribute('height', H);
+
+  const f = (n) => n.toFixed(1);
+  const d = `M ${f(startX)} ${f(startY)} `
+          + `L ${f(exitX)}  ${f(startY)} `
+          + `L ${f(exitX)}  ${f(underY)} `
+          + `L ${f(hingeX)} ${f(underY)} `
+          + `L ${f(hingeX)} ${f(hingeY)}`;
+
+  /* Reuse the existing nodes if present so the dash animation doesn't restart
+     on every scroll/resize tick. Only replace markup on first draw. */
+  let path = oc.querySelector('.oc-wire');
+  if (!path) {
+    oc.innerHTML = `
+      <path class="oc-wire" d="" />
+      <circle class="oc-tap oc-tap-start" r="3" />
+      <circle class="oc-tap oc-tap-end"   r="3" />
+      <text class="oc-label">U₁ OUT</text>
+    `;
+    path = oc.querySelector('.oc-wire');
+  }
+  path.setAttribute('d', d);
+  const t1 = oc.querySelector('.oc-tap-start');
+  const t2 = oc.querySelector('.oc-tap-end');
+  const lb = oc.querySelector('.oc-label');
+  if (t1) { t1.setAttribute('cx', f(startX)); t1.setAttribute('cy', f(startY)); }
+  if (t2) { t2.setAttribute('cx', f(hingeX)); t2.setAttribute('cy', f(hingeY)); }
+  if (lb) { lb.setAttribute('x', f(exitX + 6)); lb.setAttribute('y', f(startY - 6)); }
+}
 
 /* ══════════════════════════════════════
    WAVEFORM ADDER (home-page interactive scope)
