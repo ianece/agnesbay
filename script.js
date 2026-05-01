@@ -86,6 +86,10 @@ const TRACKS = [
 ];
 
 let audioCtx = null, analyser = null, source = null, gainNode = null;
+/* Second analyser tap with a larger FFT for the music-page wireframe
+   reactor — connected in parallel to the chain so the sidebar oscilloscope
+   keeps its existing low-FFT behavior. */
+let vizAnalyser = null;
 let currentAudio = null, currentIdx = -1;
 const vizWrap = document.getElementById('viz-wrap');
 
@@ -181,6 +185,13 @@ function playTrack(idx) {
   if (source) source.disconnect();
   source = audioCtx.createMediaElementSource(audio);
   source.connect(analyser);
+  /* Spin up the visualizer's analyser on first play and tap into it. */
+  if (!vizAnalyser) {
+    vizAnalyser = audioCtx.createAnalyser();
+    vizAnalyser.fftSize = 512;
+    vizAnalyser.smoothingTimeConstant = 0.82;
+  }
+  source.connect(vizAnalyser);
 
   fadeAudioIn();
   audio.play().then(() => {
@@ -547,7 +558,7 @@ const componentLeadMap = {
   'cg-home':     ['w-vcc', 'w0'],
   'cg-about':    ['w0', 'w1'],
   'cg-music':    ['w1', 'w2', 'w-fb-up'],
-  'cg-projects': ['w-fb-up', 'w3', 'w3b'],
+  'cg-projects': ['w-fb-up', 'w3', 'w3b', 'w4'],
   'cg-shop':     ['w4', 'w5'],
   'cg-contact':  ['w5'],
 };
@@ -607,6 +618,21 @@ function nav(section, componentId) {
      restore sectionWaveMap[current] (= 'adder'). */
   current = section;
   if (window.innerWidth <= 780) document.getElementById('sidebar').classList.remove('open');
+
+  /* Contact-page circuit interaction — show the SW₂ connector and excite
+     the link panel when on contact, tear it down on exit. The 200ms delay
+     lets the page transition (110ms) finish so the link panel's bounding
+     rect is correct when we sample it. */
+  if (section === 'contact') {
+    setTimeout(() => {
+      if (current !== 'contact') return;
+      drawContactConnector();
+      document.body.classList.add('contact-active');
+      flipContactSwitch(true);
+    }, 200);
+  } else {
+    clearContactConnector();
+  }
 }
 
 document.getElementById('cg-home').classList.add('active');
@@ -717,6 +743,8 @@ function openProject(card) {
   projDetailWrap.setAttribute('aria-hidden', 'false');
   /* Tag the wrap with the project key so per-project styling can scope to it. */
   projDetailWrap.dataset.proj = card.dataset.proj || '';
+  /* External links inside the freshly-injected detail open in a new tab. */
+  applyExternalLinkTargets(projDetail);
 
   projPage.classList.add('project-expanded');
 
@@ -1019,6 +1047,512 @@ function drawOpampConnector() {
     if (!projPage || !projPage.classList.contains('project-expanded')) return;
     if (!e.target.closest('.oc-switch')) return;
     closeProject();
+  });
+})();
+
+/* ── External-link new-tab policy ──
+   Any anchor pointing to an external URL or a PDF asset opens in a new tab,
+   so the visitor doesn't lose their place in the schematic. */
+function applyExternalLinkTargets(scope) {
+  const root = scope || document;
+  root.querySelectorAll('a[href^="http"], a[href^="//"], a[href$=".pdf"]')
+    .forEach(a => {
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    });
+}
+applyExternalLinkTargets();
+
+/* ══════════════════════════════════════
+   CONTACT CONNECTOR — circuit interaction on the contact page
+   Draws a wire from R_f's output (the "Contact" component in the nav)
+   into the contact-links panel, with an inline industrial switch (SW₂).
+   Clicking SW₂ toggles power; the load wire's flow + link excitation track
+   the body.contact-power-on class, mirroring the SW₁ pattern. */
+
+let contactLeverRaf = null;
+
+function drawContactConnector() {
+  const cc = document.getElementById('contact-connector');
+  if (!cc) return;
+  if (current !== 'contact') {
+    cc.innerHTML = '';
+    return;
+  }
+  const navSvg    = document.getElementById('nav-svg');
+  const sidebarEl = document.getElementById('sidebar');
+  const linksEl   = document.querySelector('#pg-contact .contact-links');
+  if (!navSvg || !sidebarEl || !linksEl) return;
+
+  /* Source = R_f output at viewBox (168, 305) — convert via the SVG's CTM. */
+  const m = navSvg.getScreenCTM();
+  if (!m) return;
+  const pt = navSvg.createSVGPoint();
+  pt.x = 168; pt.y = 305;
+  const src = pt.matrixTransform(m);
+  const startX = src.x;
+  const startY = src.y;
+
+  const sidebarRect = sidebarEl.getBoundingClientRect();
+  const exitX = sidebarRect.right + 16;
+
+  const linksRect = linksEl.getBoundingClientRect();
+  /* Land on the left edge of the contact panel near the top */
+  const destX = linksRect.left;
+  const destY = linksRect.top + 24;
+
+  /* Industrial switch placed midway between sidebar exit and panel edge.
+     Same 64px size + lug positions as SW₁ — wire enters left lug, exits
+     right lug at the same y. */
+  const SW_SIZE  = 64;
+  const SW_SCALE = SW_SIZE / 100;
+  const wireY     = destY;
+  const swCenterX = (exitX + destX) / 2;
+  const swTopX    = swCenterX - SW_SIZE / 2;
+  const swTopY    = wireY - 46 * SW_SCALE;
+  const lugY      = wireY;
+  const leftLugX  = swTopX + 12 * SW_SCALE;
+  const rightLugX = swTopX + 88 * SW_SCALE;
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  cc.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  cc.setAttribute('width', W);
+  cc.setAttribute('height', H);
+
+  const f = (n) => n.toFixed(1);
+  const dSrc = `M ${f(startX)} ${f(startY)} `
+             + `L ${f(exitX)}  ${f(startY)} `
+             + `L ${f(exitX)}  ${f(lugY)} `
+             + `L ${f(leftLugX)} ${f(lugY)}`;
+  const dLoad = `M ${f(rightLugX)} ${f(lugY)} L ${f(destX)} ${f(lugY)}`;
+
+  /* Build the structure once; subsequent draws update attributes only. */
+  let pathSrc = cc.querySelector('.oc-wire-src');
+  if (!pathSrc) {
+    cc.innerHTML = `
+      <path class="oc-wire oc-wire-src" d="" />
+      <path class="oc-wire oc-wire-load" d="" />
+      <circle class="oc-tap oc-tap-start" r="3" />
+      <circle class="oc-tap oc-tap-end"   r="3" />
+      <text class="oc-label oc-label-src">R_f OUT</text>
+      <g class="oc-switch" role="button" aria-label="Toggle SW₂">
+        <svg class="ps-embed" viewBox="0 0 100 100">
+          <rect class="ps-lug" x="6"  y="42" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="12" cy="46" r="1.4"/>
+          <rect class="ps-lug" x="6"  y="60" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="12" cy="64" r="1.4"/>
+          <rect class="ps-lug" x="82" y="42" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="88" cy="46" r="1.4"/>
+          <rect class="ps-lug" x="82" y="60" width="12" height="8" rx="1"/>
+          <circle class="ps-lug-hole" cx="88" cy="64" r="1.4"/>
+          <rect class="ps-body" x="18" y="40" width="64" height="30" rx="1.2"/>
+          <path class="ps-gear" d="${SWITCH_GEAR_PATH}"/>
+          <circle class="ps-hub-ring"   cx="50" cy="55" r="7.5"/>
+          <circle class="ps-hub-center" cx="50" cy="55" r="2.2"/>
+          <path class="ps-pointer" d="M46.8,65 L53.2,65 L52,71 L48,71 Z"/>
+          <g id="cc-lever-g" class="ps-lever-group" transform="rotate(180 50 55)">
+            <rect class="ps-lever" x="46.5" y="14" width="7" height="42" rx="3.5"/>
+          </g>
+        </svg>
+        <rect class="oc-switch-hit" />
+      </g>
+      <text class="oc-label oc-label-sw">SW₂</text>
+    `;
+    pathSrc = cc.querySelector('.oc-wire-src');
+    const lever = cc.querySelector('#cc-lever-g');
+    if (lever) {
+      const isOn = document.body.classList.contains('contact-power-on');
+      const deg = isOn ? 0 : 180;
+      lever.setAttribute('transform', `rotate(${deg} 50 55)`);
+      lever.dataset.deg = String(deg);
+    }
+  }
+
+  pathSrc.setAttribute('d', dSrc);
+  cc.querySelector('.oc-wire-load').setAttribute('d', dLoad);
+
+  const tStart = cc.querySelector('.oc-tap-start');
+  const tEnd   = cc.querySelector('.oc-tap-end');
+  const labS   = cc.querySelector('.oc-label-src');
+  const labW   = cc.querySelector('.oc-label-sw');
+  if (tStart) { tStart.setAttribute('cx', f(startX)); tStart.setAttribute('cy', f(startY)); }
+  if (tEnd)   { tEnd.setAttribute('cx', f(destX));   tEnd.setAttribute('cy', f(lugY)); }
+  if (labS)   { labS.setAttribute('x', f(exitX + 6)); labS.setAttribute('y', f(startY - 6)); }
+  if (labW)   {
+    labW.setAttribute('x', f(swCenterX));
+    labW.setAttribute('y', f(swTopY + SW_SIZE + 12));
+    labW.setAttribute('text-anchor', 'middle');
+  }
+
+  const psSvg = cc.querySelector('.ps-embed');
+  if (psSvg) {
+    psSvg.setAttribute('x', f(swTopX));
+    psSvg.setAttribute('y', f(swTopY));
+    psSvg.setAttribute('width',  SW_SIZE);
+    psSvg.setAttribute('height', SW_SIZE);
+  }
+  const hit = cc.querySelector('.oc-switch-hit');
+  if (hit) {
+    hit.setAttribute('x', f(swTopX - 4));
+    hit.setAttribute('y', f(swTopY - 4));
+    hit.setAttribute('width',  f(SW_SIZE + 8));
+    hit.setAttribute('height', f(SW_SIZE + 8));
+  }
+}
+
+function clearContactConnector() {
+  const cc = document.getElementById('contact-connector');
+  if (cc) cc.innerHTML = '';
+  document.body.classList.remove('contact-active', 'contact-power-on');
+}
+
+function flipContactSwitch(on) {
+  document.body.classList.toggle('contact-power-on', on);
+  const lever = document.getElementById('cc-lever-g');
+  if (!lever) return;
+  if (contactLeverRaf) cancelAnimationFrame(contactLeverRaf);
+  const startDeg = parseFloat(lever.dataset.deg || '180');
+  const targetDeg = on ? 0 : 180;
+  const delta = targetDeg - startDeg;
+  const dur = 450;
+  const t0 = performance.now();
+  function tick(now) {
+    const t = Math.min(1, (now - t0) / dur);
+    const c = 1.4;
+    const eased = 1 + c * Math.pow(t - 1, 3) + (c - 0.5) * Math.pow(t - 1, 2);
+    const deg = startDeg + delta * (t < 1 ? eased : 1);
+    lever.setAttribute('transform', `rotate(${deg.toFixed(2)} 50 55)`);
+    if (t < 1) contactLeverRaf = requestAnimationFrame(tick);
+    else {
+      lever.setAttribute('transform', `rotate(${targetDeg} 50 55)`);
+      lever.dataset.deg = String(targetDeg);
+      contactLeverRaf = null;
+    }
+  }
+  contactLeverRaf = requestAnimationFrame(tick);
+}
+
+/* Click on SW₂ — toggle the contact panel's power. */
+(() => {
+  const cc = document.getElementById('contact-connector');
+  if (!cc) return;
+  cc.addEventListener('click', e => {
+    if (current !== 'contact') return;
+    if (!e.target.closest('.oc-switch')) return;
+    flipContactSwitch(!document.body.classList.contains('contact-power-on'));
+  });
+})();
+
+/* Redraw the contact connector on viewport / sidebar shifts. */
+window.addEventListener('resize', () => { if (current === 'contact') drawContactConnector(); });
+window.addEventListener('scroll', () => { if (current === 'contact') drawContactConnector(); }, { passive: true });
+const _sidebarForContact = document.getElementById('sidebar');
+if (_sidebarForContact) {
+  _sidebarForContact.addEventListener('transitionend', e => {
+    if (e.propertyName === 'top' && current === 'contact') drawContactConnector();
+  });
+}
+
+/* ══════════════════════════════════════
+   WIREFRAME REACTOR — music-page Three.js visualizer
+   Renders a wireframe shape that morphs to the audio coming out of the
+   playing track (via the vizAnalyser tap). Falls back to a gentle idle
+   animation when nothing's playing. Adapted from the standalone reactor
+   design in assets/claude_design_projects/music_wireframe_reactor.htm. */
+(() => {
+  if (typeof THREE === 'undefined') return;
+  const container = document.getElementById('music-viz');
+  const canvas    = document.getElementById('reactor-canvas');
+  if (!container || !canvas) return;
+
+  const W = () => container.clientWidth || 1;
+  const H = () => container.clientHeight || 1;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W(), H(), false);
+  renderer.setClearColor(0x221A0C, 1);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, W() / H(), 0.1, 100);
+  camera.position.set(0, 0, 3.2);
+
+  const C = {
+    gold:       new THREE.Color(0xC8A84B),
+    goldBright: new THREE.Color(0xE5C76B),
+    goldDim:    new THREE.Color(0xA8893A),
+  };
+
+  /* ── Geometry / mesh management ── */
+  let currentShape = 'icosphere';
+  const meshGroup = new THREE.Group();
+  scene.add(meshGroup);
+
+  let basePositions = null;
+  let wireMat = null, edgeMat = null, solidMat = null;
+  let wireMesh = null, edgeMesh = null, solidMesh = null;
+
+  function buildMesh(shape) {
+    while (meshGroup.children.length) meshGroup.remove(meshGroup.children[0]);
+    let geo;
+    if (shape === 'torus')  geo = new THREE.TorusKnotGeometry(0.75, 0.28, 128, 18, 2, 3);
+    else if (shape === 'cube') geo = new THREE.BoxGeometry(1.4, 1.4, 1.4, 12, 12, 12);
+    else                       geo = new THREE.IcosahedronGeometry(1, 4);
+    basePositions = Float32Array.from(geo.attributes.position.array);
+
+    solidMat = new THREE.MeshBasicMaterial({ color: 0x2A1E0A, transparent: true, opacity: 0.45, side: THREE.FrontSide });
+    solidMesh = new THREE.Mesh(geo, solidMat);
+
+    wireMat = new THREE.MeshBasicMaterial({ color: C.goldDim, wireframe: true, transparent: true, opacity: 0.55 });
+    wireMesh = new THREE.Mesh(geo, wireMat);
+
+    const edgeGeo = new THREE.EdgesGeometry(geo, 15);
+    edgeMat = new THREE.LineBasicMaterial({ color: C.goldBright, transparent: true, opacity: 0.22 });
+    edgeMesh = new THREE.LineSegments(edgeGeo, edgeMat);
+
+    meshGroup.add(solidMesh, wireMesh, edgeMesh);
+    currentShape = shape;
+  }
+  buildMesh('icosphere');
+
+  /* ── Particle field, rings, axes ── */
+  const PARTICLE_COUNT = 280;
+  const particleGeo = new THREE.BufferGeometry();
+  const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+  const pSeeds = new Float32Array(PARTICLE_COUNT * 3);
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const r = 1.8 + Math.random() * 1.6;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pPositions[i*3+2] = r * Math.cos(phi);
+    pSeeds[i*3]   = Math.random() * Math.PI * 2;
+    pSeeds[i*3+1] = Math.random() * Math.PI * 2;
+    pSeeds[i*3+2] = 0.3 + Math.random() * 0.7;
+  }
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+  const particleMat = new THREE.PointsMaterial({ color: C.gold, size: 0.012, transparent: true, opacity: 0.5, sizeAttenuation: true });
+  scene.add(new THREE.Points(particleGeo, particleMat));
+
+  const makeRing = (radius, tube, color, opacity) => {
+    const g = new THREE.TorusGeometry(radius, tube, 6, 80);
+    const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, wireframe: true });
+    return new THREE.Mesh(g, m);
+  };
+  const ring1 = makeRing(1.7, 0.004, C.goldDim, 0.28);
+  const ring2 = makeRing(1.9, 0.003, C.goldDim, 0.18);
+  const ring3 = makeRing(2.2, 0.002, C.goldDim, 0.10);
+  ring1.rotation.x = Math.PI / 3;
+  ring2.rotation.y = Math.PI / 4;
+  ring3.rotation.z = Math.PI / 5;
+  scene.add(ring1, ring2, ring3);
+
+  const axisLines = new THREE.Group();
+  const axLine = (a, b, op) => {
+    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]);
+    return new THREE.Line(g, new THREE.LineBasicMaterial({ color: C.goldDim, transparent: true, opacity: op }));
+  };
+  axisLines.add(axLine([-2.5,0,0],[2.5,0,0], 0.08));
+  axisLines.add(axLine([0,-2.5,0],[0,2.5,0], 0.08));
+  axisLines.add(axLine([0,0,-2.5],[0,0,2.5], 0.06));
+  scene.add(axisLines);
+
+  /* ── Mini osc + freq strip overlays ── */
+  const oscCanvas = document.getElementById('reactor-osc');
+  const oscCtx = oscCanvas ? oscCanvas.getContext('2d') : null;
+  const freqStrip = document.getElementById('reactor-freq');
+  const STRIP_BARS = 24;
+  const freqBars = [];
+  if (freqStrip) {
+    for (let i = 0; i < STRIP_BARS; i++) {
+      const b = document.createElement('div');
+      b.className = 'freq-bar';
+      b.style.height = '2px';
+      freqStrip.appendChild(b);
+      freqBars.push(b);
+    }
+  }
+
+  /* ── Audio data: pull from the existing vizAnalyser when a track is
+        playing, otherwise synthesize a soft idle signal so the scene
+        keeps gently breathing. ── */
+  let idleT = 0;
+  function getAudioData() {
+    if (vizAnalyser && currentAudio && !currentAudio.paused) {
+      const buf = new Uint8Array(vizAnalyser.frequencyBinCount);
+      vizAnalyser.getByteFrequencyData(buf);
+      return buf;
+    }
+    idleT += 0.012;
+    const N = 256;
+    const arr = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      const f = i / N;
+      const v = Math.max(0, Math.sin(idleT + f * 6) * 0.25 + 0.18) * (1 - f * 0.6) * 38;
+      arr[i] = Math.min(255, v);
+    }
+    return arr;
+  }
+
+  function avg(arr, a, b) {
+    let s = 0; for (let i = a; i < b; i++) s += arr[i];
+    return s / Math.max(1, b - a);
+  }
+  function getMetrics(d) {
+    const len = d.length;
+    return {
+      bass:    avg(d, 0,                Math.floor(len*0.08)) / 255,
+      mid:     avg(d, Math.floor(len*0.08),  Math.floor(len*0.45)) / 255,
+      treble:  avg(d, Math.floor(len*0.45),  len) / 255,
+      overall: avg(d, 0,                len) / 255,
+    };
+  }
+
+  function drawOsc(d) {
+    if (!oscCtx) return;
+    oscCtx.clearRect(0, 0, 80, 28);
+    oscCtx.strokeStyle = '#C8A84B';
+    oscCtx.lineWidth = 1;
+    oscCtx.globalAlpha = 0.7;
+    oscCtx.beginPath();
+    const step = Math.max(1, Math.floor(d.length / 80));
+    for (let x = 0; x < 80; x++) {
+      const v = d[x * step] / 255;
+      const y = 28 - v * 26 - 1;
+      x === 0 ? oscCtx.moveTo(x, y) : oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+  }
+  function updateFreqStrip(d) {
+    if (!freqBars.length) return;
+    const step = Math.max(1, Math.floor(d.length / STRIP_BARS));
+    freqBars.forEach((bar, i) => {
+      const v = d[i * step] / 255;
+      const h = Math.max(2, v * 32);
+      bar.style.height = h + 'px';
+      bar.style.opacity = 0.35 + v * 0.65;
+    });
+  }
+
+  /* ── Morph mesh based on metrics ── */
+  let breathT = 0;
+  function morphGeometry(m, t) {
+    if (!wireMesh || !basePositions) return;
+    const pos  = wireMesh.geometry.attributes.position;
+    const base = basePositions;
+    const breath    = Math.sin(breathT * 0.7) * 0.04 + 1;
+    const bassReact = 1 + m.bass * 0.38;
+    const midReact  = m.mid * 0.12;
+    for (let i = 0; i < pos.count; i++) {
+      const bx = base[i*3], by = base[i*3+1], bz = base[i*3+2];
+      const len = Math.sqrt(bx*bx + by*by + bz*bz) || 1;
+      const nx = bx/len, ny = by/len, nz = bz/len;
+      const noise =
+        Math.sin(nx * 4.1 + t * 0.8 + m.bass * 3) * 0.05 +
+        Math.sin(ny * 3.7 - t * 0.6 + m.mid  * 2.5) * 0.04 +
+        Math.sin(nz * 5.2 + t * 1.1) * 0.03 +
+        Math.sin((nx + ny) * 6 + t * 0.4) * midReact;
+      const scale = breath * bassReact + noise;
+      pos.setXYZ(i, bx * scale, by * scale, bz * scale);
+    }
+    pos.needsUpdate = true;
+    wireMesh.geometry.computeVertexNormals();
+    if (solidMesh && solidMesh.geometry.attributes.position) {
+      const sp = solidMesh.geometry.attributes.position;
+      for (let i = 0; i < Math.min(sp.count, pos.count); i++) {
+        sp.setXYZ(i, pos.getX(i), pos.getY(i), pos.getZ(i));
+      }
+      sp.needsUpdate = true;
+    }
+  }
+
+  /* ── Resize handling — keyed off the container, not the window ── */
+  let lastW = 0, lastH = 0;
+  function checkResize() {
+    const w = W(), h = H();
+    if (w === lastW && h === lastH) return;
+    lastW = w; lastH = h;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  if (window.ResizeObserver) new ResizeObserver(checkResize).observe(container);
+  window.addEventListener('resize', checkResize);
+
+  /* ── Main animation loop ── */
+  const clock = new THREE.Clock();
+  let frameT = 0;
+  let smB = 0, smM = 0, smO = 0;
+  function tick() {
+    requestAnimationFrame(tick);
+    /* Skip animation while not on the music page (cheap optimization). */
+    if (current !== 'music') {
+      checkResize();
+      renderer.render(scene, camera);
+      return;
+    }
+    const dt = clock.getDelta();
+    frameT  += dt;
+    breathT += dt;
+
+    const data = getAudioData();
+    const m = getMetrics(data);
+    const sp = 0.12;
+    smB += (m.bass    - smB) * sp;
+    smM += (m.mid     - smM) * sp;
+    smO += (m.overall - smO) * sp;
+    const sm = { bass: smB, mid: smM, treble: m.treble, overall: smO };
+
+    morphGeometry(sm, frameT);
+
+    meshGroup.rotation.y += 0.0025 + sm.bass * 0.012;
+    meshGroup.rotation.x += 0.0008 + sm.mid  * 0.005;
+    meshGroup.rotation.z += 0.0004;
+
+    if (wireMat) {
+      const pulse = 0.42 + sm.bass * 0.45 + sm.overall * 0.13;
+      wireMat.opacity = Math.min(0.9, pulse);
+      wireMat.color.lerpColors(C.goldDim, C.goldBright, sm.bass * 0.85 + sm.mid * 0.15);
+    }
+    if (edgeMat) {
+      edgeMat.opacity = 0.15 + sm.overall * 0.45;
+      edgeMat.color.lerpColors(C.gold, C.goldBright, sm.treble);
+    }
+
+    const ppos = particleGeo.attributes.position;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const sx = pSeeds[i*3], sy = pSeeds[i*3+1], speed = pSeeds[i*3+2];
+      ppos.setX(i, ppos.getX(i) + Math.sin(frameT * speed + sx) * 0.008);
+      ppos.setY(i, ppos.getY(i) + Math.cos(frameT * speed * 0.7 + sy) * 0.008);
+    }
+    ppos.needsUpdate = true;
+    particleMat.opacity = 0.3 + sm.overall * 0.55;
+    particleMat.size    = 0.010 + sm.bass * 0.018;
+
+    ring1.rotation.z += 0.003 + sm.bass * 0.022;
+    ring2.rotation.x += 0.002 + sm.mid  * 0.015;
+    ring3.rotation.y += 0.0015;
+    ring1.scale.setScalar(1 + sm.bass * 0.07);
+    ring2.scale.setScalar(1 + sm.mid * 0.05);
+    ring3.scale.setScalar(1 + sm.overall * 0.04);
+
+    drawOsc(data);
+    updateFreqStrip(data);
+
+    checkResize();
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  /* ── Shape selector buttons ── */
+  document.querySelectorAll('.r-shape').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.r-shape').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      buildMesh(btn.dataset.shape);
+    });
   });
 })();
 

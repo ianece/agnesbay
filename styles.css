@@ -355,6 +355,114 @@ body::after {
   .proj-grid { grid-template-columns: 1fr; }
 }
 
+/* ── MUSIC PAGE — header row with visualizer ── */
+.music-header-row {
+  display: flex;
+  gap: 38px;
+  align-items: stretch;
+  margin-bottom: 56px;
+  flex-wrap: wrap;
+}
+.music-header-text {
+  flex: 0 1 460px;
+  min-width: 280px;
+}
+.music-viz {
+  flex: 1 1 480px;
+  min-height: 480px;
+  position: relative;
+  background: var(--ink);
+  border: 1px solid var(--cream-4);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(34, 26, 12, 0.18);
+}
+.music-viz #reactor-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.reactor-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 20px;
+  z-index: 2;
+}
+.reactor-ui .r-top,
+.reactor-ui .r-bot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.reactor-ui .r-bot { align-items: flex-end; }
+.reactor-ui .r-ref {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.16em;
+  color: var(--gold-dim);
+  opacity: 0.78;
+  text-transform: uppercase;
+}
+.reactor-ui .r-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--gold);
+  opacity: 0.85;
+  margin-top: 3px;
+}
+.reactor-ui #reactor-osc {
+  display: block;
+  opacity: 0.55;
+}
+.reactor-ui .r-shapes {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+.reactor-ui .r-shape {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  background: rgba(34, 26, 12, 0.55);
+  border: 1px solid rgba(208, 196, 168, 0.18);
+  border-radius: 3px;
+  padding: 5px 10px;
+  cursor: none;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.reactor-ui .r-shape:hover {
+  color: var(--gold-dim);
+  border-color: rgba(168, 137, 58, 0.35);
+}
+.reactor-ui .r-shape.active {
+  color: var(--gold-bright);
+  border-color: var(--gold-dim);
+  background: rgba(200, 168, 75, 0.10);
+}
+.reactor-ui .r-freq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 32px;
+}
+.reactor-ui .r-freq .freq-bar {
+  width: 3px;
+  background: var(--gold-dim);
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  transition: height .05s;
+  opacity: 0.6;
+}
+
 /* ── MUSIC PLAYER ── */
 .player-wrap {
   margin-top: 40px;
@@ -805,6 +913,42 @@ body.proj-open #opamp-connector {
   opacity: 0.95;
   transition: opacity .4s ease .2s;
 }
+
+/* Contact-page connector mirrors the op-amp connector's positioning and
+   only appears while the user is on the contact section. */
+#contact-connector {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 550;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+body.contact-active #contact-connector {
+  opacity: 0.95;
+  transition: opacity .4s ease .2s;
+}
+
+/* Contact-link excitation — when SW₂ is closed and current is reaching
+   the contact panel, each link's border lights up and gets a soft gold
+   glow, like a row of patch jacks lighting up. */
+.clink {
+  border: 1px solid transparent;
+  border-bottom-color: var(--cream-3);
+  transition: border-color .35s, box-shadow .35s, padding-left .2s, background .35s;
+  padding: 17px 14px;
+}
+body.contact-power-on #pg-contact .clink {
+  border-color: var(--gold-dim);
+  border-radius: 4px;
+  background: rgba(200, 168, 75, 0.06);
+  box-shadow: 0 0 14px rgba(200, 168, 75, 0.10);
+  margin-bottom: 8px;
+}
+body.contact-power-on #pg-contact .clink-label { color: var(--gold-bright); }
 .oc-wire {
   fill: none;
   stroke: var(--gold-dim);
@@ -815,8 +959,9 @@ body.proj-open #opamp-connector {
   animation: oc-flow 1.6s linear infinite;
   transition: stroke .35s, stroke-width .35s, opacity .35s;
 }
-/* Source-side wire (op-amp → switch hinge) is always live. */
-body.proj-power-on .oc-wire {
+/* Source-side wire is always live; brighter when its host page is powered. */
+body.proj-power-on #opamp-connector .oc-wire,
+body.contact-power-on #contact-connector .oc-wire {
   stroke: var(--gold);
   stroke-width: 1.6;
 }
@@ -830,7 +975,8 @@ body.proj-power-on .oc-wire {
   stroke-dasharray: 3 4;
   transition: opacity 0s, stroke .35s, stroke-width .35s;
 }
-body.proj-power-on .oc-wire-load {
+body.proj-power-on #opamp-connector .oc-wire-load,
+body.contact-power-on #contact-connector .oc-wire-load {
   opacity: 1;
   animation: oc-flow 1.6s linear infinite;
   transition: opacity .35s, stroke .35s, stroke-width .35s;
@@ -860,7 +1006,8 @@ body.proj-power-on .oc-wire-load {
   overflow: visible;
   transition: color .35s ease;
 }
-body.proj-power-on .ps-embed { color: var(--gold); }
+body.proj-power-on #opamp-connector .ps-embed,
+body.contact-power-on #contact-connector .ps-embed { color: var(--gold); }
 .ps-embed .ps-lug,
 .ps-embed .ps-body,
 .ps-embed .ps-hub-ring,
@@ -881,7 +1028,8 @@ body.proj-power-on .ps-embed { color: var(--gold); }
   stroke: none;
   opacity: 0.9;
 }
-body.proj-power-on .ps-embed .ps-body {
+body.proj-power-on #opamp-connector .ps-embed .ps-body,
+body.contact-power-on #contact-connector .ps-embed .ps-body {
   fill: var(--gold);
   fill-opacity: 0.22;
 }
@@ -1005,33 +1153,18 @@ body.proj-power-on .ps-embed .ps-body {
 }
 
 /* ── Per-project layout: 3D Reconstruction (cv-project) ──
-   The two-column grid leaves dead space in this project because many
-   single-column figures are followed immediately by full-width text
-   sections, and several figures are taller than they need to be. Collapse
-   to a single readable column and cap image dimensions. Text content and
-   order are unchanged — this is purely layout. */
-.proj-detail-wrap[data-proj="cv-project"] .proj-body {
-  grid-template-columns: minmax(0, 820px);
-  justify-content: center;
-  gap: 26px;
-}
-.proj-detail-wrap[data-proj="cv-project"] .proj-body .span-2 {
-  grid-column: 1 / -1;
-}
+   Uses the default two-column body (which fills the page on every other
+   project) and only caps image height so figures aren't oversized.
+   Text and grid layout are otherwise inherited so content fills the full
+   available width edge-to-edge, like the rest of the projects. */
 .proj-detail-wrap[data-proj="cv-project"] .proj-figure {
   text-align: center;
 }
 .proj-detail-wrap[data-proj="cv-project"] .proj-figure img {
   width: auto;
   max-width: 100%;
-  max-height: 360px;
+  max-height: 420px;
   margin: 0 auto;
-}
-.proj-detail-wrap[data-proj="cv-project"] .proj-figure figcaption {
-  text-align: left;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* Placeholders for user-supplied media */

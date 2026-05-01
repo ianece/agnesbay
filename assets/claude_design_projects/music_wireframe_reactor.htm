@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=["https://claude.ai","https://preview.claude.ai","https://eap-omelette.claude.ai"];var x=true;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const m=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const M=q.length-q.trimStart().length;const R=q.length-q.trimEnd().length;if(M+R>=q.length)return K;return w(`txt:${C}:${K.start+M}:${K.end-R}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;m($,E(C),B(C))},JSXFragment($,C){m($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Music Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --cream:       #F4EFE4;
+    --cream-2:     #EDE5D4;
+    --cream-3:     #E3D8C3;
+    --cream-4:     #D0C4A8;
+    --gold:        #C8A84B;
+    --gold-bright: #E5C76B;
+    --gold-dim:    #A8893A;
+    --gold-glow:   rgba(200,168,75,0.32);
+    --ink:         #221A0C;
+    --ink-2:       #4A3F28;
+    --ink-3:       #7A6A4A;
+    --ink-4:       #A89878;
+    --font-serif:  'Cormorant Garamond', Georgia, serif;
+    --font-mono:   'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--ink);
+    overflow: hidden;
+    font-family: var(--font-mono);
+  }
+
+  /* Grain overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.032'/%3E%3C/svg%3E");
+    opacity: 0.7;
+  }
+
+  #canvas-container {
+    position: fixed; inset: 0;
+    z-index: 1;
+  }
+
+  canvas { display: block; }
+
+  /* ── UI OVERLAY ── */
+  #ui {
+    position: fixed; inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px 38px;
+  }
+
+  /* top row */
+  #top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  #label-left {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  #label-ref {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.12em;
+    color: var(--gold-dim);
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+  #label-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 0.01em;
+    opacity: 0.85;
+  }
+
+  #label-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    opacity: 0.5;
+    text-transform: uppercase;
+  }
+
+  /* waveform mini display top-right */
+  #osc-mini {
+    width: 80px; height: 28px;
+    opacity: 0.5;
+  }
+
+  /* bottom row */
+  #bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: auto;
+  }
+
+  /* mic/file controls */
+  #controls {
+    display: flex; flex-direction: column; gap: 10px;
+    align-items: flex-start;
+  }
+
+  .ctrl-btn {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    background: rgba(34,26,12,0.55);
+    border: 1px solid rgba(168,137,58,0.28);
+    border-radius: 3px;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    pointer-events: auto;
+  }
+  .ctrl-btn:hover {
+    color: var(--gold-bright);
+    border-color: var(--gold-dim);
+    background: rgba(34,26,12,0.75);
+  }
+  .ctrl-btn.active {
+    color: var(--gold-bright);
+    border-color: var(--gold);
+    background: rgba(200,168,75,0.10);
+  }
+
+  /* shape selector */
+  #shape-controls {
+    display: flex; gap: 7px;
+  }
+  .shape-btn {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    background: rgba(34,26,12,0.45);
+    border: 1px solid rgba(208,196,168,0.2);
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    pointer-events: auto;
+  }
+  .shape-btn:hover { color: var(--gold-dim); border-color: rgba(168,137,58,0.3); }
+  .shape-btn.active { color: var(--gold-bright); border-color: var(--gold-dim); background: rgba(200,168,75,0.08); }
+
+  /* freq meter strip */
+  #freq-strip {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 36px;
+  }
+  .freq-bar {
+    width: 3px;
+    background: var(--gold-dim);
+    border-radius: 1px 1px 0 0;
+    min-height: 2px;
+    transition: height 0.05s;
+    opacity: 0.6;
+  }
+
+  /* status dot */
+  #status {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.2em;
+    color: var(--gold-dim);
+    opacity: 0.55;
+    text-transform: uppercase;
+  }
+  #status-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    opacity: 0.4;
+    transition: background 0.3s, opacity 0.3s;
+  }
+  #status-dot.live {
+    background: var(--gold-bright);
+    opacity: 1;
+    box-shadow: 0 0 8px var(--gold-glow);
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity:1; }
+    50% { opacity:0.5; }
+  }
+
+  /* drag-to-upload zone */
+  #drop-hint {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(34,26,12,0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #drop-hint.visible { display: flex; }
+  #drop-hint-text {
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+  #drop-hint-sub {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.26em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  /* hidden file input */
+  #file-input { display: none; }
+
+  /* demo idle message */
+  #idle-msg {
+    position: fixed;
+    bottom: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(50%);
+    z-index: 5;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 300;
+    color: var(--gold-dim);
+    opacity: 0;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    text-align: center;
+    transition: opacity 1s;
+    line-height: 2;
+  }
+  #idle-msg.show { opacity: 0.45; }
+
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<!-- drop zone -->
+<div id="drop-hint">
+  <div id="drop-hint-text">drop audio file</div>
+  <div id="drop-hint-sub">mp3 · wav · ogg · flac</div>
+</div>
+
+<!-- hidden file input -->
+<input type="file" id="file-input" accept="audio/*"/>
+
+<!-- idle hint -->
+<div id="idle-msg">use microphone or drop an audio file<br/>to drive the visualizer</div>
+
+<!-- UI overlay -->
+<div id="ui">
+  <div id="top-row">
+    <div id="label-left">
+      <div id="label-ref">U₂ · Viz — Wireframe Reactor</div>
+      <div id="label-title">music visualizer</div>
+    </div>
+    <div id="label-right">
+      <canvas id="osc-mini" width="80" height="28"></canvas>
+      <div class="label-mono" id="bpm-display">-- bpm</div>
+    </div>
+  </div>
+
+  <div id="bottom-row">
+    <div id="controls">
+      <div id="shape-controls">
+        <button class="shape-btn active" data-shape="icosphere">icosphere</button>
+        <button class="shape-btn" data-shape="torus">torus</button>
+        <button class="shape-btn" data-shape="klein">klein</button>
+        <button class="shape-btn" data-shape="cube">cube</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="ctrl-btn" id="btn-mic">mic input</button>
+        <button class="ctrl-btn" id="btn-file">load file</button>
+        <button class="ctrl-btn" id="btn-demo">demo</button>
+      </div>
+      <div id="status"><div id="status-dot"></div><span id="status-text">idle</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+      <div id="freq-strip"></div>
+      <div class="label-mono">freq spectrum</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── THREE.JS SCENE SETUP ───────────────────────────────────────────────
+
+const container = document.getElementById('canvas-container');
+const W = () => window.innerWidth;
+const H = () => window.innerHeight;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(W(), H());
+renderer.setClearColor(0x221A0C, 1);
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(55, W() / H(), 0.1, 100);
+camera.position.set(0, 0, 3.2);
+
+// ─── COLORS ─────────────────────────────────────────────────────────────
+const C = {
+  gold:        new THREE.Color(0xC8A84B),
+  goldBright:  new THREE.Color(0xE5C76B),
+  goldDim:     new THREE.Color(0xA8893A),
+  ink:         new THREE.Color(0x221A0C),
+  cream4:      new THREE.Color(0xD0C4A8),
+  ink3:        new THREE.Color(0x7A6A4A),
+};
+
+// ─── AUDIO SYSTEM ────────────────────────────────────────────────────────
+let audioCtx = null;
+let analyser = null;
+let freqData = null;
+let source = null;
+let audioElement = null;
+let demoMode = false;
+let demoT = 0;
+let liveMode = false;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.82;
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    analyser.connect(audioCtx.destination);
+  }
+}
+
+function getAudioData() {
+  if (demoMode) {
+    // Synthetic demo signal
+    demoT += 0.016;
+    const bins = 256;
+    const arr = new Uint8Array(bins);
+    for (let i = 0; i < bins; i++) {
+      const f = i / bins;
+      const bass   = Math.max(0, Math.sin(demoT * 1.7) * 0.5 + 0.5) * (1 - f) * 220;
+      const mid    = Math.max(0, Math.sin(demoT * 3.1 + i * 0.3) * 0.4 + 0.4) * (1 - Math.abs(f - 0.4)) * 160;
+      const treble = Math.max(0, Math.sin(demoT * 7.2 + i * 0.8) * 0.3 + 0.3) * f * 100;
+      const noise  = Math.random() * 15;
+      arr[i] = Math.min(255, bass + mid + treble + noise);
+    }
+    return arr;
+  }
+  if (analyser && liveMode) {
+    analyser.getByteFrequencyData(freqData);
+    return freqData;
+  }
+  return new Uint8Array(256);
+}
+
+// Derived audio metrics
+function getMetrics(data) {
+  const len = data.length;
+  const bass   = avg(data, 0,          Math.floor(len * 0.08));
+  const mid    = avg(data, Math.floor(len * 0.08),  Math.floor(len * 0.45));
+  const treble = avg(data, Math.floor(len * 0.45),  len);
+  const overall = avg(data, 0, len);
+  return { bass: bass/255, mid: mid/255, treble: treble/255, overall: overall/255 };
+}
+
+function avg(arr, a, b) {
+  let s = 0;
+  for (let i = a; i < b; i++) s += arr[i];
+  return s / Math.max(1, b - a);
+}
+
+// ─── GEOMETRY FACTORIES ──────────────────────────────────────────────────
+
+function makeIcosphere(detail) {
+  return new THREE.IcosahedronGeometry(1, detail || 4);
+}
+function makeTorus() {
+  return new THREE.TorusKnotGeometry(0.75, 0.28, 128, 18, 2, 3);
+}
+function makeKlein() {
+  // Approximation: parametric surface resembling Klein bottle cross-section
+  const geo = new THREE.ParametricGeometry((u, v, target) => {
+    u *= Math.PI * 2;
+    v *= Math.PI * 2;
+    const r = 0.55 + 0.32 * Math.cos(v / 2) * Math.sin(u) - 0.32 * Math.sin(v / 2) * Math.sin(2 * u);
+    target.set(
+      r * Math.cos(v),
+      r * Math.sin(v),
+      (0.32 * Math.sin(v / 2) * Math.sin(u) + 0.32 * Math.cos(v / 2) * Math.sin(2 * u)) * 0.9
+    );
+  }, 64, 32);
+  return geo;
+}
+function makeCube() {
+  return new THREE.BoxGeometry(1.4, 1.4, 1.4, 12, 12, 12);
+}
+
+// ─── WIREFRAME MESH ──────────────────────────────────────────────────────
+
+let currentShape = 'icosphere';
+let meshGroup = new THREE.Group();
+scene.add(meshGroup);
+
+// Store original vertex positions for morphing
+let basePositions = null;
+let wireMat = null;
+let edgeMat = null;
+let solidMat = null;
+let wireMesh = null;
+let edgeMesh = null;
+let solidMesh = null;
+
+function buildMesh(shapeName) {
+  // Clear
+  while (meshGroup.children.length) meshGroup.remove(meshGroup.children[0]);
+
+  let geo;
+  if (shapeName === 'icosphere') geo = makeIcosphere(4);
+  else if (shapeName === 'torus')  geo = makeTorus();
+  else if (shapeName === 'klein')  geo = makeKlein();
+  else                             geo = makeCube();
+
+  // Store base positions
+  basePositions = Float32Array.from(geo.attributes.position.array);
+
+  // Solid back mesh (very dim, for depth)
+  solidMat = new THREE.MeshBasicMaterial({
+    color: 0x2A1E0A,
+    transparent: true,
+    opacity: 0.45,
+    side: THREE.FrontSide,
+  });
+  solidMesh = new THREE.Mesh(geo, solidMat);
+
+  // Wireframe
+  wireMat = new THREE.MeshBasicMaterial({
+    color: C.goldDim,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.55,
+  });
+  wireMesh = new THREE.Mesh(geo, wireMat);
+
+  // Edge lines (thicker accent)
+  const edgeGeo = new THREE.EdgesGeometry(geo, 15);
+  edgeMat = new THREE.LineBasicMaterial({
+    color: C.goldBright,
+    transparent: true,
+    opacity: 0.22,
+  });
+  edgeMesh = new THREE.LineSegments(edgeGeo, edgeMat);
+
+  meshGroup.add(solidMesh);
+  meshGroup.add(wireMesh);
+  meshGroup.add(edgeMesh);
+
+  currentShape = shapeName;
+}
+
+buildMesh('icosphere');
+
+// ─── PARTICLE FIELD ──────────────────────────────────────────────────────
+
+const PARTICLE_COUNT = 320;
+const particleGeo = new THREE.BufferGeometry();
+const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+const pSeeds = new Float32Array(PARTICLE_COUNT * 3); // random seeds per particle
+
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const r = 1.8 + Math.random() * 1.6;
+  const theta = Math.random() * Math.PI * 2;
+  const phi   = Math.acos(2 * Math.random() - 1);
+  pPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+  pPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+  pPositions[i*3+2] = r * Math.cos(phi);
+  pSeeds[i*3]   = Math.random() * Math.PI * 2;
+  pSeeds[i*3+1] = Math.random() * Math.PI * 2;
+  pSeeds[i*3+2] = 0.3 + Math.random() * 0.7;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+
+const particleMat = new THREE.PointsMaterial({
+  color: C.gold,
+  size: 0.012,
+  transparent: true,
+  opacity: 0.5,
+  sizeAttenuation: true,
+});
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// ─── RING ACCENTS ────────────────────────────────────────────────────────
+
+function makeRing(radius, tube, color, opacity) {
+  const geo = new THREE.TorusGeometry(radius, tube, 6, 80);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, wireframe: true });
+  return new THREE.Mesh(geo, mat);
+}
+
+const ring1 = makeRing(1.7, 0.004, C.goldDim, 0.28);
+const ring2 = makeRing(1.9, 0.003, C.goldDim, 0.18);
+const ring3 = makeRing(2.2, 0.002, C.goldDim, 0.10);
+ring1.rotation.x = Math.PI / 3;
+ring2.rotation.y = Math.PI / 4;
+ring3.rotation.z = Math.PI / 5;
+scene.add(ring1, ring2, ring3);
+
+// ─── AXIS LINES (subtle cross) ───────────────────────────────────────────
+
+function makeLine(a, b, color, opacity) {
+  const geo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(...a), new THREE.Vector3(...b)
+  ]);
+  const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+  return new THREE.Line(geo, mat);
+}
+const axisLines = new THREE.Group();
+axisLines.add(makeLine([-2.5,0,0],[2.5,0,0], C.goldDim, 0.08));
+axisLines.add(makeLine([0,-2.5,0],[0,2.5,0], C.goldDim, 0.08));
+axisLines.add(makeLine([0,0,-2.5],[0,0,2.5], C.goldDim, 0.06));
+scene.add(axisLines);
+
+// ─── MINI OSC CANVAS ─────────────────────────────────────────────────────
+
+const oscCanvas = document.getElementById('osc-mini');
+const oscCtx = oscCanvas.getContext('2d');
+
+function drawOsc(data) {
+  oscCtx.clearRect(0, 0, 80, 28);
+  oscCtx.strokeStyle = '#C8A84B';
+  oscCtx.lineWidth = 1;
+  oscCtx.globalAlpha = 0.7;
+  oscCtx.beginPath();
+  const step = Math.floor(data.length / 80);
+  for (let x = 0; x < 80; x++) {
+    const v = data[x * step] / 255;
+    const y = 28 - v * 26 - 1;
+    x === 0 ? oscCtx.moveTo(x, y) : oscCtx.lineTo(x, y);
+  }
+  oscCtx.stroke();
+}
+
+// ─── FREQ STRIP ──────────────────────────────────────────────────────────
+
+const freqStrip = document.getElementById('freq-strip');
+const STRIP_BARS = 24;
+for (let i = 0; i < STRIP_BARS; i++) {
+  const b = document.createElement('div');
+  b.className = 'freq-bar';
+  b.style.height = '2px';
+  freqStrip.appendChild(b);
+}
+const freqBars = freqStrip.querySelectorAll('.freq-bar');
+
+function updateFreqStrip(data) {
+  const step = Math.floor(data.length / STRIP_BARS);
+  freqBars.forEach((bar, i) => {
+    const v = data[i * step] / 255;
+    const h = Math.max(2, v * 36);
+    bar.style.height = h + 'px';
+    bar.style.opacity = 0.35 + v * 0.65;
+    // color shift with intensity
+    const r = Math.round(168 + v * 61);
+    const g = Math.round(137 + v * 58);
+    const b = Math.round(58 + v * 9);
+    bar.style.background = `rgb(${r},${g},${b})`;
+  });
+}
+
+// ─── MORPHING ────────────────────────────────────────────────────────────
+
+let morphT = 0;
+let breathT = 0;
+
+function morphGeometry(metrics, t) {
+  if (!wireMesh || !basePositions) return;
+  const pos = wireMesh.geometry.attributes.position;
+  const base = basePositions;
+  const n = pos.count;
+  const breath = Math.sin(breathT * 0.7) * 0.04 + 1;
+  const bassReact = 1 + metrics.bass * 0.38;
+  const midReact  = metrics.mid * 0.12;
+
+  for (let i = 0; i < n; i++) {
+    const bx = base[i*3];
+    const by = base[i*3+1];
+    const bz = base[i*3+2];
+    const len = Math.sqrt(bx*bx+by*by+bz*bz) || 1;
+    const nx = bx/len, ny = by/len, nz = bz/len;
+
+    // Perlin-like noise via sines
+    const noise =
+      Math.sin(nx * 4.1 + t * 0.8 + metrics.bass * 3) * 0.05 +
+      Math.sin(ny * 3.7 - t * 0.6 + metrics.mid * 2.5) * 0.04 +
+      Math.sin(nz * 5.2 + t * 1.1) * 0.03 +
+      Math.sin((nx+ny) * 6 + t * 0.4) * midReact;
+
+    const scale = breath * bassReact + noise;
+    pos.setXYZ(i, bx * scale, by * scale, bz * scale);
+  }
+  pos.needsUpdate = true;
+  wireMesh.geometry.computeVertexNormals();
+
+  // Also morph solid mesh
+  if (solidMesh && solidMesh.geometry.attributes.position) {
+    const sp = solidMesh.geometry.attributes.position;
+    for (let i = 0; i < Math.min(sp.count, n); i++) {
+      sp.setXYZ(i, pos.getX(i), pos.getY(i), pos.getZ(i));
+    }
+    sp.needsUpdate = true;
+  }
+}
+
+// ─── MOUSE PARALLAX ──────────────────────────────────────────────────────
+
+let mouse = { x: 0, y: 0 };
+document.addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / W() - 0.5) * 2;
+  mouse.y = -(e.clientY / H() - 0.5) * 2;
+});
+
+// ─── ANIMATION LOOP ──────────────────────────────────────────────────────
+
+let clock = new THREE.Clock();
+let frameT = 0;
+let smoothBass = 0, smoothMid = 0, smoothOverall = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  frameT += dt;
+  breathT += dt;
+
+  const data = getAudioData();
+  const m = getMetrics(data);
+
+  // Smooth metrics
+  const sp = 0.12;
+  smoothBass    += (m.bass    - smoothBass)    * sp;
+  smoothMid     += (m.mid     - smoothMid)     * sp;
+  smoothOverall += (m.overall - smoothOverall) * sp;
+
+  const sm = { bass: smoothBass, mid: smoothMid, treble: m.treble, overall: smoothOverall };
+
+  // ── Morph mesh
+  morphGeometry(sm, frameT);
+
+  // ── Rotate meshGroup
+  meshGroup.rotation.y += 0.0025 + sm.bass * 0.012;
+  meshGroup.rotation.x += 0.0008 + sm.mid  * 0.005;
+  meshGroup.rotation.z += 0.0004;
+
+  // Mouse parallax — gentle tilt
+  meshGroup.rotation.y += (mouse.x * 0.15 - meshGroup.rotation.y) * 0.03;
+
+  // ── Wireframe color pulse
+  if (wireMat) {
+    const pulse = 0.42 + sm.bass * 0.45 + sm.overall * 0.13;
+    wireMat.opacity = Math.min(0.9, pulse);
+    wireMat.color.lerpColors(C.goldDim, C.goldBright, sm.bass * 0.85 + sm.mid * 0.15);
+  }
+
+  // ── Edge highlight
+  if (edgeMat) {
+    edgeMat.opacity = 0.15 + sm.overall * 0.45;
+    edgeMat.color.lerpColors(C.gold, C.goldBright, sm.treble);
+  }
+
+  // ── Particles drift + pulse
+  const ppos = particleGeo.attributes.position;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const sx = pSeeds[i*3];
+    const sy = pSeeds[i*3+1];
+    const speed = pSeeds[i*3+2];
+    const rx = Math.sin(frameT * speed + sx) * 0.008;
+    const ry = Math.cos(frameT * speed * 0.7 + sy) * 0.008;
+    ppos.setX(i, ppos.getX(i) + rx);
+    ppos.setY(i, ppos.getY(i) + ry);
+  }
+  ppos.needsUpdate = true;
+  particleMat.opacity = 0.3 + sm.overall * 0.55;
+  particleMat.size = 0.010 + sm.bass * 0.018;
+
+  // ── Rings rotate and pulse
+  ring1.rotation.z += 0.003 + sm.bass * 0.022;
+  ring2.rotation.x += 0.002 + sm.mid  * 0.015;
+  ring3.rotation.y += 0.0015;
+  const rScale = 1 + sm.bass * 0.07;
+  ring1.scale.setScalar(rScale);
+  ring2.scale.setScalar(1 + sm.mid * 0.05);
+  ring3.scale.setScalar(1 + sm.overall * 0.04);
+
+  // ── Scene bg color pulse (very subtle)
+  const bgR = 0x22 + Math.round(sm.bass * 8);
+  const bgG = 0x1A + Math.round(sm.bass * 4);
+  const bgB = 0x0C + Math.round(sm.bass * 2);
+  renderer.setClearColor((bgR << 16) | (bgG << 8) | bgB, 1);
+
+  // ── UI updates
+  drawOsc(data);
+  updateFreqStrip(data);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// ─── RESIZE ──────────────────────────────────────────────────────────────
+
+window.addEventListener('resize', () => {
+  camera.aspect = W() / H();
+  camera.updateProjectionMatrix();
+  renderer.setSize(W(), H());
+});
+
+// ─── SHAPE BUTTONS ───────────────────────────────────────────────────────
+
+document.querySelectorAll('.shape-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    buildMesh(btn.dataset.shape);
+  });
+});
+
+// ─── STATUS HELPERS ──────────────────────────────────────────────────────
+
+function setStatus(text, live) {
+  document.getElementById('status-text').textContent = text;
+  const dot = document.getElementById('status-dot');
+  if (live) dot.classList.add('live');
+  else dot.classList.remove('live');
+}
+
+// ─── IDLE MESSAGE ────────────────────────────────────────────────────────
+
+const idleMsg = document.getElementById('idle-msg');
+setTimeout(() => idleMsg.classList.add('show'), 1800);
+
+function hideIdle() { idleMsg.classList.remove('show'); }
+
+// ─── MIC INPUT ───────────────────────────────────────────────────────────
+
+const btnMic  = document.getElementById('btn-mic');
+const btnFile = document.getElementById('btn-file');
+const btnDemo = document.getElementById('btn-demo');
+
+function stopAll() {
+  demoMode = false;
+  liveMode = false;
+  if (source) { try { source.disconnect(); } catch(e){} source = null; }
+  if (audioElement) { audioElement.pause(); audioElement = null; }
+  btnMic.classList.remove('active');
+  btnFile.classList.remove('active');
+  btnDemo.classList.remove('active');
+  setStatus('idle', false);
+}
+
+btnMic.addEventListener('click', async () => {
+  if (btnMic.classList.contains('active')) { stopAll(); return; }
+  stopAll();
+  hideIdle();
+  try {
+    initAudio();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    liveMode = true;
+    btnMic.classList.add('active');
+    setStatus('mic live', true);
+  } catch(e) {
+    setStatus('mic denied', false);
+  }
+});
+
+// ─── FILE INPUT ──────────────────────────────────────────────────────────
+
+btnFile.addEventListener('click', () => {
+  document.getElementById('file-input').click();
+});
+
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadAudioFile(file);
+});
+
+function loadAudioFile(file) {
+  stopAll();
+  hideIdle();
+  initAudio();
+
+  audioElement = new Audio();
+  audioElement.src = URL.createObjectURL(file);
+  audioElement.loop = true;
+  audioElement.crossOrigin = 'anonymous';
+
+  source = audioCtx.createMediaElementSource(audioElement);
+  source.connect(analyser);
+
+  audioElement.play().then(() => {
+    liveMode = true;
+    btnFile.classList.add('active');
+    setStatus(file.name.length > 20 ? file.name.slice(0, 18) + '…' : file.name, true);
+  }).catch(() => setStatus('playback error', false));
+}
+
+// ─── DEMO MODE ───────────────────────────────────────────────────────────
+
+btnDemo.addEventListener('click', () => {
+  if (btnDemo.classList.contains('active')) { stopAll(); return; }
+  stopAll();
+  hideIdle();
+  demoMode = true;
+  btnDemo.classList.add('active');
+  setStatus('demo', true);
+});
+
+// ─── DRAG & DROP ─────────────────────────────────────────────────────────
+
+const dropHint = document.getElementById('drop-hint');
+let dragCount = 0;
+
+document.addEventListener('dragenter', e => {
+  e.preventDefault();
+  dragCount++;
+  dropHint.classList.add('visible');
+});
+document.addEventListener('dragleave', e => {
+  dragCount--;
+  if (dragCount <= 0) { dragCount = 0; dropHint.classList.remove('visible'); }
+});
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  dragCount = 0;
+  dropHint.classList.remove('visible');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('audio/')) loadAudioFile(file);
+});
+
+// ─── SCREEN LABEL (for comment context) ─────────────────────────────────
+
+const root = document.body;
+setInterval(() => {
+  const t = Math.floor(performance.now() / 1000);
+  root.dataset.screenLabel = t + 's';
+}, 1000);
+</script>
+</body>
+</html>

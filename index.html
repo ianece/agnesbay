@@ -27,6 +27,10 @@
      Same dashed-flow theme as the nav menu wires. Drawn by JS. -->
 <svg id="opamp-connector" aria-hidden="true"></svg>
 
+<!-- Contact-page connector: routes R_f's output into the contact-links
+     panel through an inline switch (SW₂). Drawn by JS while on contact. -->
+<svg id="contact-connector" aria-hidden="true"></svg>
+
 <div id="shell">
 
 <!-- ══════════════ SIDEBAR ══════════════ -->
@@ -313,8 +317,8 @@
   <!-- HOME -->
   <div class="page active" id="pg-home">
     <p class="ptag">VCC · +12V — Home</p>
-    <h1 class="ph">Hello there!</h1>
-    <p class="pb">Select a component from the navigation menu on the left to explore. Note that the waveform in the top left can update in real time via the probe, waveform adder, or by playing music.</p>
+    <h1 class="ph">Welcome.</h1>
+    <p class="pb">Select a component from the circuit to explore. Note the waveform in the top left as you move around the website.</p>
     <div class="div"></div>
 
     <!-- Waveform adder + speaker — interactive scope feeds sidebar osc and audible output -->
@@ -339,11 +343,36 @@
 
   <!-- MUSIC -->
 <div class="page" id="pg-music">
-  <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
-  <h1 class="ph">Signals &<br/>frequencies.</h1>
-  <p class="pb">Like the electrons flowing through a circuit, or the light landing upon our atmosphere, music comes in waves of energy. If you're in space you'll need to hold the speaker against your head to hear these songs. I hope you enjoy!</p>
-  <div class="div"></div>
+  <div class="music-header-row">
+    <div class="music-header-text">
+      <p class="ptag">U₁ · LM741 Op-Amp — Music</p>
+      <h1 class="ph">Signals &<br/>frequencies.</h1>
+      <p class="pb">Like the electrons flowing through a circuit, or the light landing upon our atmosphere, music comes in waves of energy. If you're in space you'll need to hold the speaker against your head to hear these songs. I hope you enjoy!</p>
+      <div class="div"></div>
+    </div>
+    <div class="music-viz" id="music-viz">
+      <canvas id="reactor-canvas"></canvas>
+      <div class="reactor-ui">
+        <div class="r-top">
+          <div class="r-label">
+            <div class="r-ref">U₂ · WIREFRAME REACTOR</div>
+            <div class="r-title">music visualizer</div>
+          </div>
+          <canvas id="reactor-osc" width="80" height="28"></canvas>
+        </div>
+        <div class="r-bot">
+          <div class="r-shapes">
+            <button class="r-shape active" data-shape="icosphere">icosphere</button>
+            <button class="r-shape" data-shape="torus">torus</button>
+            <button class="r-shape" data-shape="cube">cube</button>
+          </div>
+          <div class="r-freq" id="reactor-freq"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <h2 class="ph">Original works.</h2>
   <!-- Track list -->
   <div class="player-wrap" id="player-wrap">
 
@@ -513,10 +542,10 @@
             <p class="proj-lede"> We decided to explore different techniques and methods for the data collection and 3d reconstruction of small objects. This project card is structured to showcase our approach and results, and is a 1 for 1 copy of our final paper. Link foudn below.</p>
 
           <dl class="proj-meta-grid">
-            <div><dt>Status</dt><dd>Completed · Defended 2025</dd></div>
-            <div><dt>Compute</dt><dd>Raspberry Pi 5 · 8GB</dd></div>
-            <div><dt>Localization</dt><dd>RTK-GPS · 2cm</dd></div>
-            <div><dt>Team</dt><dd>4 engineers · 2 semesters</dd></div>
+            <div><dt>Status</dt><dd>Completed</dd></div>
+            <div><dt>Start Date</dt><dd>November 2024</dd></div>
+            <div><dt>Discipline</dt><dd>Computer Vision</dd></div>
+            <div><dt>Completion Date</dt><dd>December 2024</dd></div>
           </dl>
 
           <div class="proj-body">
@@ -955,14 +984,14 @@
         <p>I own a lot of plants. I'll try my best to document all of them here.</p>
         <template class="proj-detail-source">
           <p class="proj-sub">Plants · Ongoing</p>
-          <h2>Plant Sensor Network</h2>
+          <h2>Plant Collection</h2>
           <p class="proj-lede">A distributed mesh of ESP32 nodes, one per plant pot. Each reads capacitive soil moisture and ambient light, reporting every 30 seconds over ESP-NOW to a gateway node.</p>
 
           <dl class="proj-meta-grid">
-            <div><dt>Status</dt><dd>Live · 7 nodes</dd></div>
-            <div><dt>Protocol</dt><dd>ESP-NOW → MQTT</dd></div>
-            <div><dt>Storage</dt><dd>InfluxDB · Grafana</dd></div>
-            <div><dt>Casualties</dt><dd>Zero (since deploy)</dd></div>
+            <div><dt>Status</dt><dd>Ongoing</dd></div>
+            <div><dt>Start Date</dt><dd>December 2022</dd></div>
+            <div><dt>Discipline</dt><dd>Botany</dd></div>
+            <div><dt>Completion Date</dt><dd> --</dd></div>
           </dl>
 
           <div class="proj-body">
@@ -1150,21 +1179,25 @@
     <p class="pb">Always open to collaboration, internship conversations, or talking keyboards and circuits. Find me wherever the signal reaches.</p>
     <div class="div"></div>
     <div class="contact-links">
-      <a class="clink" href="mailto:you@email.com">
-        <span class="clink-label">Email</span>
-        <span class="clink-val">you@email.com</span>
+      <a class="clink" href="mailto:ian.rob.christensen@gmail.com">
+        <span class="clink-label">Engineering</span>
+        <span class="clink-val">ian.rob.christensen@gmail.com</span>
       </a>
-      <a class="clink" href="#">
+      <a class="clink" href="mailto:ian.rob.christensen@gmail.com">
+        <span class="clink-label">Music</span>
+        <span class="clink-val">ian.rob.christensen@gmail.com</span>
+      </a>
+      <a class="clink" href="https://github.com/ianece">
         <span class="clink-label">GitHub</span>
         <span class="clink-val">github.com/ianece</span>
       </a>
-      <a class="clink" href="#">
+      <a class="clink" href="https://www.linkedin.com/in/ian-christensen-ece/">
         <span class="clink-label">LinkedIn</span>
         <span class="clink-val">linkedin.com/in/yourname</span>
       </a>
-      <a class="clink" href="#">
+      <a class="clink" href="https://soundcloud.com/exhalecemusic">
         <span class="clink-label">SoundCloud</span>
-        <span class="clink-val">soundcloud.com/yourname</span>
+        <span class="clink-val">soundcloud.com/exhalecemusic</span>
       </a>
     </div>
   </div>
@@ -1172,6 +1205,7 @@
 </main>
 </div>
 
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
