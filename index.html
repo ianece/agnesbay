@@ -351,22 +351,87 @@
       <div class="div"></div>
     </div>
     <div class="music-viz" id="music-viz">
-      <canvas id="reactor-canvas"></canvas>
-      <div class="reactor-ui">
-        <div class="r-top">
-          <div class="r-label">
-            <div class="r-ref">U₂ · WIREFRAME REACTOR</div>
-            <div class="r-title">music visualizer</div>
+      <div class="reactor-chassis">
+        <!-- Top rail -->
+        <div class="rr-rail rr-rail-top">
+          <div class="rr-grp">
+            <span class="rr-tag">VIZ-1</span>
+            <span class="rr-sep"></span>
+            <span class="rr-title">Wireframe Reactor</span>
+            <span class="rr-sep"></span>
+            <span class="rr-tag">3D Audio Visualizer</span>
           </div>
-          <canvas id="reactor-osc" width="80" height="28"></canvas>
+          <div class="rr-grp">
+            <span class="rr-read" id="rr-readout-shape">ICO</span>
+            <span class="rr-sep"></span>
+            <span class="rr-led" id="rr-status-dot"></span>
+            <span class="rr-read" id="rr-status-text">idle</span>
+          </div>
         </div>
-        <div class="r-bot">
-          <div class="r-shapes">
-            <button class="r-shape active" data-shape="icosphere">icosphere</button>
-            <button class="r-shape" data-shape="torus">torus</button>
-            <button class="r-shape" data-shape="cube">cube</button>
+
+        <!-- Canvas -->
+        <div class="rr-canvas-wrap" id="rr-canvas-wrap">
+          <div class="rr-canvas-host" id="rr-canvas-host"></div>
+        </div>
+
+        <!-- Control panel — compact, lab-bench style. Rotation control is
+             folded into the Response row as a "speed" knob to save vertical
+             space; the screen on the right is the focus. -->
+        <div class="rr-panel">
+          <div class="rp-label">Shape</div>
+          <div class="rp-radial-wrap">
+            <svg class="rp-radial" id="rp-shape-sel" width="164" height="150" viewBox="-82 -82 164 150"></svg>
           </div>
-          <div class="r-freq" id="reactor-freq"></div>
+          <div class="rp-eline"></div>
+
+          <div class="rp-label">Response</div>
+          <div class="rp-ck-row">
+            <div class="rp-ck-item">
+              <svg class="rp-ck" id="rp-ck-sens"  width="44" height="44" viewBox="-32 -32 64 64"></svg>
+              <div class="rp-ck-label">sens</div>
+            </div>
+            <div class="rp-ck-item">
+              <svg class="rp-ck" id="rp-ck-morph" width="44" height="44" viewBox="-32 -32 64 64"></svg>
+              <div class="rp-ck-label">morph</div>
+            </div>
+            <div class="rp-ck-item">
+              <svg class="rp-ck" id="rp-ck-zoom"  width="44" height="44" viewBox="-32 -32 64 64"></svg>
+              <div class="rp-ck-label">zoom</div>
+            </div>
+            <div class="rp-ck-item">
+              <svg class="rp-ck" id="rp-ck-spd"   width="44" height="44" viewBox="-32 -32 64 64"></svg>
+              <div class="rp-ck-label">speed</div>
+            </div>
+          </div>
+          <div class="rp-eline"></div>
+
+          <div class="rp-label">Controls</div>
+          <div class="rp-toggle-row">
+            <div class="rp-toggle-item">
+              <svg class="rp-toggle" id="rp-tg-spin"  width="32" height="58" viewBox="-22 -50 44 90"></svg>
+              <div class="rp-toggle-label">spin</div>
+            </div>
+            <div class="rp-toggle-item">
+              <svg class="rp-toggle" id="rp-tg-rings" width="32" height="58" viewBox="-22 -50 44 90"></svg>
+              <div class="rp-toggle-label">rings</div>
+            </div>
+          </div>
+          <div class="rp-eline"></div>
+
+          <div class="rp-label">Frequency</div>
+          <div class="rp-freq-strip" id="rp-freq-strip"></div>
+          <div class="rp-freq-range"><span>bass</span><span>hi</span></div>
+        </div>
+
+        <!-- Bottom rail -->
+        <div class="rr-rail rr-rail-bot">
+          <span class="rr-tag">U₂ · ECE Labs</span>
+          <span class="rr-sep"></span>
+          <span class="rr-read" id="rr-track-display">no source</span>
+          <span class="rr-flex"></span>
+          <span class="rr-read" id="rr-fps">-- fps</span>
+          <span class="rr-sep"></span>
+          <span class="rr-read" id="rr-time">00:00</span>
         </div>
       </div>
     </div>

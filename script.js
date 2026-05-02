@@ -188,8 +188,8 @@ function playTrack(idx) {
   /* Spin up the visualizer's analyser on first play and tap into it. */
   if (!vizAnalyser) {
     vizAnalyser = audioCtx.createAnalyser();
-    vizAnalyser.fftSize = 512;
-    vizAnalyser.smoothingTimeConstant = 0.82;
+    vizAnalyser.fftSize = 1024;
+    vizAnalyser.smoothingTimeConstant = 0.74;
   }
   source.connect(vizAnalyser);
 
@@ -1255,305 +1255,605 @@ if (_sidebarForContact) {
 }
 
 /* ══════════════════════════════════════
-   WIREFRAME REACTOR — music-page Three.js visualizer
-   Renders a wireframe shape that morphs to the audio coming out of the
-   playing track (via the vizAnalyser tap). Falls back to a gentle idle
-   animation when nothing's playing. Adapted from the standalone reactor
-   design in assets/claude_design_projects/music_wireframe_reactor.htm. */
+   WIREFRAME REACTOR (v2) — music-page Three.js visualizer
+   Cream-themed analog chassis with side control panel: SVG-built radial
+   selectors (shape, rotation), continuous knobs (sensitivity, morph,
+   zoom), toggle switches (auto-spin, rings), and a live freq strip. The
+   Three.js scene mirrors the stand-alone v2 design from
+   assets/claude_design_projects/music_wireframe_reactor_v2.htm — adapted
+   to draw audio from the existing vizAnalyser tap so it tracks whatever
+   the track-list player is playing. Mic/file/demo source controls and
+   the gyroid (ParametricGeometry, removed in three r150+) shape are
+   omitted; everything else is wired up. */
 (() => {
   if (typeof THREE === 'undefined') return;
   const container = document.getElementById('music-viz');
-  const canvas    = document.getElementById('reactor-canvas');
-  if (!container || !canvas) return;
+  const canvasHost = document.getElementById('rr-canvas-host');
+  const canvasWrap = document.getElementById('rr-canvas-wrap');
+  if (!container || !canvasHost || !canvasWrap) return;
 
-  const W = () => container.clientWidth || 1;
-  const H = () => container.clientHeight || 1;
+  const W = () => canvasWrap.clientWidth || 1;
+  const H = () => canvasWrap.clientHeight || 1;
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  /* ── SVG widget builders ─────────────────────────────────────────── */
+  const NS = 'http://www.w3.org/2000/svg';
+  const _svg = (tag, attrs) => {
+    const el = document.createElementNS(NS, tag);
+    for (const k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  };
+  const _circle = (cx, cy, r, a) => _svg('circle', Object.assign({ cx, cy, r }, a));
+  const _line   = (x1, y1, x2, y2, a) => _svg('line', Object.assign({ x1, y1, x2, y2 }, a));
+  const _path   = (d, a) => _svg('path', Object.assign({ d }, a));
+  const _text   = (x, y, txt, a) => { const el = _svg('text', Object.assign({ x, y }, a)); el.textContent = txt; return el; };
+
+  const COL_GOLD  = '#C8A84B';
+  const COL_GOLDD = '#A8893A';
+  const COL_GOLDB = '#E5C76B';
+  const COL_CRM4  = '#D0C4A8';
+  const COL_INK4  = '#A89878';
+
+  /* Radial selector — items arranged in an arc with a rotating needle. */
+  function buildRadialSelector({ svg, items, initialIdx, arcDeg, radius, onChange }) {
+    const N = items.length;
+    const A0 = -(arcDeg / 2);
+    const A1 =  (arcDeg / 2);
+
+    svg.appendChild(_circle(0, 0, 30, { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.45 }));
+    svg.appendChild(_circle(0, 0, 5,  { fill:'none', stroke:COL_GOLDD, 'stroke-width':1.2, opacity:0.7 }));
+    svg.appendChild(_circle(0, 0, 2,  { fill:COL_GOLDD, opacity:0.8 }));
+
+    for (let i = 0; i < N; i++) {
+      const t = N === 1 ? 0.5 : i / (N - 1);
+      const a = (A0 + t * (A1 - A0) - 90) * Math.PI / 180;
+      svg.appendChild(_line(26 * Math.cos(a), 26 * Math.sin(a),
+                            32 * Math.cos(a), 32 * Math.sin(a),
+                            { stroke:COL_GOLDD, 'stroke-width':1, opacity:0.4 }));
+    }
+
+    const labelEls = [];
+    for (let i = 0; i < N; i++) {
+      const t = N === 1 ? 0.5 : i / (N - 1);
+      const a = (A0 + t * (A1 - A0) - 90) * Math.PI / 180;
+      const lx = radius * Math.cos(a);
+      const ly = radius * Math.sin(a);
+      const txt = _text(lx, ly + 3, items[i].label, {
+        'font-family':"'JetBrains Mono', monospace",
+        'font-size':'5.5',
+        'letter-spacing':'.06em',
+        'text-anchor':'middle',
+        'dominant-baseline':'middle',
+        fill: COL_INK4, opacity:0.6,
+        style:'text-transform:uppercase;'
+      });
+      svg.appendChild(txt);
+      labelEls.push(txt);
+    }
+
+    const needle = _svg('g', {});
+    needle.appendChild(_line(0, -8, 0, -25, { stroke:COL_GOLD, 'stroke-width':1.5, 'stroke-linecap':'round' }));
+    needle.appendChild(_path('M0,-27 L-2.5,-22 L2.5,-22 Z', { fill:COL_GOLD, opacity:0.9 }));
+    svg.appendChild(needle);
+
+    let idx = initialIdx;
+    function setIdx(i) {
+      i = Math.max(0, Math.min(N - 1, i));
+      idx = i;
+      const t = N === 1 ? 0.5 : i / (N - 1);
+      const angle = A0 + t * (A1 - A0);
+      needle.setAttribute('transform', `rotate(${angle})`);
+      labelEls.forEach((el, j) => {
+        if (j === i) { el.setAttribute('fill', COL_GOLD); el.setAttribute('opacity', 1); el.setAttribute('font-weight', 500); }
+        else         { el.setAttribute('fill', COL_INK4); el.setAttribute('opacity', .55); el.setAttribute('font-weight', 300); }
+      });
+      onChange(items[i], i);
+    }
+    setIdx(initialIdx);
+
+    svg.addEventListener('click', e => {
+      const r = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      const sx = vb.width / r.width, sy = vb.height / r.height;
+      const mx = (e.clientX - r.left) * sx + vb.x;
+      const my = (e.clientY - r.top)  * sy + vb.y;
+      let best = idx, bd = Infinity;
+      for (let i = 0; i < N; i++) {
+        const t = N === 1 ? 0.5 : i / (N - 1);
+        const a = (A0 + t * (A1 - A0) - 90) * Math.PI / 180;
+        const lx = radius * Math.cos(a), ly = radius * Math.sin(a);
+        const d = Math.hypot(mx - lx, my - ly);
+        if (d < bd) { bd = d; best = i; }
+      }
+      if (bd < 30) setIdx(best);
+    });
+    svg.addEventListener('wheel', e => { e.preventDefault(); setIdx(idx + (e.deltaY > 0 ? 1 : -1)); }, { passive: false });
+    let drag = null;
+    svg.addEventListener('pointerdown', e => { drag = { y: e.clientY, idx }; svg.setPointerCapture(e.pointerId); });
+    svg.addEventListener('pointermove', e => { if (!drag) return; setIdx(drag.idx + Math.round((drag.y - e.clientY) / 18)); });
+    svg.addEventListener('pointerup',   () => { drag = null; });
+
+    return { setIdx, get idx() { return idx; } };
+  }
+
+  /* Continuous knob — serrated rim, fill arc, draggable / scrollable. */
+  function buildContKnob({ svg, initialVal, onVal }) {
+    const TEETH = 28, R_O = 28, R_I = 25;
+    const teeth = [];
+    for (let i = 0; i < TEETH * 2; i++) {
+      const a = (i / (TEETH * 2)) * Math.PI * 2;
+      const r = i % 2 === 0 ? R_O : R_I;
+      teeth.push(`${i === 0 ? 'M' : 'L'}${(r * Math.cos(a)).toFixed(2)},${(r * Math.sin(a)).toFixed(2)}`);
+    }
+    teeth.push('Z');
+    svg.appendChild(_path(teeth.join(' '), { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.5 }));
+    svg.appendChild(_circle(0, 0, 20, { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.6 }));
+    svg.appendChild(_circle(0, 0, 4,  { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.7 }));
+    svg.appendChild(_circle(0, 0, 1.5,{ fill:COL_GOLDD, opacity:0.8 }));
+
+    const A0 = -135, A1 = 135, R_ARC = 14;
+    function arcPath(start, end) {
+      const s = (start - 90) * Math.PI / 180;
+      const e = (end   - 90) * Math.PI / 180;
+      const x1 = R_ARC * Math.cos(s), y1 = R_ARC * Math.sin(s);
+      const x2 = R_ARC * Math.cos(e), y2 = R_ARC * Math.sin(e);
+      const big = end - start > 180 ? 1 : 0;
+      return `M${x1.toFixed(2)},${y1.toFixed(2)} A${R_ARC},${R_ARC},0,${big},1,${x2.toFixed(2)},${y2.toFixed(2)}`;
+    }
+    svg.appendChild(_path(arcPath(A0, A1), { fill:'none', stroke:COL_CRM4, 'stroke-width':2.5, 'stroke-linecap':'round', opacity:0.6 }));
+    const fillArc = _path('', { fill:'none', stroke:COL_GOLD, 'stroke-width':2.5, 'stroke-linecap':'round', opacity:0.8 });
+    svg.appendChild(fillArc);
+
+    const needle = _svg('g', {});
+    needle.appendChild(_line(0, -6, 0, -16, { stroke:COL_GOLD, 'stroke-width':1.5, 'stroke-linecap':'round' }));
+    svg.appendChild(needle);
+
+    let val = initialVal;
+    function setVal(v) {
+      val = Math.max(0, Math.min(1, v));
+      const a = A0 + val * (A1 - A0);
+      needle.setAttribute('transform', `rotate(${a})`);
+      fillArc.setAttribute('d', val > 0.01 ? arcPath(A0, a) : '');
+      onVal(val);
+    }
+    setVal(initialVal);
+
+    let drag = null;
+    svg.addEventListener('pointerdown', e => { drag = { y: e.clientY, val }; svg.setPointerCapture(e.pointerId); });
+    svg.addEventListener('pointermove', e => { if (!drag) return; setVal(drag.val + (drag.y - e.clientY) / 130); });
+    svg.addEventListener('pointerup',   () => { drag = null; });
+    svg.addEventListener('wheel', e => { e.preventDefault(); setVal(val - (e.deltaY > 0 ? 0.05 : -0.05)); }, { passive: false });
+    return { setVal, get val() { return val; } };
+  }
+
+  /* Toggle switch — flat housing + lever that rotates between 1/0. */
+  function buildToggleSwitch({ svg, initialOn, onChange }) {
+    [-26, 16].forEach(x => {
+      [-10, 2].forEach(y => svg.appendChild(_svg('rect', { x, y, width:10, height:8, rx:1, fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.55 })));
+    });
+    [[-21,-6],[-21,6],[21,-6],[21,6]].forEach(([cx, cy]) => svg.appendChild(_circle(cx, cy, 1.5, { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.45 })));
+    svg.appendChild(_svg('rect', { x:-16, y:-14, width:32, height:28, rx:2, fill:'none', stroke:COL_GOLDD, 'stroke-width':1.2, opacity:0.7 }));
+    svg.appendChild(_line(-16, 0, 16, 0, { stroke:COL_GOLDD, 'stroke-width':0.7, opacity:0.3 }));
+
+    const GTEETH = 22, GR_O = 10, GR_I = 8;
+    const gp = [];
+    for (let i = 0; i < GTEETH * 2; i++) {
+      const a = (i / (GTEETH * 2)) * Math.PI * 2;
+      const r = i % 2 === 0 ? GR_O : GR_I;
+      gp.push(`${i === 0 ? 'M' : 'L'}${(r * Math.cos(a)).toFixed(2)},${(r * Math.sin(a)).toFixed(2)}`);
+    }
+    gp.push('Z');
+    svg.appendChild(_path(gp.join(' '), { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.55 }));
+    svg.appendChild(_circle(0, 0, 5.5, { fill:'none', stroke:COL_GOLDD, 'stroke-width':1, opacity:0.7 }));
+    svg.appendChild(_circle(0, 0, 2,   { fill:'none', stroke:COL_GOLDD, 'stroke-width':1.2, opacity:0.8 }));
+
+    const handle = _svg('g', {});
+    handle.appendChild(_path('M-3,0 L-2.5,-22 Q0,-27 2.5,-22 L3,0 Z',
+      { fill:'none', stroke:COL_GOLD, 'stroke-width':1.2, 'stroke-linejoin':'round', opacity:0.85 }));
+    handle.appendChild(_svg('ellipse', { cx:0, cy:-24, rx:4, ry:5, fill:'none', stroke:COL_GOLD, 'stroke-width':1.2, opacity:0.85 }));
+    handle.appendChild(_line(-2, -12, 2, -12, { stroke:COL_GOLD, 'stroke-width':0.8, opacity:0.6 }));
+    handle.appendChild(_line(-2, -16, 2, -16, { stroke:COL_GOLD, 'stroke-width':0.8, opacity:0.6 }));
+    svg.appendChild(handle);
+
+    svg.appendChild(_text(-9, -22, '1', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'6', fill:COL_GOLDD, opacity:0.45, 'text-anchor':'middle' }));
+    svg.appendChild(_text( 9, -22, '0', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'6', fill:COL_GOLDD, opacity:0.45, 'text-anchor':'middle' }));
+
+    let on = initialOn;
+    function setOn(v) {
+      on = v;
+      handle.setAttribute('transform', `rotate(${on ? -28 : 28})`);
+      const stroke = on ? COL_GOLDB : COL_GOLD;
+      handle.querySelectorAll('*').forEach(el => { if (el.getAttribute('stroke') !== null) el.setAttribute('stroke', stroke); });
+      onChange(on);
+    }
+    setOn(initialOn);
+    svg.addEventListener('click', () => setOn(!on));
+    return { setOn, get on() { return on; } };
+  }
+
+  /* ── Three.js scene ──────────────────────────────────────────────── */
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0xF4EFE4, 0);
   renderer.setSize(W(), H(), false);
-  renderer.setClearColor(0x221A0C, 1);
+  canvasHost.appendChild(renderer.domElement);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(55, W() / H(), 0.1, 100);
-  camera.position.set(0, 0, 3.2);
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(52, W() / H(), 0.1, 100);
+  camera.position.set(0, 0, 3.4);
 
-  const C = {
-    gold:       new THREE.Color(0xC8A84B),
-    goldBright: new THREE.Color(0xE5C76B),
-    goldDim:    new THREE.Color(0xA8893A),
+  const TC = {
+    gold:  new THREE.Color(0xC8A84B),
+    goldB: new THREE.Color(0xE5C76B),
+    goldD: new THREE.Color(0xA8893A),
   };
 
-  /* ── Geometry / mesh management ── */
-  let currentShape = 'icosphere';
+  /* Shapes — gyroid omitted (ParametricGeometry not in three core r150+). */
+  const SHAPES = [
+    { id:'icosphere',  label:'icosphere',  short:'ICO', make:() => new THREE.IcosahedronGeometry(1, 5) },
+    { id:'torus-knot', label:'torus knot', short:'TKN', make:() => new THREE.TorusKnotGeometry(0.7, 0.26, 180, 20, 2, 3) },
+    { id:'torus',      label:'torus',      short:'TOR', make:() => new THREE.TorusGeometry(0.82, 0.38, 28, 80) },
+    { id:'octahedron', label:'octahedron', short:'OCT', make:() => new THREE.OctahedronGeometry(1.1, 3) },
+    { id:'cube',       label:'cube',       short:'BOX', make:() => new THREE.BoxGeometry(1.4, 1.4, 1.4, 14, 14, 14) },
+    { id:'cylinder',   label:'cylinder',   short:'CYL', make:() => new THREE.CylinderGeometry(0.7, 0.7, 1.6, 48, 14, true) },
+    { id:'cone',       label:'cone',       short:'CON', make:() => new THREE.ConeGeometry(0.9, 1.8, 48, 14, true) },
+  ];
+  const ROT_SPEEDS = [
+    { id:'still',  label:'still',  speed:0    },
+    { id:'slow',   label:'slow',   speed:0.3  },
+    { id:'medium', label:'medium', speed:1.0  },
+    { id:'fast',   label:'fast',   speed:2.2  },
+    { id:'frenzy', label:'frenzy', speed:5.0  },
+  ];
+
   const meshGroup = new THREE.Group();
   scene.add(meshGroup);
-
   let basePositions = null;
   let wireMat = null, edgeMat = null, solidMat = null;
   let wireMesh = null, edgeMesh = null, solidMesh = null;
+  let peakSeeds = null;
+  const freqSnapshot = new Float32Array(32);
 
-  function buildMesh(shape) {
+  function buildMesh(shapeId) {
+    peakSeeds = null;
     while (meshGroup.children.length) meshGroup.remove(meshGroup.children[0]);
-    let geo;
-    if (shape === 'torus')  geo = new THREE.TorusKnotGeometry(0.75, 0.28, 128, 18, 2, 3);
-    else if (shape === 'cube') geo = new THREE.BoxGeometry(1.4, 1.4, 1.4, 12, 12, 12);
-    else                       geo = new THREE.IcosahedronGeometry(1, 4);
+    const def = SHAPES.find(s => s.id === shapeId) || SHAPES[0];
+    const geo = def.make();
     basePositions = Float32Array.from(geo.attributes.position.array);
 
-    solidMat = new THREE.MeshBasicMaterial({ color: 0x2A1E0A, transparent: true, opacity: 0.45, side: THREE.FrontSide });
+    solidMat = new THREE.MeshBasicMaterial({ color: 0xEDE5D4, transparent: true, opacity: 0.28, side: THREE.FrontSide });
     solidMesh = new THREE.Mesh(geo, solidMat);
 
-    wireMat = new THREE.MeshBasicMaterial({ color: C.goldDim, wireframe: true, transparent: true, opacity: 0.55 });
+    wireMat = new THREE.MeshBasicMaterial({ color: TC.goldD, wireframe: true, transparent: true, opacity: 0.50 });
     wireMesh = new THREE.Mesh(geo, wireMat);
 
-    const edgeGeo = new THREE.EdgesGeometry(geo, 15);
-    edgeMat = new THREE.LineBasicMaterial({ color: C.goldBright, transparent: true, opacity: 0.22 });
-    edgeMesh = new THREE.LineSegments(edgeGeo, edgeMat);
+    const eg = new THREE.EdgesGeometry(geo, 18);
+    edgeMat = new THREE.LineBasicMaterial({ color: TC.gold, transparent: true, opacity: 0.18 });
+    edgeMesh = new THREE.LineSegments(eg, edgeMat);
 
     meshGroup.add(solidMesh, wireMesh, edgeMesh);
-    currentShape = shape;
+    const ro = document.getElementById('rr-readout-shape');
+    if (ro) ro.textContent = def.short;
   }
   buildMesh('icosphere');
 
-  /* ── Particle field, rings, axes ── */
-  const PARTICLE_COUNT = 280;
-  const particleGeo = new THREE.BufferGeometry();
-  const pPositions = new Float32Array(PARTICLE_COUNT * 3);
-  const pSeeds = new Float32Array(PARTICLE_COUNT * 3);
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const r = 1.8 + Math.random() * 1.6;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    pPositions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-    pPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-    pPositions[i*3+2] = r * Math.cos(phi);
+  /* Particle field */
+  const PC = 280;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(PC * 3);
+  const pSeeds = new Float32Array(PC * 3);
+  for (let i = 0; i < PC; i++) {
+    const r = 1.9 + Math.random() * 1.4;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pPos[i*3]   = r * Math.sin(ph) * Math.cos(th);
+    pPos[i*3+1] = r * Math.sin(ph) * Math.sin(th);
+    pPos[i*3+2] = r * Math.cos(ph);
     pSeeds[i*3]   = Math.random() * Math.PI * 2;
     pSeeds[i*3+1] = Math.random() * Math.PI * 2;
-    pSeeds[i*3+2] = 0.3 + Math.random() * 0.7;
+    pSeeds[i*3+2] = 0.25 + Math.random() * 0.75;
   }
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
-  const particleMat = new THREE.PointsMaterial({ color: C.gold, size: 0.012, transparent: true, opacity: 0.5, sizeAttenuation: true });
-  scene.add(new THREE.Points(particleGeo, particleMat));
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const pMat = new THREE.PointsMaterial({ color: TC.goldD, size: 0.013, transparent: true, opacity: 0.28, sizeAttenuation: true });
+  scene.add(new THREE.Points(pGeo, pMat));
 
-  const makeRing = (radius, tube, color, opacity) => {
-    const g = new THREE.TorusGeometry(radius, tube, 6, 80);
-    const m = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, wireframe: true });
-    return new THREE.Mesh(g, m);
-  };
-  const ring1 = makeRing(1.7, 0.004, C.goldDim, 0.28);
-  const ring2 = makeRing(1.9, 0.003, C.goldDim, 0.18);
-  const ring3 = makeRing(2.2, 0.002, C.goldDim, 0.10);
-  ring1.rotation.x = Math.PI / 3;
-  ring2.rotation.y = Math.PI / 4;
-  ring3.rotation.z = Math.PI / 5;
-  scene.add(ring1, ring2, ring3);
+  /* Rings */
+  const ringsGroup = new THREE.Group();
+  scene.add(ringsGroup);
+  const _ring = (r, tube, op) => new THREE.Mesh(
+    new THREE.TorusGeometry(r, tube, 4, 90),
+    new THREE.MeshBasicMaterial({ color: TC.goldD, transparent: true, opacity: op })
+  );
+  const ring1 = _ring(1.72, 0.003, 0.18);
+  const ring2 = _ring(2.00, 0.002, 0.12);
+  const ring3 = _ring(2.30, 0.002, 0.07);
+  ring1.rotation.x = Math.PI / 3.2;
+  ring2.rotation.y = Math.PI / 4.1;
+  ring3.rotation.z = Math.PI / 5.3;
+  ringsGroup.add(ring1, ring2, ring3);
 
-  const axisLines = new THREE.Group();
-  const axLine = (a, b, op) => {
-    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]);
-    return new THREE.Line(g, new THREE.LineBasicMaterial({ color: C.goldDim, transparent: true, opacity: op }));
-  };
-  axisLines.add(axLine([-2.5,0,0],[2.5,0,0], 0.08));
-  axisLines.add(axLine([0,-2.5,0],[0,2.5,0], 0.08));
-  axisLines.add(axLine([0,0,-2.5],[0,0,2.5], 0.06));
-  scene.add(axisLines);
+  /* Subtle axes */
+  [[-3,0,0,3,0,0], [0,-3,0,0,3,0]].forEach(([ax,ay,az,bx,by,bz]) => {
+    scene.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ax,ay,az), new THREE.Vector3(bx,by,bz)]),
+      new THREE.LineBasicMaterial({ color: TC.goldD, transparent: true, opacity: 0.06 })
+    ));
+  });
 
-  /* ── Mini osc + freq strip overlays ── */
-  const oscCanvas = document.getElementById('reactor-osc');
-  const oscCtx = oscCanvas ? oscCanvas.getContext('2d') : null;
-  const freqStrip = document.getElementById('reactor-freq');
-  const STRIP_BARS = 24;
-  const freqBars = [];
-  if (freqStrip) {
-    for (let i = 0; i < STRIP_BARS; i++) {
+  /* Freq strip */
+  const freqStripEl = document.getElementById('rp-freq-strip');
+  const STRIP_N = 32;
+  const stripBars = [];
+  if (freqStripEl) {
+    for (let i = 0; i < STRIP_N; i++) {
       const b = document.createElement('div');
-      b.className = 'freq-bar';
-      b.style.height = '2px';
-      freqStrip.appendChild(b);
-      freqBars.push(b);
+      b.className = 'fbar';
+      b.style.height = '1px';
+      freqStripEl.appendChild(b);
+      stripBars.push(b);
     }
   }
+  function updateStrip(data) {
+    if (!stripBars.length) return;
+    const step = Math.max(1, Math.floor(data.length / STRIP_N));
+    stripBars.forEach((bar, i) => {
+      const v = data[i * step] / 255;
+      bar.style.height = Math.max(1, v * 36) + 'px';
+      bar.style.opacity = 0.25 + v * 0.65;
+      bar.style.background = `rgb(${Math.round(168 + v * 61)},${Math.round(137 + v * 50)},58)`;
+    });
+  }
 
-  /* ── Audio data: pull from the existing vizAnalyser when a track is
-        playing, otherwise synthesize a soft idle signal so the scene
-        keeps gently breathing. ── */
-  let idleT = 0;
-  function getAudioData() {
+  /* ── Audio data: pull from the vizAnalyser tap on the playing track. ── */
+  function getFreqData() {
     if (vizAnalyser && currentAudio && !currentAudio.paused) {
       const buf = new Uint8Array(vizAnalyser.frequencyBinCount);
       vizAnalyser.getByteFrequencyData(buf);
       return buf;
     }
-    idleT += 0.012;
-    const N = 256;
-    const arr = new Uint8Array(N);
-    for (let i = 0; i < N; i++) {
-      const f = i / N;
-      const v = Math.max(0, Math.sin(idleT + f * 6) * 0.25 + 0.18) * (1 - f * 0.6) * 38;
-      arr[i] = Math.min(255, v);
-    }
-    return arr;
+    return new Uint8Array(512);
   }
-
-  function avg(arr, a, b) {
-    let s = 0; for (let i = a; i < b; i++) s += arr[i];
-    return s / Math.max(1, b - a);
-  }
+  function avg(a, x, y) { let s = 0; for (let i = x; i < y; i++) s += a[i]; return s / Math.max(1, y - x); }
   function getMetrics(d) {
-    const len = d.length;
+    const L = d.length;
     return {
-      bass:    avg(d, 0,                Math.floor(len*0.08)) / 255,
-      mid:     avg(d, Math.floor(len*0.08),  Math.floor(len*0.45)) / 255,
-      treble:  avg(d, Math.floor(len*0.45),  len) / 255,
-      overall: avg(d, 0,                len) / 255,
+      bass:    Math.pow(avg(d, 0,                Math.floor(L * 0.06)) / 255, 0.55),
+      sub:     Math.pow(avg(d, 0,                Math.floor(L * 0.02)) / 255, 0.50),
+      mid:     Math.pow(avg(d, Math.floor(L*0.06), Math.floor(L * 0.40)) / 255, 0.65),
+      hi:      Math.pow(avg(d, Math.floor(L*0.40), L) / 255, 0.75),
+      overall: Math.pow(avg(d, 0,                L) / 255, 0.60),
     };
   }
-
-  function drawOsc(d) {
-    if (!oscCtx) return;
-    oscCtx.clearRect(0, 0, 80, 28);
-    oscCtx.strokeStyle = '#C8A84B';
-    oscCtx.lineWidth = 1;
-    oscCtx.globalAlpha = 0.7;
-    oscCtx.beginPath();
-    const step = Math.max(1, Math.floor(d.length / 80));
-    for (let x = 0; x < 80; x++) {
-      const v = d[x * step] / 255;
-      const y = 28 - v * 26 - 1;
-      x === 0 ? oscCtx.moveTo(x, y) : oscCtx.lineTo(x, y);
+  function updateFreqSnapshot(data) {
+    const L = data.length, B = freqSnapshot.length;
+    for (let b = 0; b < B; b++) {
+      const t0 = Math.floor(Math.pow(b / B, 1.6) * L);
+      const t1 = Math.floor(Math.pow((b + 1) / B, 1.6) * L);
+      let s = 0; const cnt = Math.max(1, t1 - t0);
+      for (let k = t0; k < t1; k++) s += data[k];
+      freqSnapshot[b] = Math.pow((s / cnt) / 255, 0.6);
     }
-    oscCtx.stroke();
-  }
-  function updateFreqStrip(d) {
-    if (!freqBars.length) return;
-    const step = Math.max(1, Math.floor(d.length / STRIP_BARS));
-    freqBars.forEach((bar, i) => {
-      const v = d[i * step] / 255;
-      const h = Math.max(2, v * 32);
-      bar.style.height = h + 'px';
-      bar.style.opacity = 0.35 + v * 0.65;
-    });
   }
 
-  /* ── Morph mesh based on metrics ── */
+  /* ── Morph (frequency-reactive per-vertex peaks) ── */
   let breathT = 0;
+  function ensurePeakSeeds(n) {
+    if (peakSeeds && peakSeeds.length >= n * 4) return;
+    peakSeeds = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      peakSeeds[i*4]   = Math.random() * Math.PI * 2;
+      peakSeeds[i*4+1] = Math.random() * Math.PI * 2;
+      peakSeeds[i*4+2] = Math.random();
+      peakSeeds[i*4+3] = Math.random();
+    }
+  }
   function morphGeometry(m, t) {
     if (!wireMesh || !basePositions) return;
-    const pos  = wireMesh.geometry.attributes.position;
+    const pos = wireMesh.geometry.attributes.position;
     const base = basePositions;
-    const breath    = Math.sin(breathT * 0.7) * 0.04 + 1;
-    const bassReact = 1 + m.bass * 0.38;
-    const midReact  = m.mid * 0.12;
-    for (let i = 0; i < pos.count; i++) {
+    const n = pos.count;
+    ensurePeakSeeds(n);
+
+    const ma = morphAmt;
+    const sa = sensitivity;
+    const breath = Math.sin(breathT * 0.55) * 0.04 * ma + 1.0;
+    const bassScale = 1.0 + m.bass * 0.10;
+    const subKick   = 1.0 + m.sub  * 0.07;
+    const wAmp = ma * 0.055;
+    const B = freqSnapshot.length;
+    const doPeaks = sa > 0.01;
+
+    for (let i = 0; i < n; i++) {
       const bx = base[i*3], by = base[i*3+1], bz = base[i*3+2];
       const len = Math.sqrt(bx*bx + by*by + bz*bz) || 1;
       const nx = bx/len, ny = by/len, nz = bz/len;
-      const noise =
-        Math.sin(nx * 4.1 + t * 0.8 + m.bass * 3) * 0.05 +
-        Math.sin(ny * 3.7 - t * 0.6 + m.mid  * 2.5) * 0.04 +
-        Math.sin(nz * 5.2 + t * 1.1) * 0.03 +
-        Math.sin((nx + ny) * 6 + t * 0.4) * midReact;
-      const scale = breath * bassReact + noise;
+
+      const wave =
+        Math.sin(nx * 4.2 + t * 1.0 + m.bass * 2.4) * wAmp +
+        Math.sin(ny * 3.8 - t * 0.8 + m.mid  * 2.0) * wAmp * 0.85 +
+        Math.sin(nz * 5.5 + t * 1.3)                * wAmp * 0.65 +
+        Math.sin((nx + ny) * 5.8 + t * 0.6)         * m.mid * 0.08 * ma +
+        Math.sin((ny + nz) * 7.4 - t * 1.8)         * m.hi  * 0.05 * ma;
+
+      let peak = 0;
+      if (doPeaks) {
+        const phA = peakSeeds[i*4];
+        const phB = peakSeeds[i*4 + 1];
+        const fAff = peakSeeds[i*4 + 2];
+        const ampW = peakSeeds[i*4 + 3];
+        const bandIdx = Math.floor(fAff * (B - 1));
+        const bandVal = freqSnapshot[bandIdx];
+        const sf = 2.0 + fAff * 16.0;
+        const sharp = 1.4 + fAff * (1.5 + sa * 3.0);
+        const lA = Math.sin(nx * sf + phA + t * (0.2 + fAff * 0.6));
+        const lB = Math.sin(ny * sf + phB + t * (0.15 + fAff * 0.5));
+        const lobe = Math.max(0, lA * lB);
+        const spike = Math.pow(lobe, sharp);
+        const maxH = sa * ampW * bandVal * (0.45 - fAff * 0.17);
+        peak = spike * maxH;
+      }
+
+      const scale = breath * bassScale * subKick + wave + peak;
       pos.setXYZ(i, bx * scale, by * scale, bz * scale);
     }
     pos.needsUpdate = true;
-    wireMesh.geometry.computeVertexNormals();
     if (solidMesh && solidMesh.geometry.attributes.position) {
       const sp = solidMesh.geometry.attributes.position;
-      for (let i = 0; i < Math.min(sp.count, pos.count); i++) {
-        sp.setXYZ(i, pos.getX(i), pos.getY(i), pos.getZ(i));
-      }
+      for (let i = 0; i < Math.min(sp.count, n); i++) sp.setXYZ(i, pos.getX(i), pos.getY(i), pos.getZ(i));
       sp.needsUpdate = true;
     }
   }
 
-  /* ── Resize handling — keyed off the container, not the window ── */
+  /* ── Resize keyed off the canvas wrap ── */
   let lastW = 0, lastH = 0;
   function checkResize() {
     const w = W(), h = H();
     if (w === lastW && h === lastH) return;
+    if (w === 0 || h === 0) return;
     lastW = w; lastH = h;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
-  if (window.ResizeObserver) new ResizeObserver(checkResize).observe(container);
+  if (window.ResizeObserver) new ResizeObserver(checkResize).observe(canvasWrap);
   window.addEventListener('resize', checkResize);
 
-  /* ── Main animation loop ── */
+  /* ── Control wiring ── */
+  let sensitivity = 0.5, morphAmt = 0.75, zoomVal = 0.5;
+  let rotSpeed   = 1.0, autoSpin = true,  showRings = true;
+
+  buildRadialSelector({
+    svg: document.getElementById('rp-shape-sel'),
+    items: SHAPES, initialIdx: 0, arcDeg: 300, radius: 62,
+    onChange: (s) => buildMesh(s.id),
+  });
+  buildContKnob({ svg: document.getElementById('rp-ck-sens'),  initialVal: 0.5,  onVal: v => { sensitivity = v; } });
+  buildContKnob({ svg: document.getElementById('rp-ck-morph'), initialVal: 0.75, onVal: v => { morphAmt = v; } });
+  buildContKnob({ svg: document.getElementById('rp-ck-zoom'),  initialVal: 0.5,  onVal: v => {
+    zoomVal = v;
+    camera.position.z = 2.0 + (1 - v) * 3.5;
+  }});
+  /* "Speed" knob replaces the rotation radial — knob value 0..1 mapped to
+     the 5-step speed table so still / slow / med / fast / frenzy still
+     map to the original rotSpeed values. */
+  buildContKnob({ svg: document.getElementById('rp-ck-spd'), initialVal: 0.5, onVal: v => {
+    const idx = Math.min(ROT_SPEEDS.length - 1, Math.floor(v * ROT_SPEEDS.length));
+    rotSpeed = ROT_SPEEDS[idx].speed;
+  }});
+  buildToggleSwitch({ svg: document.getElementById('rp-tg-spin'),  initialOn: true, onChange: v => { autoSpin = v; } });
+  buildToggleSwitch({ svg: document.getElementById('rp-tg-rings'), initialOn: true, onChange: v => { showRings = v; ringsGroup.visible = v; } });
+
+  /* ── Status / readout helpers ── */
+  const statusDot   = document.getElementById('rr-status-dot');
+  const statusText  = document.getElementById('rr-status-text');
+  const trackDisp   = document.getElementById('rr-track-display');
+  const fpsRead     = document.getElementById('rr-fps');
+  const timeRead    = document.getElementById('rr-time');
+  function syncReadouts() {
+    const live = !!(currentAudio && !currentAudio.paused);
+    if (statusDot)  statusDot.classList.toggle('live', live);
+    if (statusText) statusText.textContent = live ? 'live' : 'idle';
+    if (trackDisp) {
+      if (live && currentIdx >= 0 && TRACKS[currentIdx]) {
+        const t = TRACKS[currentIdx].title;
+        trackDisp.textContent = t.length > 22 ? t.slice(0, 20) + '…' : t;
+      } else {
+        trackDisp.textContent = 'no source';
+      }
+    }
+    if (timeRead) {
+      if (live && !isNaN(currentAudio.currentTime)) {
+        const s = Math.floor(currentAudio.currentTime);
+        timeRead.textContent =
+          String(Math.floor(s / 60)).padStart(2, '0') + ':' +
+          String(s % 60).padStart(2, '0');
+      } else {
+        timeRead.textContent = '00:00';
+      }
+    }
+  }
+
+  /* ── Mouse parallax ── */
+  const mouseR = { x: 0, y: 0 };
+  document.addEventListener('mousemove', e => {
+    mouseR.x = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseR.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  /* ── Main loop ── */
   const clock = new THREE.Clock();
   let frameT = 0;
-  let smB = 0, smM = 0, smO = 0;
+  let sBass = 0, sMid = 0, sHi = 0, sAll = 0, sSub = 0;
+  const fpsSamples = []; let lastFps = 0;
+
   function tick() {
     requestAnimationFrame(tick);
-    /* Skip animation while not on the music page (cheap optimization). */
-    if (current !== 'music') {
-      checkResize();
-      renderer.render(scene, camera);
-      return;
-    }
-    const dt = clock.getDelta();
+    /* Pause the heavy work while not on the music page. */
+    if (current !== 'music') return;
+
+    const dt = Math.min(clock.getDelta(), 0.05);
     frameT  += dt;
     breathT += dt;
+    fpsSamples.push(1 / dt);
+    if (fpsSamples.length > 30) fpsSamples.shift();
+    if (frameT - lastFps > 0.5) {
+      if (fpsRead) fpsRead.textContent =
+        Math.round(fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length) + ' fps';
+      lastFps = frameT;
+    }
 
-    const data = getAudioData();
+    const data = getFreqData();
+    updateFreqSnapshot(data);
     const m = getMetrics(data);
-    const sp = 0.12;
-    smB += (m.bass    - smB) * sp;
-    smM += (m.mid     - smM) * sp;
-    smO += (m.overall - smO) * sp;
-    const sm = { bass: smB, mid: smM, treble: m.treble, overall: smO };
+    const sp = 0.18;
+    sBass += (m.bass    - sBass) * sp;
+    sMid  += (m.mid     - sMid)  * sp;
+    sHi   += (m.hi      - sHi)   * sp;
+    sAll  += (m.overall - sAll)  * sp;
+    sSub  += (m.sub     - sSub)  * (sp * 1.4);
+    const sm = { bass: sBass, mid: sMid, hi: sHi, overall: sAll, sub: sSub };
 
     morphGeometry(sm, frameT);
 
-    meshGroup.rotation.y += 0.0025 + sm.bass * 0.012;
-    meshGroup.rotation.x += 0.0008 + sm.mid  * 0.005;
-    meshGroup.rotation.z += 0.0004;
+    if (autoSpin) {
+      meshGroup.rotation.y += (0.003 + sm.bass * 0.018) * rotSpeed;
+      meshGroup.rotation.x += (0.001 + sm.mid  * 0.007) * rotSpeed;
+      meshGroup.rotation.z += 0.0005 * rotSpeed;
+    }
+    meshGroup.rotation.y += mouseR.x * 0.07 * 0.018;
+    meshGroup.rotation.x += mouseR.y * 0.04 * 0.013;
 
     if (wireMat) {
-      const pulse = 0.42 + sm.bass * 0.45 + sm.overall * 0.13;
-      wireMat.opacity = Math.min(0.9, pulse);
-      wireMat.color.lerpColors(C.goldDim, C.goldBright, sm.bass * 0.85 + sm.mid * 0.15);
+      wireMat.opacity = Math.min(0.92, 0.32 + sm.bass * 0.58 + sm.overall * 0.10);
+      wireMat.color.lerpColors(TC.goldD, TC.goldB, sm.bass * 0.8 + sm.hi * 0.2);
     }
     if (edgeMat) {
-      edgeMat.opacity = 0.15 + sm.overall * 0.45;
-      edgeMat.color.lerpColors(C.gold, C.goldBright, sm.treble);
+      edgeMat.opacity = 0.10 + sm.overall * 0.55;
+      edgeMat.color.lerpColors(TC.gold, TC.goldB, sm.hi);
     }
+    if (solidMat) solidMat.opacity = 0.16 + sm.bass * 0.14;
 
-    const ppos = particleGeo.attributes.position;
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const sx = pSeeds[i*3], sy = pSeeds[i*3+1], speed = pSeeds[i*3+2];
-      ppos.setX(i, ppos.getX(i) + Math.sin(frameT * speed + sx) * 0.008);
-      ppos.setY(i, ppos.getY(i) + Math.cos(frameT * speed * 0.7 + sy) * 0.008);
+    const pa = pGeo.attributes.position;
+    for (let i = 0; i < PC; i++) {
+      pa.setX(i, pa.getX(i) + Math.sin(frameT * pSeeds[i*3+2] + pSeeds[i*3])     * 0.007);
+      pa.setY(i, pa.getY(i) + Math.cos(frameT * pSeeds[i*3+2] * 0.7 + pSeeds[i*3+1]) * 0.007);
     }
-    ppos.needsUpdate = true;
-    particleMat.opacity = 0.3 + sm.overall * 0.55;
-    particleMat.size    = 0.010 + sm.bass * 0.018;
+    pa.needsUpdate = true;
+    pMat.opacity = 0.16 + sm.overall * 0.46;
+    pMat.size    = 0.010 + sm.bass * 0.020 * (1 + sensitivity * 0.4);
 
-    ring1.rotation.z += 0.003 + sm.bass * 0.022;
-    ring2.rotation.x += 0.002 + sm.mid  * 0.015;
-    ring3.rotation.y += 0.0015;
-    ring1.scale.setScalar(1 + sm.bass * 0.07);
-    ring2.scale.setScalar(1 + sm.mid * 0.05);
-    ring3.scale.setScalar(1 + sm.overall * 0.04);
+    ring1.rotation.z += (0.004 + sm.bass * 0.030) * Math.max(0.2, rotSpeed);
+    ring2.rotation.x += (0.003 + sm.mid  * 0.020) * Math.max(0.2, rotSpeed);
+    ring3.rotation.y += 0.002 * Math.max(0.2, rotSpeed);
+    ring1.scale.setScalar(1 + sm.bass * 0.10);
+    ring2.scale.setScalar(1 + sm.mid  * 0.07);
 
-    drawOsc(data);
-    updateFreqStrip(data);
+    updateStrip(data);
+    syncReadouts();
 
     checkResize();
     renderer.render(scene, camera);
   }
   tick();
-
-  /* ── Shape selector buttons ── */
-  document.querySelectorAll('.r-shape').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.r-shape').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      buildMesh(btn.dataset.shape);
-    });
-  });
 })();
 
 /* ══════════════════════════════════════

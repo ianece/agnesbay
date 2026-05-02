@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style data-omelette-injected>html,body{background:transparent}</style><script data-omelette-injected>(()=>{var j=["https://claude.ai","https://preview.claude.ai","https://eap-omelette.claude.ai"];var x=true;var S=30000;var f=3000;document.addEventListener("DOMContentLoaded",()=>{const H=window.Babel;const G="om-src-id";if(H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[G])){H.registerPlugin(G,({types:Y})=>({visitor:{JSXOpeningElement(U,Q){const J=U.node;if(J.name&&J.name.type==="JSXMemberExpression")return;for(let V=0;V<J.attributes.length;V++){const L=J.attributes[V];if(L.type==="JSXAttribute"&&L.name&&L.name.name==="data-om-id")return}const W=Q.file&&Q.file.opts&&Q.file.opts.filename||"?";const Z=J.loc&&J.loc.start;const z=`jsx:${W}:${J.start??0}:${Z?Z.line:0}:${Z?Z.column+1:0}`;J.attributes.push(Y.jsxAttribute(Y.jsxIdentifier("data-om-id"),Y.stringLiteral(z)))}}}))}const k="om-text-extract";let A=false;if(x&&H&&H.registerPlugin&&!(H.availablePlugins&&H.availablePlugins[k])){const Y=window.React;if(Y&&Y.useSyncExternalStore&&Y.createElement){A=true;const U={};const Q=new Set;let J=0;window.__omTextO=U;window.__omTextSet=(z)=>{for(const V in z){const L=z[V];if(L==null)delete U[V];else U[V]=L}J++;Q.forEach((V)=>V())};const W=(z)=>{Q.add(z);return()=>Q.delete(z)};const Z=()=>J;window.__OmT=function z(V){Y.useSyncExternalStore(W,Z,Z);return Y.createElement("span",{"data-om-text":V.i,className:"__om-t"},V.i in U?U[V.i]:V.children)};H.registerPlugin(k,({types:z})=>{const V={style:1,script:1,noscript:1,textarea:1,title:1,option:1,text:1,tspan:1,textPath:1};const L={placeholder:1,alt:1,title:1,label:1,"aria-label":1,"aria-description":1,"aria-placeholder":1};const _=($,C)=>z.logicalExpression("??",z.memberExpression(z.logicalExpression("||",z.memberExpression(z.identifier("window"),z.identifier("__omTextO")),z.objectExpression([])),z.stringLiteral($),true),C);const E=($)=>$.file&&$.file.opts&&$.file.opts.filename||"?";const B=($)=>$.file&&$.file.code||"";const b=($,C)=>{const X=(F)=>F&&F.start!=null&&F.end!=null&&(F.type==="StringLiteral"||F.type==="TemplateLiteral"&&F.expressions.length===0)?[F.start,F.end]:null;const N=X(C);if(N)return N;if(C&&C.type==="Identifier"){const F=$.scope.getBinding(C.name);if(F&&F.constant&&F.path.node.type==="VariableDeclarator"){return X(F.path.node.init)}}return null};const m=($,C,X)=>{const N=$.node;let F=false;const w=(K,q)=>{F=true;return z.jsxElement(z.jsxOpeningElement(z.jsxIdentifier("__OmT"),[z.jsxAttribute(z.jsxIdentifier("i"),z.stringLiteral(K))],false),z.jsxClosingElement(z.jsxIdentifier("__OmT")),[q],false)};const D=N.children.map((K)=>{if(K.type==="JSXText"){if(K.start==null||K.end==null)return K;const q=X.slice(K.start,K.end);const M=q.length-q.trimStart().length;const R=q.length-q.trimEnd().length;if(M+R>=q.length)return K;return w(`txt:${C}:${K.start+M}:${K.end-R}`,K)}if(K.type==="JSXExpressionContainer"){const q=b($,K.expression);if(q)return w(`str:${C}:${q[0]}:${q[1]}`,K)}return K});if(F)N.children=D};return{visitor:{JSXOpeningElement($,C){const X=$.node;const N=E(C);const F={};for(let w=0;w<X.attributes.length;w++){const D=X.attributes[w];if(D.type!=="JSXAttribute"||!D.name)continue;const K=D.name.name;if(!L[K])continue;if(!D.value||D.value.type!=="StringLiteral")continue;if(D.value.start==null||D.value.end==null)continue;const q=`txt:${N}:${D.value.start}:${D.value.end}`;F[K]=q;D.value=z.jsxExpressionContainer(_(q,z.stringLiteral(D.value.value)))}if(Object.keys(F).length){X.attributes.push(z.jsxAttribute(z.jsxIdentifier("data-om-text-attrs"),z.stringLiteral(JSON.stringify(F))))}},JSXElement($,C){const X=$.node.openingElement;const N=X&&X.name&&X.name.name;if(N==="__OmT")return;if(typeof N==="string"&&V[N])return;m($,E(C),B(C))},JSXFragment($,C){m($,E(C),B(C))}}}})}}const u=A?["transform-react-jsx-source",G,k]:["transform-react-jsx-source",G];document.querySelectorAll('script[type="text/babel"],script[type="text/jsx"]').forEach((Y,U)=>{const Q=Y.getAttribute("data-plugins")||"";const J=u.filter((W)=>Q.indexOf(W)<0);if(J.length){Y.setAttribute("data-plugins",Q?`${Q},${J.join(",")}`:J.join(","))}if(!Y.hasAttribute("data-filename")){Y.setAttribute("data-filename",Y.getAttribute("src")||`inline-${U}`)}})});var y=window.parent;if(y&&y!==window){const H=(Q,J)=>{try{y.postMessage({__omelette_log:true,type:Q,data:J},"*")}catch{}};["log","warn","error"].forEach((Q)=>{const J=console[Q];console[Q]=(...W)=>{const Z=W.map((z)=>{try{return typeof z==="object"?JSON.stringify(z):String(z)}catch{try{return String(z)}catch{return"[unstringifiable]"}}}).join(" ");H(Q,Z);J.apply(console,W)}});window.addEventListener("error",(Q)=>{const J=Q.target;if(J&&J!==window&&J.tagName){const W=J.src||J.href||"";H("resource_error",`${J.tagName} failed to load: ${W}`)}else{H("error",`${Q.message||"Unknown error"} at ${Q.filename||"?"}:${Q.lineno||0}:${Q.colno||0}`)}},true);window.addEventListener("unhandledrejection",(Q)=>{const J=Q.reason;const W=J instanceof Error?`${J.message} ${J.stack}`:String(J);H("error",`Unhandled rejection: ${W}`)});const G=()=>{try{y.postMessage({type:"omelette:height",height:document.documentElement.scrollHeight},"*")}catch{}};if(document.readyState==="complete")G();else window.addEventListener("load",G);if(window.ResizeObserver)new ResizeObserver(G).observe(document.documentElement);const k={};let A=0;window.claude={complete(Q){return new Promise((J,W)=>{if(!j.length){W(new Error("claude.complete: no parent origin"));return}const Z=`c${++A}`;const z=()=>setTimeout(()=>{delete k[Z];W(new Error(`claude.complete: no data for ${S/1000}s`))},S);const V=z();k[Z]={resolve:J,reject:W,text:"",t:V,arm:z};try{for(const L of j){y.postMessage({__om_api:true,id:Z,body:Q},L)}}catch(L){clearTimeout(V);delete k[Z];W(L)}})}};const u={};let Y=0;window.omelette={writeFile:(Q,J)=>new Promise((W,Z)=>{if(!j.length){W();return}const z=`f${++Y}`;const V=setTimeout(()=>{delete u[z];W()},f);u[z]={resolve:W,reject:Z,t:V};try{for(const L of j){y.postMessage({__om_file:true,id:z,op:"write",path:Q,content:J},L)}}catch{clearTimeout(V);delete u[z];W()}})};const U=(Q)=>{try{return JSON.stringify(Q)}catch{return JSON.stringify(String(Q))}};window.addEventListener("message",(Q)=>{if(j.indexOf(Q.origin)<0)return;if(Q.source!==y)return;const J=Q.data;if(!J)return;if(J.__om_file_r){const z=u[J.id];if(!z)return;clearTimeout(z.t);delete u[J.id];if(J.ok)z.resolve();else z.reject(new Error(J.error||"write failed"));return}if(J.__om_api_r){const z=k[J.id];if(!z)return;if(J.error!=null){clearTimeout(z.t);delete k[J.id];z.reject(new Error(J.error));return}if(J.chunk!=null){clearTimeout(z.t);z.t=z.arm();z.text+=J.chunk;return}if(J.done){clearTimeout(z.t);delete k[J.id];z.resolve(J.text!=null?J.text:z.text);return}return}if(!J.__om_eval)return;const W=J;const Z=(z)=>{Q.source.postMessage({...z,__om_eval_r:1,id:W.id},Q.origin)};try{const z=(0,eval)(W.code);if(z&&typeof z.then==="function"){z.then((V)=>Z({ok:1,v:U(V)}),(V)=>Z({ok:0,e:String(V)}))}else{Z({ok:1,v:U(z)})}}catch(z){Z({ok:0,e:String(z)})}})}})();
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wireframe Reactor — VIZ-1</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream:    #F4EFE4;
+  --cream-2:  #EDE5D4;
+  --cream-3:  #E3D8C3;
+  --cream-4:  #D0C4A8;
+  --cream-5:  #BFB191;
+  --gold:     #C8A84B;
+  --gold-b:   #E5C76B;
+  --gold-d:   #A8893A;
+  --ink:      #221A0C;
+  --ink-2:    #4A3F28;
+  --ink-3:    #7A6A4A;
+  --ink-4:    #A89878;
+  --serif:    'Cormorant Garamond', Georgia, serif;
+  --mono:     'JetBrains Mono', 'Courier New', monospace;
+}
+html, body { width:100%; height:100%; background:var(--cream-2); overflow:hidden; font-family:var(--mono); }
+
+/* ── CHASSIS ── */
+#chassis {
+  width:100%; height:100%;
+  display: grid;
+  grid-template-rows: 38px 1fr 40px;
+  grid-template-columns: 320px 1fr;
+}
+
+/* ── RAILS ── */
+#top-rail {
+  grid-column: 1/-1; grid-row: 1;
+  background: var(--cream-3);
+  border-bottom: 1px solid var(--cream-5);
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 20px;
+}
+#bottom-rail {
+  grid-column: 1/-1; grid-row: 3;
+  background: var(--cream-3);
+  border-top: 1px solid var(--cream-5);
+  display:flex; align-items:center; gap:14px;
+  padding: 0 20px;
+}
+.r-tag { font-size:6.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold-d); }
+.r-sep  { width:1px; height:14px; background:var(--cream-5); }
+.r-title { font-family:var(--serif); font-size:13px; font-style:italic; font-weight:300; color:var(--ink-2); }
+.r-read { font-size:6.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-4); }
+.r-flex { flex:1; }
+
+/* Status LED */
+.led { width:6px; height:6px; border-radius:50%; background:var(--cream-5); border:1px solid var(--cream-4); transition:background .3s, box-shadow .3s; }
+.led.live { background:var(--gold-b); box-shadow:0 0 7px var(--gold), 0 0 16px rgba(200,168,75,.3); animation:lp 1.6s ease-in-out infinite; }
+@keyframes lp { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ── CANVAS ── */
+#canvas-wrap {
+  grid-column:2; grid-row:2;
+  position:relative; background:var(--cream); overflow:hidden;
+}
+#canvas-wrap::before {
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-image: linear-gradient(rgba(208,196,168,.16) 1px,transparent 1px),
+                    linear-gradient(90deg,rgba(208,196,168,.16) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+#canvas-wrap::after {
+  content:''; position:absolute; inset:0; z-index:4; pointer-events:none;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 55%, rgba(237,229,212,.6) 100%);
+}
+#canvas-container { position:absolute; inset:0; z-index:2; }
+#canvas-container canvas { display:block; }
+#idle-msg {
+  position:absolute; inset:0; z-index:3; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--serif); font-size:12px; font-style:italic; font-weight:300;
+  color:var(--ink-4); letter-spacing:.06em; text-align:center; line-height:2.2;
+  opacity:0; transition:opacity 1.2s;
+}
+#idle-msg.show { opacity:1; }
+
+/* ── CONTROL PANEL ── */
+#panel {
+  grid-column:1; grid-row:2;
+  border-right:1px solid var(--cream-5);
+  background:var(--cream-2);
+  display:flex; flex-direction:column;
+  padding:18px 16px;
+  gap:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+/* engraved divider */
+.e-line { width:100%; margin:14px 0; height:2px; border-top:1px solid var(--cream-4); border-bottom:1px solid rgba(255,255,255,.55); }
+
+/* panel label */
+.p-label {
+  font-size:6px; letter-spacing:.30em; text-transform:uppercase;
+  color:var(--gold-d); text-align:center; margin-bottom:10px; opacity:.9;
+}
+
+/* ── SOURCE BUTTONS ── */
+.src-group { display:flex; flex-direction:column; gap:6px; }
+.src-btn {
+  font-family:var(--mono); font-size:6.5px; letter-spacing:.20em; text-transform:uppercase;
+  color:var(--ink-3); background:var(--cream); border:1px solid var(--cream-4);
+  border-radius:2px; padding:7px 6px 7px 22px; cursor:pointer; text-align:left;
+  transition:all .12s; position:relative;
+}
+.src-btn::before {
+  content:''; position:absolute; left:8px; top:50%; transform:translateY(-50%);
+  width:5px; height:5px; border-radius:50%; background:var(--cream-4); border:1px solid var(--cream-5);
+  transition:background .2s, box-shadow .2s;
+}
+.src-btn:hover { color:var(--gold-d); border-color:var(--gold-d); }
+.src-btn.active { color:var(--gold); border-color:var(--gold-d); background:rgba(200,168,75,.06); }
+.src-btn.active::before { background:var(--gold-b); box-shadow:0 0 5px var(--gold); }
+
+/* ── RADIAL SELECTOR ── */
+.radial-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.radial-svg { cursor:pointer; user-select:none; overflow:visible; display:block; }
+
+/* ── TOGGLE SWITCH SVG ── */
+.toggle-row { display:flex; gap:20px; justify-content:center; }
+.toggle-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.toggle-label { font-size:5.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-4); }
+.toggle-svg { cursor:pointer; user-select:none; display:block; }
+
+/* ── CONTINUOUS KNOB SVG ── */
+.ck-row { display:flex; gap:20px; justify-content:center; }
+.ck-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.ck-label { font-size:5.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-4); }
+.ck-svg { cursor:ns-resize; user-select:none; display:block; }
+
+/* ── FREQ STRIP ── */
+#freq-strip { display:flex; align-items:flex-end; gap:1.5px; height:40px; }
+.fbar { flex:1; background:var(--gold-d); border-radius:1px 1px 0 0; min-height:1px; opacity:.45; }
+.freq-range { display:flex; justify-content:space-between; margin-top:3px; }
+.freq-range span { font-size:5.5px; letter-spacing:.12em; color:var(--ink-4); text-transform:uppercase; opacity:.55; }
+
+/* ── DROP HINT ── */
+#drop-hint {
+  position:fixed; inset:0; z-index:80; background:rgba(244,239,228,.93);
+  display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+}
+#drop-hint.visible { display:flex; }
+.dh-inner { border:1.5px dashed var(--gold-d); border-radius:4px; padding:36px 60px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.dh-text { font-family:var(--serif); font-size:20px; font-style:italic; font-weight:300; color:var(--ink-2); }
+.dh-sub  { font-size:7px; letter-spacing:.28em; color:var(--gold-d); text-transform:uppercase; opacity:.7; }
+#file-input { display:none; }
+</style>
+</head>
+<body>
+
+<div id="drop-hint">
+  <div class="dh-inner">
+    <div class="dh-text">drop audio file</div>
+    <div class="dh-sub">mp3 · wav · ogg · flac</div>
+  </div>
+</div>
+<input type="file" id="file-input" accept="audio/*"/>
+
+<div id="chassis">
+
+  <!-- TOP RAIL -->
+  <div id="top-rail">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="r-tag">VIZ-1</span>
+      <div class="r-sep"></div>
+      <span class="r-title">Wireframe Reactor</span>
+      <div class="r-sep"></div>
+      <span class="r-tag">3D Audio Visualizer</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="r-read" id="readout-shape">ICO</span>
+      <div class="r-sep"></div>
+      <div class="led" id="status-dot"></div>
+      <span class="r-read" id="status-text">idle</span>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas-wrap">
+    <div id="canvas-container"></div>
+    <div id="idle-msg">use microphone · load a file · or demo<br/>to drive the visualizer</div>
+  </div>
+
+  <!-- CONTROL PANEL -->
+  <div id="panel">
+
+    <!-- SOURCE -->
+    <div class="p-label">Source</div>
+    <div class="src-group">
+      <button class="src-btn" id="btn-mic">mic input</button>
+      <button class="src-btn" id="btn-file">load file</button>
+      <button class="src-btn" id="btn-demo">demo</button>
+    </div>
+
+    <div class="e-line"></div>
+
+    <!-- SHAPE SELECTOR -->
+    <div class="p-label">Shape</div>
+    <div class="radial-wrap">
+      <svg class="radial-svg" id="shape-sel" width="240" height="240" viewBox="-120 -120 240 240"></svg>
+    </div>
+
+    <div class="e-line"></div>
+
+    <!-- ROTATION SELECTOR -->
+    <div class="p-label">Rotation</div>
+    <div class="radial-wrap">
+      <svg class="radial-svg" id="rot-sel" width="240" height="130" viewBox="-120 -20 240 130"></svg>
+    </div>
+
+    <div class="e-line"></div>
+
+    <!-- CONTINUOUS KNOBS -->
+    <div class="p-label">Response</div>
+    <div class="ck-row">
+      <div class="ck-item">
+        <svg class="ck-svg" id="ck-sens"  width="64" height="64" viewBox="-32 -32 64 64"></svg>
+        <div class="ck-label">sensitivity</div>
+      </div>
+      <div class="ck-item">
+        <svg class="ck-svg" id="ck-morph" width="64" height="64" viewBox="-32 -32 64 64"></svg>
+        <div class="ck-label">morph</div>
+      </div>
+      <div class="ck-item">
+        <svg class="ck-svg" id="ck-zoom"  width="64" height="64" viewBox="-32 -32 64 64"></svg>
+        <div class="ck-label">zoom</div>
+      </div>
+    </div>
+
+    <div class="e-line"></div>
+
+    <!-- TOGGLE SWITCHES -->
+    <div class="p-label">Controls</div>
+    <div class="toggle-row">
+      <div class="toggle-item">
+        <svg class="toggle-svg" id="tg-spin"  width="44" height="90" viewBox="-22 -50 44 90"></svg>
+        <div class="toggle-label">auto spin</div>
+      </div>
+      <div class="toggle-item">
+        <svg class="toggle-svg" id="tg-rings" width="44" height="90" viewBox="-22 -50 44 90"></svg>
+        <div class="toggle-label">rings</div>
+      </div>
+    </div>
+
+    <div class="e-line"></div>
+
+    <!-- FREQ STRIP -->
+    <div class="p-label">Frequency</div>
+    <div id="freq-strip"></div>
+    <div class="freq-range"><span>bass</span><span>hi</span></div>
+
+  </div><!-- /panel -->
+
+  <!-- BOTTOM RAIL -->
+  <div id="bottom-rail">
+    <span class="r-tag">U₂ · ECE Labs</span>
+    <div class="r-sep"></div>
+    <span class="r-read" id="file-name-display">no source</span>
+    <div class="r-flex"></div>
+    <span class="r-read" id="readout-fps">-- fps</span>
+    <div class="r-sep"></div>
+    <span class="r-read" id="rd-time">00:00</span>
+  </div>
+
+</div><!-- /chassis -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  SVG HELPERS
+// ═══════════════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function svgCircle(cx,cy,r,attrs) { return svgEl('circle',{cx,cy,r,...attrs}); }
+function svgLine(x1,y1,x2,y2,attrs) { return svgEl('line',{x1,y1,x2,y2,...attrs}); }
+function svgPath(d,attrs) { return svgEl('path',{d,...attrs}); }
+function svgText(x,y,txt,attrs) {
+  const el = svgEl('text',{x,y,...attrs});
+  el.textContent = txt; return el;
+}
+
+const GOLD   = '#C8A84B';
+const GOLDD  = '#A8893A';
+const GOLDB  = '#E5C76B';
+const CREAM  = '#F4EFE4';
+const CREAM3 = '#E3D8C3';
+const CREAM4 = '#D0C4A8';
+const INK2   = '#4A3F28';
+const INK3   = '#7A6A4A';
+const INK4   = '#A89878';
+
+// ═══════════════════════════════════════════════════════
+//  RADIAL SELECTOR  (like the Mode knob reference)
+//  Items arranged in a fan arc; flat line-art pointer
+// ═══════════════════════════════════════════════════════
+function buildRadialSelector({ svgEl: svg, items, initialIdx, arcDeg, radius, onChange, halfArc }) {
+  // halfArc = true → use only top semicircle for items
+  const N = items.length;
+  const ASTART = -(arcDeg / 2);
+  const AEND   =  (arcDeg / 2);
+
+  // Draw outer ring
+  svg.appendChild(svgCircle(0,0,30,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.45'}));
+  // Inner pivot circle
+  svg.appendChild(svgCircle(0,0,5,{fill:'none',stroke:GOLDD,'stroke-width':'1.2',opacity:'.7'}));
+  // Center dot
+  svg.appendChild(svgCircle(0,0,2,{fill:GOLDD,opacity:'.8'}));
+
+  // Tick marks on outer ring
+  for (let i = 0; i < N; i++) {
+    const t = N === 1 ? 0.5 : i / (N - 1);
+    const angleDeg = ASTART + t * (AEND - ASTART);
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    const R1 = 26, R2 = 32;
+    svg.appendChild(svgLine(
+      R1 * Math.cos(rad), R1 * Math.sin(rad),
+      R2 * Math.cos(rad), R2 * Math.sin(rad),
+      { stroke: GOLDD, 'stroke-width':'1', opacity:'.4' }
+    ));
+  }
+
+  // Labels at radius
+  const labelEls = [];
+  for (let i = 0; i < N; i++) {
+    const t = N === 1 ? 0.5 : i / (N - 1);
+    const angleDeg = ASTART + t * (AEND - ASTART);
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    const lx = radius * Math.cos(rad);
+    const ly = radius * Math.sin(rad);
+
+    const txt = svgText(lx, ly + 3, items[i].label, {
+      'font-family': "'JetBrains Mono', monospace",
+      'font-size': '7.5',
+      'letter-spacing': '.08em',
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      fill: INK4,
+      opacity: '.6',
+      'text-transform': 'uppercase',
+      style: 'text-transform:uppercase;',
+    });
+    svg.appendChild(txt);
+    labelEls.push(txt);
+  }
+
+  // Pointer needle (rotates)
+  const needle = svgEl('g', {});
+  // Stem line
+  needle.appendChild(svgLine(0, -8, 0, -25, { stroke: GOLD, 'stroke-width':'1.5', 'stroke-linecap':'round' }));
+  // Arrow tip
+  needle.appendChild(svgPath('M0,-27 L-2.5,-22 L2.5,-22 Z', { fill: GOLD, opacity:'.9' }));
+  svg.appendChild(needle);
+
+  let currentIdx = initialIdx;
+
+  function setIdx(idx) {
+    idx = Math.max(0, Math.min(N - 1, idx));
+    currentIdx = idx;
+    const t = N === 1 ? 0.5 : idx / (N - 1);
+    const angleDeg = ASTART + t * (AEND - ASTART);
+    needle.setAttribute('transform', `rotate(${angleDeg})`);
+
+    labelEls.forEach((el, i) => {
+      if (i === idx) {
+        el.setAttribute('fill', GOLD);
+        el.setAttribute('opacity', '1');
+        el.setAttribute('font-weight', '500');
+      } else {
+        el.setAttribute('fill', INK4);
+        el.setAttribute('opacity', '.55');
+        el.setAttribute('font-weight', '300');
+      }
+    });
+    onChange(items[idx], idx);
+  }
+  setIdx(initialIdx);
+
+  // Interaction: click near a label or tick → snap
+  svg.addEventListener('click', e => {
+    const rect = svg.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    const scaleX = (vb.width)  / rect.width;
+    const scaleY = (vb.height) / rect.height;
+    const mx = (e.clientX - rect.left)  * scaleX + vb.x;
+    const my = (e.clientY - rect.top)   * scaleY + vb.y;
+    // Find closest label
+    let best = currentIdx, bestD = Infinity;
+    for (let i = 0; i < N; i++) {
+      const t2 = N===1?0.5:i/(N-1);
+      const a2 = (ASTART + t2*(AEND-ASTART) - 90) * Math.PI/180;
+      const lx = radius*Math.cos(a2), ly = radius*Math.sin(a2);
+      const d = Math.hypot(mx-lx, my-ly);
+      if (d < bestD) { bestD=d; best=i; }
+    }
+    if (bestD < 28) setIdx(best);
+  });
+
+  svg.addEventListener('wheel', e => { e.preventDefault(); setIdx(currentIdx + (e.deltaY > 0 ? 1 : -1)); }, { passive:false });
+
+  let dragStart = null;
+  svg.addEventListener('pointerdown', e => { dragStart = { y: e.clientY, idx: currentIdx }; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointermove', e => {
+    if (!dragStart) return;
+    const delta = Math.round((dragStart.y - e.clientY) / 18);
+    setIdx(dragStart.idx + delta);
+  });
+  svg.addEventListener('pointerup', () => { dragStart = null; });
+
+  return { setIdx, get idx(){ return currentIdx; } };
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONTINUOUS KNOB (flat line-art)
+// ═══════════════════════════════════════════════════════
+function buildContKnob({ svgEl: svg, initialVal, onVal }) {
+  // Outer serrated ring
+  const TEETH = 28, R_OUTER = 28, R_INNER = 25;
+  const teethPath = [];
+  for (let i = 0; i < TEETH * 2; i++) {
+    const a = (i / (TEETH * 2)) * Math.PI * 2;
+    const r = i % 2 === 0 ? R_OUTER : R_INNER;
+    teethPath.push(`${i === 0 ? 'M' : 'L'}${(r * Math.cos(a)).toFixed(2)},${(r * Math.sin(a)).toFixed(2)}`);
+  }
+  teethPath.push('Z');
+  svg.appendChild(svgPath(teethPath.join(' '), { fill: 'none', stroke: GOLDD, 'stroke-width': '1', opacity: '.5' }));
+
+  // Inner circle
+  svg.appendChild(svgCircle(0, 0, 20, { fill: 'none', stroke: GOLDD, 'stroke-width': '1', opacity: '.6' }));
+  // Center
+  svg.appendChild(svgCircle(0, 0, 4, { fill: 'none', stroke: GOLDD, 'stroke-width': '1', opacity: '.7' }));
+  svg.appendChild(svgCircle(0, 0, 1.5, { fill: GOLDD, opacity: '.8' }));
+
+  // Arc track (background)
+  const ARC_START_DEG = -135, ARC_END_DEG = 135;
+  const arcR = 14;
+  function describeArc(r, startDeg, endDeg) {
+    const s = (startDeg - 90) * Math.PI / 180;
+    const e = (endDeg   - 90) * Math.PI / 180;
+    const x1 = r*Math.cos(s), y1 = r*Math.sin(s);
+    const x2 = r*Math.cos(e), y2 = r*Math.sin(e);
+    const large = endDeg - startDeg > 180 ? 1 : 0;
+    return `M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r},0,${large},1,${x2.toFixed(2)},${y2.toFixed(2)}`;
+  }
+  svg.appendChild(svgPath(describeArc(arcR, ARC_START_DEG, ARC_END_DEG), {
+    fill:'none', stroke: CREAM4, 'stroke-width':'2.5', 'stroke-linecap':'round', opacity:'.6'
+  }));
+
+  const fillArcEl = svgPath('', { fill:'none', stroke: GOLD, 'stroke-width':'2.5', 'stroke-linecap':'round', opacity:'.8' });
+  svg.appendChild(fillArcEl);
+
+  // Needle
+  const needleGroup = svgEl('g', {});
+  needleGroup.appendChild(svgLine(0, -6, 0, -16, { stroke: GOLD, 'stroke-width':'1.5', 'stroke-linecap':'round' }));
+  svg.appendChild(needleGroup);
+
+  let val = initialVal;
+
+  function setVal(v) {
+    val = Math.max(0, Math.min(1, v));
+    const angleDeg = ARC_START_DEG + val * (ARC_END_DEG - ARC_START_DEG);
+    needleGroup.setAttribute('transform', `rotate(${angleDeg})`);
+    if (val > 0.01) {
+      fillArcEl.setAttribute('d', describeArc(arcR, ARC_START_DEG, angleDeg));
+    } else {
+      fillArcEl.setAttribute('d', '');
+    }
+    onVal(val);
+  }
+  setVal(initialVal);
+
+  let dragStart = null;
+  svg.addEventListener('pointerdown', e => { dragStart = { y: e.clientY, val }; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointermove', e => { if (!dragStart) return; setVal(dragStart.val + (dragStart.y - e.clientY) / 130); });
+  svg.addEventListener('pointerup', () => { dragStart = null; });
+  svg.addEventListener('wheel', e => { e.preventDefault(); setVal(val - (e.deltaY > 0 ? 0.05 : -0.05)); }, { passive:false });
+
+  return { setVal, get val(){ return val; } };
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOGGLE SWITCH (flat line-art, like the image)
+// ═══════════════════════════════════════════════════════
+function buildToggleSwitch({ svgEl: svg, initialOn, onChange }) {
+  // Body: rectangular housing with mounting tabs
+  // Tabs left
+  svg.appendChild(svgEl('rect', { x:'-26',y:'-10',width:'10',height:'8',rx:'1', fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.55' }));
+  svg.appendChild(svgEl('rect', { x:'-26',y:'2', width:'10',height:'8',rx:'1', fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.55' }));
+  svg.appendChild(svgCircle(-21,-6,1.5,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.45'}));
+  svg.appendChild(svgCircle(-21,6, 1.5,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.45'}));
+  // Tabs right
+  svg.appendChild(svgEl('rect', { x:'16',y:'-10',width:'10',height:'8',rx:'1', fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.55' }));
+  svg.appendChild(svgEl('rect', { x:'16',y:'2',  width:'10',height:'8',rx:'1', fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.55' }));
+  svg.appendChild(svgCircle(21,-6,1.5,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.45'}));
+  svg.appendChild(svgCircle(21,6, 1.5,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.45'}));
+
+  // Main housing rectangle
+  svg.appendChild(svgEl('rect',{x:'-16',y:'-14',width:'32',height:'28',rx:'2',fill:'none',stroke:GOLDD,'stroke-width':'1.2',opacity:'.7'}));
+  // Inner vertical divider lines
+  svg.appendChild(svgLine(-16,0,16,0,{stroke:GOLDD,'stroke-width':'.7',opacity:'.3'}));
+
+  // Gear ring (serrated collar around base)
+  const GTEETH=22, GR_O=10, GR_I=8;
+  const gPath=[];
+  for(let i=0;i<GTEETH*2;i++){
+    const a=(i/(GTEETH*2))*Math.PI*2;
+    const r=i%2===0?GR_O:GR_I;
+    gPath.push(`${i===0?'M':'L'}${(r*Math.cos(a)).toFixed(2)},${(r*Math.sin(a)).toFixed(2)}`);
+  }
+  gPath.push('Z');
+  svg.appendChild(svgPath(gPath.join(' '),{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.55'}));
+  svg.appendChild(svgCircle(0,0,5.5,{fill:'none',stroke:GOLDD,'stroke-width':'1',opacity:'.7'}));
+  svg.appendChild(svgCircle(0,0,2,{fill:'none',stroke:GOLDD,'stroke-width':'1.2',opacity:'.8'}));
+
+  // Toggle handle (rotates)
+  const handleGroup = svgEl('g',{});
+  // Shaft
+  handleGroup.appendChild(svgPath('M-3,0 L-2.5,-22 Q0,-27 2.5,-22 L3,0 Z',{fill:'none',stroke:GOLD,'stroke-width':'1.2','stroke-linejoin':'round',opacity:'.85'}));
+  // Rounded tip
+  handleGroup.appendChild(svgEl('ellipse',{cx:'0',cy:'-24',rx:'4',ry:'5',fill:'none',stroke:GOLD,'stroke-width':'1.2',opacity:'.85'}));
+  // Grip lines on shaft
+  handleGroup.appendChild(svgLine(-2,-12,2,-12,{stroke:GOLD,'stroke-width':'.8',opacity:'.6'}));
+  handleGroup.appendChild(svgLine(-2,-16,2,-16,{stroke:GOLD,'stroke-width':'.8',opacity:'.6'}));
+  svg.appendChild(handleGroup);
+
+  // ON/OFF tick labels
+  svg.appendChild(svgText(-9, -22, '1', { 'font-family':"'JetBrains Mono',monospace", 'font-size':'6', fill:GOLDD, opacity:'.45', 'text-anchor':'middle' }));
+  svg.appendChild(svgText( 9, -22, '0', { 'font-family':"'JetBrains Mono',monospace", 'font-size':'6', fill:GOLDD, opacity:'.45', 'text-anchor':'middle' }));
+
+  let on = initialOn;
+
+  function setOn(v) {
+    on = v;
+    // Rotate handle: ON = -28deg (left/1), OFF = +28deg (right/0)
+    handleGroup.setAttribute('transform', `rotate(${on ? -28 : 28})`);
+    // Brighten stroke when on
+    const stroke = on ? GOLDB : GOLD;
+    handleGroup.querySelectorAll('*').forEach(el => {
+      if(el.getAttribute('stroke')!==null) el.setAttribute('stroke', stroke);
+    });
+    onChange(on);
+  }
+  setOn(initialOn);
+
+  svg.addEventListener('click', () => setOn(!on));
+  return { setOn, get on(){ return on; } };
+}
+
+// ═══════════════════════════════════════════════════════
+//  THREE.JS SCENE
+// ═══════════════════════════════════════════════════════
+const canvasWrap = document.getElementById('canvas-wrap');
+const canvasContainer = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0xF4EFE4, 0);
+canvasContainer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 100);
+camera.position.set(0, 0, 3.4);
+
+function resizeRenderer() {
+  const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resizeRenderer();
+window.addEventListener('resize', resizeRenderer);
+
+const TC = {
+  gold:      new THREE.Color(0xC8A84B),
+  goldB:     new THREE.Color(0xE5C76B),
+  goldD:     new THREE.Color(0xA8893A),
+};
+
+// ── AUDIO ──
+let audioCtx=null, analyser=null, freqData=null;
+let source=null, audioElement=null;
+let demoMode=false, demoT=0, liveMode=false;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 1024;
+  analyser.smoothingTimeConstant = 0.74;
+  freqData = new Uint8Array(analyser.frequencyBinCount);
+  analyser.connect(audioCtx.destination);
+}
+
+function getFreqData() {
+  if (demoMode) {
+    demoT += 0.018;
+    const arr = new Uint8Array(512);
+    for (let i = 0; i < 512; i++) {
+      const f = i/512;
+      const kick = Math.pow(Math.max(0,Math.sin(demoT*2.2)),3)*(1-f*2.8)*255;
+      const bass = Math.max(0,Math.sin(demoT*1.4+.3)*.6+.4)*(1-f)*190;
+      const mid  = Math.max(0,Math.sin(demoT*3.8+i*.25)*.45+.45)*(1-Math.abs(f-.35)*2.5)*170;
+      const hi   = Math.max(0,Math.sin(demoT*9.1+i*1.2)*.3+.3)*f*90;
+      arr[i] = Math.min(255,Math.max(0,kick+bass+mid+hi+Math.random()*10));
+    }
+    return arr;
+  }
+  if (analyser && liveMode) { analyser.getByteFrequencyData(freqData); return freqData; }
+  return new Uint8Array(512);
+}
+
+function getMetrics(d) {
+  const L=d.length;
+  const b=avg(d,0,Math.floor(L*.06)), s=avg(d,0,Math.floor(L*.02));
+  const m=avg(d,Math.floor(L*.06),Math.floor(L*.40)), h=avg(d,Math.floor(L*.40),L), a=avg(d,0,L);
+  return { bass:Math.pow(b/255,.55), sub:Math.pow(s/255,.50), mid:Math.pow(m/255,.65), hi:Math.pow(h/255,.75), overall:Math.pow(a/255,.60) };
+}
+function avg(arr,a,b){let s=0;for(let i=a;i<b;i++)s+=arr[i];return s/Math.max(1,b-a);}
+
+// ── SHAPES ──
+const SHAPES = [
+  {id:'icosphere', label:'icosphere', short:'ICO', make:()=>new THREE.IcosahedronGeometry(1,5)},
+  {id:'torus-knot',label:'torus knot',short:'TKN', make:()=>new THREE.TorusKnotGeometry(.7,.26,180,20,2,3)},
+  {id:'torus',     label:'torus',     short:'TOR', make:()=>new THREE.TorusGeometry(.82,.38,28,80)},
+  {id:'octahedron',label:'octahedron',short:'OCT', make:()=>new THREE.OctahedronGeometry(1.1,3)},
+  {id:'cube',      label:'cube',      short:'BOX', make:()=>new THREE.BoxGeometry(1.4,1.4,1.4,14,14,14)},
+  {id:'cylinder',  label:'cylinder',  short:'CYL', make:()=>new THREE.CylinderGeometry(.7,.7,1.6,48,14,true)},
+  {id:'cone',      label:'cone',      short:'CON', make:()=>new THREE.ConeGeometry(.9,1.8,48,14,true)},
+  {id:'gyroid',    label:'gyroid',    short:'GYR', make:()=>new THREE.ParametricGeometry((u,v,out)=>{
+    const s=u*Math.PI*2,t=v*Math.PI*2;
+    const nx=Math.cos(s)*Math.sin(t),ny=Math.sin(s)*Math.sin(t),nz=Math.cos(t);
+    const g=Math.sin(nx*5)*Math.cos(ny*5)+Math.sin(ny*5)*Math.cos(nz*5)+Math.sin(nz*5)*Math.cos(nx*5);
+    out.set((0.9+g*.18)*nx,(0.9+g*.18)*ny,(0.9+g*.18)*nz);
+  },72,36)},
+];
+const ROT_SPEEDS = [
+  {id:'still',  label:'still',  speed:0},
+  {id:'slow',   label:'slow',   speed:.3},
+  {id:'medium', label:'medium', speed:1.0},
+  {id:'fast',   label:'fast',   speed:2.2},
+  {id:'frenzy', label:'frenzy', speed:5.0},
+];
+
+// ── MESH ──
+const meshGroup = new THREE.Group();
+scene.add(meshGroup);
+let basePositions=null, wireMat=null, edgeMat=null, solidMat=null;
+let wireMesh=null, edgeMesh=null, solidMesh=null;
+let peakSeeds = null; // declared here so buildMesh can reference it
+let freqSnapshot = new Float32Array(32); // 32 log-spaced bands, updated each frame
+
+function buildMesh(shapeId) {
+  peakSeeds = null; // reset so ensurePeakSeeds re-bakes for new vertex count
+  while(meshGroup.children.length) meshGroup.remove(meshGroup.children[0]);
+  const def = SHAPES.find(s=>s.id===shapeId)||SHAPES[0];
+  const geo = def.make();
+  basePositions = Float32Array.from(geo.attributes.position.array);
+  solidMat = new THREE.MeshBasicMaterial({color:0xEDE5D4,transparent:true,opacity:.28,side:THREE.FrontSide});
+  solidMesh = new THREE.Mesh(geo,solidMat);
+  wireMat = new THREE.MeshBasicMaterial({color:TC.goldD,wireframe:true,transparent:true,opacity:.50});
+  wireMesh = new THREE.Mesh(geo,wireMat);
+  const eg = new THREE.EdgesGeometry(geo,18);
+  edgeMat = new THREE.LineBasicMaterial({color:TC.gold,transparent:true,opacity:.18});
+  edgeMesh = new THREE.LineSegments(eg,edgeMat);
+  meshGroup.add(solidMesh,wireMesh,edgeMesh);
+  document.getElementById('readout-shape').textContent = def.short;
+}
+buildMesh('icosphere');
+
+// Particles
+const PC=280, pGeo=new THREE.BufferGeometry();
+const pPos=new Float32Array(PC*3), pSeeds=new Float32Array(PC*3);
+for(let i=0;i<PC;i++){
+  const r=1.9+Math.random()*1.4, th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1);
+  pPos[i*3]=r*Math.sin(ph)*Math.cos(th); pPos[i*3+1]=r*Math.sin(ph)*Math.sin(th); pPos[i*3+2]=r*Math.cos(ph);
+  pSeeds[i*3]=Math.random()*Math.PI*2; pSeeds[i*3+1]=Math.random()*Math.PI*2; pSeeds[i*3+2]=.25+Math.random()*.75;
+}
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+const pMat=new THREE.PointsMaterial({color:TC.goldD,size:.013,transparent:true,opacity:.28,sizeAttenuation:true});
+scene.add(new THREE.Points(pGeo,pMat));
+
+// Rings
+const ringsGroup=new THREE.Group(); scene.add(ringsGroup);
+function makeRing(r,tube,col,op){
+  return new THREE.Mesh(new THREE.TorusGeometry(r,tube,4,90),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op}));
+}
+const ring1=makeRing(1.72,.003,TC.goldD,.18), ring2=makeRing(2.00,.002,TC.goldD,.12), ring3=makeRing(2.30,.002,TC.goldD,.07);
+ring1.rotation.x=Math.PI/3.2; ring2.rotation.y=Math.PI/4.1; ring3.rotation.z=Math.PI/5.3;
+ringsGroup.add(ring1,ring2,ring3);
+
+// Axis
+[[- 3,0,0,3,0,0],[0,-3,0,0,3,0]].forEach(([ax,ay,az,bx,by,bz])=>{
+  scene.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(ax,ay,az),new THREE.Vector3(bx,by,bz)]),
+    new THREE.LineBasicMaterial({color:TC.goldD,transparent:true,opacity:.06})
+  ));
+});
+
+// ── FREQ STRIP ──
+const freqStripEl = document.getElementById('freq-strip');
+const STRIP_N = 36;
+for(let i=0;i<STRIP_N;i++){
+  const b=document.createElement('div');
+  b.className='fbar'; b.style.height='1px';
+  freqStripEl.appendChild(b);
+}
+const stripBars=[...freqStripEl.children];
+function updateStrip(data){
+  const step=Math.floor(data.length/STRIP_N);
+  stripBars.forEach((bar,i)=>{
+    const v=data[i*step]/255;
+    bar.style.height=Math.max(1,v*40)+'px';
+    bar.style.opacity=.25+v*.65;
+    bar.style.background=`rgb(${Math.round(168+v*61)},${Math.round(137+v*50)},58)`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  INSTANTIATE CONTROLS
+// ═══════════════════════════════════════════════════════
+let sensitivity=.5, morphAmt=.75, zoomVal=.5;
+let rotSpeed=1.0, autoSpin=true, showRings=true;
+
+// Shape radial selector
+const shapeSel = buildRadialSelector({
+  svgEl: document.getElementById('shape-sel'),
+  items: SHAPES,
+  initialIdx: 0,
+  arcDeg: 300,
+  radius: 82,
+  onChange: (s) => buildMesh(s.id),
+});
+
+// Rotation radial selector (semicircle fan, smaller)
+const rotSel = buildRadialSelector({
+  svgEl: document.getElementById('rot-sel'),
+  items: ROT_SPEEDS,
+  initialIdx: 2,
+  arcDeg: 160,
+  radius: 62,
+  onChange: (r) => { rotSpeed = r.speed; },
+});
+
+// Continuous knobs
+const sensKnob  = buildContKnob({ svgEl:document.getElementById('ck-sens'),  initialVal:.5,  onVal:v=>{ sensitivity=v; } });
+const morphKnob = buildContKnob({ svgEl:document.getElementById('ck-morph'), initialVal:.75, onVal:v=>{ morphAmt=v; } });
+const zoomKnob  = buildContKnob({ svgEl:document.getElementById('ck-zoom'),  initialVal:.5,  onVal:v=>{
+  zoomVal=v;
+  // zoom = camera Z from 2.0 to 5.5
+  camera.position.z = 2.0 + (1-v) * 3.5;
+}});
+
+// Toggle switches
+const spinToggle = buildToggleSwitch({
+  svgEl: document.getElementById('tg-spin'),
+  initialOn: true,
+  onChange: v => { autoSpin = v; },
+});
+const ringsToggle = buildToggleSwitch({
+  svgEl: document.getElementById('tg-rings'),
+  initialOn: true,
+  onChange: v => { showRings = v; ringsGroup.visible = v; },
+});
+
+// ═══════════════════════════════════════════════════════
+//  MORPHING
+// ═══════════════════════════════════════════════════════
+let breathT = 0;
+
+// Per-vertex baked data — stable spatial mapping
+function ensurePeakSeeds(n) {
+  if (peakSeeds && peakSeeds.length >= n * 4) return;
+  peakSeeds = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    // Map vertex to a frequency band (0=bass .. 1=treble) based on its position
+    // Use spherical elevation angle so bass=equator, treble=poles (arbitrary but stable)
+    peakSeeds[i*4]   = Math.random() * Math.PI * 2; // spatial phase A
+    peakSeeds[i*4+1] = Math.random() * Math.PI * 2; // spatial phase B
+    peakSeeds[i*4+2] = Math.random();               // per-vertex freq affinity 0..1
+    peakSeeds[i*4+3] = Math.random();               // per-vertex amplitude weight
+  }
+}
+
+// Freq data snapshot for per-vertex lookup — updated each frame
+function updateFreqSnapshot(data) {
+  const L = data.length;
+  const B = freqSnapshot.length;
+  // Use log-spaced bins so bass has more resolution
+  for (let b = 0; b < B; b++) {
+    const t0 = Math.floor(Math.pow(b   / B, 1.6) * L);
+    const t1 = Math.floor(Math.pow((b+1) / B, 1.6) * L);
+    let s = 0, cnt = Math.max(1, t1 - t0);
+    for (let k = t0; k < t1; k++) s += data[k];
+    freqSnapshot[b] = Math.pow((s / cnt) / 255, 0.6);
+  }
+}
+
+function morphGeometry(m, t) {
+  if (!wireMesh || !basePositions) return;
+  const pos  = wireMesh.geometry.attributes.position;
+  const base = basePositions;
+  const n    = pos.count;
+  ensurePeakSeeds(n);
+
+  const ma = morphAmt;
+  const sa = sensitivity; // 0..1, pure sensitivity scale
+
+  // ── Bounded base motion ──
+  const breath    = Math.sin(breathT * 0.55) * 0.04 * ma + 1.0;
+  const bassScale = 1.0 + m.bass * 0.10;
+  const subKick   = 1.0 + m.sub  * 0.07;
+
+  // ── Organic waves — morph controls amplitude ──
+  const wAmp = ma * 0.055;
+
+  // ── Frequency-reactive peaks ──
+  // sens=0 → zero peaks; sens=1 → full peaks reacting to all bands
+  // Width: bass peaks = wide (low spatial freq), treble = narrow (high spatial freq)
+  // Precompute per-band: spatial freq and live amplitude from freqSnapshot
+  const B = freqSnapshot.length; // 32 bands
+
+  // Performance: skip per-vertex calc when sens is near zero
+  const doPeaks = sa > 0.01;
+
+  for (let i = 0; i < n; i++) {
+    const bx = base[i*3], by = base[i*3+1], bz = base[i*3+2];
+    const len = Math.sqrt(bx*bx + by*by + bz*bz) || 1;
+    const nx = bx/len, ny = by/len, nz = bz/len;
+
+    // Organic surface wave
+    const wave =
+      Math.sin(nx * 4.2 + t * 1.0 + m.bass * 2.4) * wAmp +
+      Math.sin(ny * 3.8 - t * 0.8 + m.mid  * 2.0) * wAmp * 0.85 +
+      Math.sin(nz * 5.5 + t * 1.3)                 * wAmp * 0.65 +
+      Math.sin((nx+ny) * 5.8 + t * 0.6)            * m.mid * 0.08 * ma +
+      Math.sin((ny+nz) * 7.4 - t * 1.8)            * m.hi  * 0.05 * ma;
+
+    let peak = 0;
+
+    if (doPeaks) {
+      const phA   = peakSeeds[i*4];
+      const phB   = peakSeeds[i*4+1];
+      const fAffinity = peakSeeds[i*4+2]; // 0..1 which freq band this vertex "listens to"
+      const ampW  = peakSeeds[i*4+3];     // 0..1 weight
+
+      // Map fAffinity to a band index
+      const bandIdx = Math.floor(fAffinity * (B - 1));
+      const bandVal = freqSnapshot[bandIdx]; // live amplitude for this band
+
+      // Spatial frequency: bass=low (wide peaks), treble=high (tight peaks)
+      // band 0 = bass → spatFreq ~2, band 31 = treble → spatFreq ~18
+      const spatFreq = 2.0 + fAffinity * 16.0;
+
+      // Wave profile: positive lobe only = spike; sharpness scales with freq band
+      // Bass peaks: power=1.5 (broad, rounded), treble: power=4+ (needle sharp)
+      const sharpness = 1.4 + fAffinity * (1.5 + sa * 3.0);
+
+      // Spike profile — use product of two sin waves for compact lobe
+      const lobeA = Math.sin(nx * spatFreq + phA + t * (0.2 + fAffinity * 0.6));
+      const lobeB = Math.sin(ny * spatFreq + phB + t * (0.15 + fAffinity * 0.5));
+      const lobe  = Math.max(0, lobeA * lobeB);
+      const spike = Math.pow(lobe, sharpness);
+
+      // Height: driven by live freq amplitude × sensitivity × weight
+      // Bass peaks can be taller (×0.45), treble shorter but sharper (×0.28)
+      const maxH = sa * ampW * bandVal * (0.45 - fAffinity * 0.17);
+      peak = spike * maxH;
+    }
+
+    const scale = breath * bassScale * subKick + wave + peak;
+    pos.setXYZ(i, bx * scale, by * scale, bz * scale);
+  }
+  pos.needsUpdate = true;
+
+  // Mirror to solid mesh
+  if (solidMesh && solidMesh.geometry.attributes.position) {
+    const sp = solidMesh.geometry.attributes.position;
+    for (let i = 0; i < Math.min(sp.count, n); i++) {
+      sp.setXYZ(i, pos.getX(i), pos.getY(i), pos.getZ(i));
+    }
+    sp.needsUpdate = true;
+  }
+}
+
+// ── MOUSE ──
+let mouse={x:0,y:0};
+document.addEventListener('mousemove',e=>{ mouse.x=(e.clientX/window.innerWidth-.5)*2; mouse.y=-(e.clientY/window.innerHeight-.5)*2; });
+
+// ── ANIM LOOP ──
+const clock=new THREE.Clock();
+let frameT=0, fpsSamples=[], lastFps=0;
+let sBass=0,sMid=0,sHi=0,sAll=0,sSub=0;
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.05);
+  frameT+=dt; breathT+=dt;
+  fpsSamples.push(1/dt); if(fpsSamples.length>30) fpsSamples.shift();
+  if(frameT-lastFps>.5){
+    document.getElementById('readout-fps').textContent=Math.round(fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length)+' fps';
+    lastFps=frameT;
+  }
+  const fdata=getFreqData();
+  updateFreqSnapshot(fdata);
+  const m=getMetrics(fdata);
+  const sp=.18;
+  sBass+=(m.bass-sBass)*sp; sMid+=(m.mid-sMid)*sp;
+  sHi+=(m.hi-sHi)*sp; sAll+=(m.overall-sAll)*sp; sSub+=(m.sub-sSub)*(sp*1.4);
+  const sm={bass:sBass,mid:sMid,hi:sHi,overall:sAll,sub:sSub};
+
+  morphGeometry(sm,frameT);
+
+  if(autoSpin){
+    meshGroup.rotation.y+=(0.003+sm.bass*0.018)*rotSpeed;
+    meshGroup.rotation.x+=(0.001+sm.mid*0.007)*rotSpeed;
+    meshGroup.rotation.z+=0.0005*rotSpeed;
+  }
+  meshGroup.rotation.y+=mouse.x*.07*.018;
+  meshGroup.rotation.x+=mouse.y*.04*.013;
+
+  if(wireMat){ wireMat.opacity=Math.min(.92,.32+sm.bass*.58+sm.overall*.10); wireMat.color.lerpColors(TC.goldD,TC.goldB,sm.bass*.8+sm.hi*.2); }
+  if(edgeMat){ edgeMat.opacity=.10+sm.overall*.55; edgeMat.color.lerpColors(TC.gold,TC.goldB,sm.hi); }
+  if(solidMat){ solidMat.opacity=.16+sm.bass*.14; }
+
+  const pa=pGeo.attributes.position;
+  for(let i=0;i<PC;i++){
+    pa.setX(i,pa.getX(i)+Math.sin(frameT*pSeeds[i*3+2]+pSeeds[i*3])*.007);
+    pa.setY(i,pa.getY(i)+Math.cos(frameT*pSeeds[i*3+2]*.7+pSeeds[i*3+1])*.007);
+  }
+  pa.needsUpdate=true;
+  pMat.opacity=.16+sm.overall*.46;
+  pMat.size=.010+sm.bass*.020*(1+sensitivity*.4);
+
+  ring1.rotation.z+=(0.004+sm.bass*.030)*Math.max(.2,rotSpeed);
+  ring2.rotation.x+=(0.003+sm.mid*.020)*Math.max(.2,rotSpeed);
+  ring3.rotation.y+=0.002*Math.max(.2,rotSpeed);
+  ring1.scale.setScalar(1+sm.bass*.10);
+  ring2.scale.setScalar(1+sm.mid*.07);
+
+  updateStrip(fdata);
+
+  if(audioElement&&!isNaN(audioElement.currentTime)){
+    const s=Math.floor(audioElement.currentTime);
+    document.getElementById('rd-time').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  }
+  renderer.render(scene,camera);
+}
+animate();
+
+// ── SOURCE CONTROLS ──
+function setStatus(t,live){ document.getElementById('status-text').textContent=t; document.getElementById('status-dot').classList.toggle('live',live); }
+function hideIdle(){ document.getElementById('idle-msg').classList.remove('show'); }
+const btnMic=document.getElementById('btn-mic'), btnFile=document.getElementById('btn-file'), btnDemo=document.getElementById('btn-demo');
+
+function stopAll(){
+  demoMode=false; liveMode=false;
+  if(source){try{source.disconnect();}catch(e){}source=null;}
+  if(audioElement){audioElement.pause();audioElement=null;}
+  [btnMic,btnFile,btnDemo].forEach(b=>b.classList.remove('active'));
+  setStatus('idle',false);
+  document.getElementById('file-name-display').textContent='no source';
+  document.getElementById('rd-time').textContent='00:00';
+}
+
+btnMic.addEventListener('click',async()=>{
+  if(btnMic.classList.contains('active')){stopAll();return;}
+  stopAll(); hideIdle();
+  try{
+    initAudio();
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    source=audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    liveMode=true; btnMic.classList.add('active');
+    setStatus('mic live',true);
+    document.getElementById('file-name-display').textContent='microphone';
+  }catch(e){setStatus('mic denied',false);}
+});
+
+btnFile.addEventListener('click',()=>document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change',e=>{const f=e.target.files[0];if(f)loadAudioFile(f);});
+
+function loadAudioFile(file){
+  stopAll(); hideIdle(); initAudio();
+  audioElement=new Audio();
+  audioElement.src=URL.createObjectURL(file);
+  audioElement.loop=true;
+  source=audioCtx.createMediaElementSource(audioElement);
+  source.connect(analyser);
+  audioElement.play().then(()=>{
+    liveMode=true; btnFile.classList.add('active');
+    const name=file.name.length>22?file.name.slice(0,20)+'…':file.name;
+    setStatus(name,true);
+    document.getElementById('file-name-display').textContent=name;
+  }).catch(()=>setStatus('playback error',false));
+}
+
+btnDemo.addEventListener('click',()=>{
+  if(btnDemo.classList.contains('active')){stopAll();return;}
+  stopAll(); hideIdle();
+  demoMode=true; btnDemo.classList.add('active');
+  setStatus('demo',true);
+  document.getElementById('file-name-display').textContent='demo signal';
+});
+
+// Drag & Drop
+const dropHint=document.getElementById('drop-hint');
+let dragN=0;
+document.addEventListener('dragenter',e=>{e.preventDefault();dragN++;dropHint.classList.add('visible');});
+document.addEventListener('dragleave',e=>{if(--dragN<=0){dragN=0;dropHint.classList.remove('visible');}});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();dragN=0;dropHint.classList.remove('visible');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('audio/'))loadAudioFile(f);
+});
+
+setTimeout(()=>document.getElementById('idle-msg').classList.add('show'),1600);
+</script>
+</body>
+</html>
