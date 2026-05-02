@@ -86,6 +86,7 @@ const TRACKS = [
   {file: 'assets/audio/suno/fkbeingpolite.mp3', title: 'F**k Being Polite' },
   {file: 'assets/audio/suno/its_alright.mp3', title: 'Its All Right' },
   {file: 'assets/audio/suno/ghosts.mp3', title: 'Ghosts' },
+   {file: 'assets/audio/cinder_lens.mp3', title: 'Cinder Lens' },
   
   
   // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },

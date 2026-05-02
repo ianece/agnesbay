@@ -358,7 +358,7 @@ body::after {
 /* ── MUSIC PAGE — header row with the wireframe reactor visualizer ── */
 .music-header-row {
   display: flex;
-  gap: 38px;
+  gap: 34px;
   align-items: stretch;
   margin-bottom: 56px;
   flex-wrap: wrap;
