@@ -15,7 +15,7 @@ const CFG = {
 /* ══════════════════════════════════════ */
 
 /* Anti-click fade: 40ms ramp on every play/pause to avoid the discontinuity click */
-const ANTI_CLICK_FADE = 0.04; // seconds
+const ANTI_CLICK_FADE = 0.1; // seconds
 
 function fadeAudioIn() {
   if (!gainNode || !audioCtx) return;
