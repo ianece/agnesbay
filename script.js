@@ -82,6 +82,12 @@ const TRACKS = [
   { file: 'assets/audio/haze-to-come.mp3', title: 'haze to come [DEMO]' },
   {file: 'assets/audio/thevoiceofbeauty-mp3.mp3', title: 'the voice of beauty [DEMO]' },
   {file: 'assets/audio/firepit-mp3.mp3', title: 'firepit' },
+  {file: 'assets/audio/suno/starlight.mp3', title: 'Starlight' },
+  {file: 'assets/audio/suno/fkbeingpolite.mp3', title: 'F**k Being Polite' },
+  {file: 'assets/audio/suno/its_alright.mp3', title: 'Its All Right' },
+  {file: 'assets/audio/suno/ghosts.mp3', title: 'Ghosts' },
+  
+  
   // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },
 ];
 
