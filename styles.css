@@ -77,15 +77,38 @@ body::after {
   margin-top: 5px; text-transform: uppercase;
 }
 
-/* ── SCHEMATIC SVG WRAP ── */
+/* ── SCHEMATIC SVG WRAP ──
+   Independent scroll: on short viewports the schematic SVG (aspect-ratio
+   driven height) is taller than the available column space, so the wrap
+   scrolls vertically while .sidebar-top (name + osc) and .sidebar-foot
+   stay locked. `min-height: 0` lets the flex child shrink below its
+   content height to trigger the scroll. `safe center` keeps the schematic
+   vertically centered when there's room and falls back to top-aligned
+   when content overflows so the top isn't pushed out of reach. */
 #circuit-wrap {
   flex: 1; position: relative; z-index: 1;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  align-items: center;
   padding: 8px 6px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-4) transparent;
 }
+#circuit-wrap::-webkit-scrollbar { width: 6px; }
+#circuit-wrap::-webkit-scrollbar-track { background: transparent; }
+#circuit-wrap::-webkit-scrollbar-thumb {
+  background: var(--cream-4);
+  border-radius: 3px;
+}
+#circuit-wrap::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
 
 #nav-svg {
   width: 100%; max-width: 286px; height: auto; overflow: visible;
+  flex-shrink: 0;
 }
 
 /* Schematic wire style */
@@ -379,6 +402,20 @@ body::after {
   box-shadow: 0 8px 28px rgba(34, 26, 12, 0.10);
 }
 
+/* Two tracklists ("Original works" + "Suno Creations") sit side-by-side
+   below the header row. They wrap to a single column on narrower viewports. */
+.music-tracklists-row {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.music-tracklist-col {
+  flex: 1 1 340px;
+  min-width: 280px;
+}
+.music-tracklist-col .player-wrap { margin-top: 14px; }
+
 /* ── REACTOR CHASSIS (v2 — analog/cream) ──
    Lab-bench-style chassis sized like the waveform adder: compact control
    strip on the left, large screen on the right. The screen takes ~70% of
@@ -460,8 +497,8 @@ body::after {
   border-bottom: 1px solid rgba(255,255,255,0.55);
 }
 .rp-label {
-  font-size: 5.5px; letter-spacing: 0.28em; text-transform: uppercase;
-  color: var(--gold-dim); text-align: center; margin-bottom: 6px; opacity: 0.9;
+  font-size: 8.5px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold); text-align: center; margin-bottom: 7px; opacity: 1;
 }
 .rp-radial-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -470,25 +507,16 @@ body::after {
 .rp-radial:hover { cursor: ns-resize; }
 
 .rp-ck-row { display: flex; gap: 8px; justify-content: center; }
-.rp-ck-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.rp-ck-label { font-size: 5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-4); }
+.rp-ck-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.rp-ck-label { font-size: 8px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
 .rp-ck { user-select: none; display: block; }
 .rp-ck:hover { cursor: ns-resize; }
 
 .rp-toggle-row { display: flex; gap: 14px; justify-content: center; }
-.rp-toggle-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.rp-toggle-label { font-size: 5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-4); }
+.rp-toggle-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.rp-toggle-label { font-size: 8px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
 .rp-toggle { user-select: none; display: block; }
 .rp-toggle:hover { cursor: pointer; }
-
-.rp-freq-strip { display: flex; align-items: flex-end; gap: 1.5px; height: 28px; }
-.rp-freq-strip .fbar {
-  flex: 1; background: var(--gold-dim);
-  border-radius: 1px 1px 0 0; min-height: 1px; opacity: 0.45;
-  transition: height 0.05s;
-}
-.rp-freq-range { display: flex; justify-content: space-between; margin-top: 3px; }
-.rp-freq-range span { font-size: 5.5px; letter-spacing: 0.12em; color: var(--ink-4); text-transform: uppercase; opacity: 0.55; }
 
 /* ── MUSIC PLAYER ── */
 .player-wrap {
@@ -579,22 +607,38 @@ body::after {
 }
 .track-row.playing .track-time { opacity: 1; }
 
-/* Progress bar */
+/* Progress bar — visual is 1px tall but the click/drag hit area is 14px so
+   the cursor doesn't have to be pixel-perfect. The hit zone uses negative
+   bottom margin so it doesn't push the row layout. */
 .progress-wrap {
   margin-top: 6px;
-  height: 1px;
-  background: var(--cream-3);
+  height: 14px;
+  margin-bottom: -13px;
   position: relative;
   cursor: none;
   display: none;
+  touch-action: none;
+}
+.progress-wrap::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--cream-3);
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 .track-row.playing .progress-wrap { display: block; }
 .progress-bar {
-  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
   background: var(--gold-dim);
   width: 0%;
-  transition: width .1s linear;
-  position: relative;
+  pointer-events: none;
 }
 .progress-bar::after {
   content: '';
@@ -605,6 +649,11 @@ body::after {
   height: 5px;
   border-radius: 50%;
   background: var(--gold);
+}
+.progress-wrap.seeking .progress-bar::after {
+  width: 7px; height: 7px;
+  right: -4px; top: -3.5px;
+  box-shadow: 0 0 6px rgba(200,168,75,0.55);
 }
 
 /* Visualizer */

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23EDE5D4'/><polyline points='2,24 8,8 14,24 20,8 26,24 30,16' fill='none' stroke='%23C8A84B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/></svg>"/>
 <title>ianece</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
@@ -387,8 +387,8 @@
           <div class="rp-label">Response</div>
           <div class="rp-ck-row">
             <div class="rp-ck-item">
-              <svg class="rp-ck" id="rp-ck-sens"  width="44" height="44" viewBox="-32 -32 64 64"></svg>
-              <div class="rp-ck-label">sens</div>
+              <svg class="rp-ck" id="rp-ck-flow"  width="44" height="44" viewBox="-32 -32 64 64"></svg>
+              <div class="rp-ck-label">flow</div>
             </div>
             <div class="rp-ck-item">
               <svg class="rp-ck" id="rp-ck-morph" width="44" height="44" viewBox="-32 -32 64 64"></svg>
@@ -416,11 +416,6 @@
               <div class="rp-toggle-label">rings</div>
             </div>
           </div>
-          <div class="rp-eline"></div>
-
-          <div class="rp-label">Frequency</div>
-          <div class="rp-freq-strip" id="rp-freq-strip"></div>
-          <div class="rp-freq-range"><span>bass</span><span>hi</span></div>
         </div>
 
         <!-- Bottom rail -->
@@ -437,7 +432,9 @@
     </div>
   </div>
 
-  <h2 class="ph">Original works.</h2>
+  <div class="music-tracklists-row">
+    <div class="music-tracklist-col">
+      <h2 class="ph">Original works.</h2>
   <!-- Track list -->
   <div class="player-wrap" id="player-wrap">
 
@@ -516,10 +513,12 @@
   
   
   </div>
+    </div>
 
-  <h2 class="ph">Suno Creations.</h2>
-  <!-- Track list -->
-     <div class="player-wrap" id="player-wrap">
+    <div class="music-tracklist-col">
+      <h2 class="ph">Suno Creations.</h2>
+      <!-- Track list -->
+      <div class="player-wrap" id="player-wrap">
 
     <div class="track-row" id="track-3" onclick="playTrack(3)">
       <span class="track-num"></span>
@@ -593,8 +592,10 @@
     <!-- Add more tracks here following the same pattern -->
     <!-- Copy the track-row block above, increment the index numbers -->
 
-  
-  
+
+
+  </div>
+    </div>
   </div>
 
 </div>

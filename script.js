@@ -244,11 +244,88 @@ function drawViz() {
   analyser.getByteTimeDomainData(timeData);
   window._audioTimeData = timeData;
 
+  /* Smooth the playing track's progress dot at 60 fps. The HTMLAudioElement
+     `timeupdate` event only fires ~4×/sec, which made the dot visibly stutter;
+     reading currentTime each animation frame makes the motion continuous.
+     Skipped while the user is dragging the dot (the seek handler owns it). */
+  if (currentIdx >= 0 && !seekState.active && currentAudio.duration) {
+    const bar = document.getElementById('prog-' + currentIdx);
+    if (bar) bar.style.width = ((currentAudio.currentTime / currentAudio.duration) * 100) + '%';
+  }
+
   /* Force oscilloscope to audio mode while playing */
   waveTarget = 'audio';
   waveMode   = 'audio';
 }
 drawViz();
+
+/* ── Click + drag along the playing track's progress bar to seek ──
+   Delegated at document level since there are two .player-wrap containers
+   (Original works / Suno Creations) — and one shares a non-unique id. We
+   intercept on capture so the parent .track-row's onclick (which would
+   otherwise stop playback) never fires for clicks inside the bar. */
+const seekState = { active: false, wrap: null, idx: -1, pointerId: -1 };
+
+function _seekFromEvent(e, wrap, idx) {
+  if (currentIdx !== idx || !currentAudio || !currentAudio.duration) return;
+  const r = wrap.getBoundingClientRect();
+  const frac = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+  currentAudio.currentTime = frac * currentAudio.duration;
+  const bar = document.getElementById('prog-' + idx);
+  if (bar) bar.style.width = (frac * 100) + '%';
+  setNowPlayingTime(currentAudio.currentTime, currentAudio.duration);
+}
+
+document.addEventListener('pointerdown', e => {
+  const wrap = e.target.closest && e.target.closest('.progress-wrap');
+  if (!wrap) return;
+  const row = wrap.closest('.track-row');
+  if (!row || !row.classList.contains('playing')) return;
+  const idx = Number(row.id.split('-')[1]);
+  if (!Number.isFinite(idx)) return;
+  e.stopPropagation();
+  e.preventDefault();
+  seekState.active = true;
+  seekState.wrap = wrap;
+  seekState.idx = idx;
+  seekState.pointerId = e.pointerId;
+  wrap.classList.add('seeking');
+  try { wrap.setPointerCapture(e.pointerId); } catch (_) {}
+  _seekFromEvent(e, wrap, idx);
+  /* Pointer capture + preventDefault suppress the synthesized mousemove
+     events that drive the probe cursor — feed the cursor's mouse target
+     directly so the probe keeps tracking the drag. */
+  mouse.x = e.clientX; mouse.y = e.clientY;
+}, true);
+
+document.addEventListener('pointermove', e => {
+  if (!seekState.active) return;
+  _seekFromEvent(e, seekState.wrap, seekState.idx);
+  mouse.x = e.clientX; mouse.y = e.clientY;
+});
+
+function _endSeek(e) {
+  if (!seekState.active) return;
+  if (seekState.wrap) {
+    seekState.wrap.classList.remove('seeking');
+    try { seekState.wrap.releasePointerCapture(seekState.pointerId); } catch (_) {}
+  }
+  seekState.active = false;
+  seekState.wrap = null;
+  seekState.idx = -1;
+  seekState.pointerId = -1;
+}
+document.addEventListener('pointerup', _endSeek);
+document.addEventListener('pointercancel', _endSeek);
+
+/* Swallow the synthesized click that follows pointerdown on the bar so the
+   row's onclick (which toggles playback off) never fires. */
+document.addEventListener('click', e => {
+  if (e.target.closest && e.target.closest('.progress-wrap')) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}, true);
 
 /* ── CURSOR (hidden, replaced by probe) ── */
 document.getElementById('cursor').style.display = 'none';
@@ -1264,8 +1341,8 @@ if (_sidebarForContact) {
 /* ══════════════════════════════════════
    WIREFRAME REACTOR (v2) — music-page Three.js visualizer
    Cream-themed analog chassis with side control panel: SVG-built radial
-   selectors (shape, rotation), continuous knobs (sensitivity, morph,
-   zoom), toggle switches (auto-spin, rings), and a live freq strip. The
+   shape selector, continuous knobs (flow, morph, zoom, speed), and
+   toggle switches (auto-spin, rings). The
    Three.js scene mirrors the stand-alone v2 design from
    assets/claude_design_projects/music_wireframe_reactor_v2.htm — adapted
    to draw audio from the existing vizAnalyser tap so it tracks whatever
@@ -1326,11 +1403,12 @@ if (_sidebarForContact) {
       const ly = radius * Math.sin(a);
       const txt = _text(lx, ly + 3, items[i].label, {
         'font-family':"'JetBrains Mono', monospace",
-        'font-size':'5.5',
-        'letter-spacing':'.06em',
+        'font-size':'8',
+        'font-weight':'500',
+        'letter-spacing':'.04em',
         'text-anchor':'middle',
         'dominant-baseline':'middle',
-        fill: COL_INK4, opacity:0.6,
+        fill: '#4A3F28', opacity:1,
         style:'text-transform:uppercase;'
       });
       svg.appendChild(txt);
@@ -1350,8 +1428,8 @@ if (_sidebarForContact) {
       const angle = A0 + t * (A1 - A0);
       needle.setAttribute('transform', `rotate(${angle})`);
       labelEls.forEach((el, j) => {
-        if (j === i) { el.setAttribute('fill', COL_GOLD); el.setAttribute('opacity', 1); el.setAttribute('font-weight', 500); }
-        else         { el.setAttribute('fill', COL_INK4); el.setAttribute('opacity', .55); el.setAttribute('font-weight', 300); }
+        if (j === i) { el.setAttribute('fill', COL_GOLD);  el.setAttribute('opacity', 1); el.setAttribute('font-weight', 600); }
+        else         { el.setAttribute('fill', '#4A3F28'); el.setAttribute('opacity', 1); el.setAttribute('font-weight', 500); }
       });
       onChange(items[i], i);
     }
@@ -1461,8 +1539,8 @@ if (_sidebarForContact) {
     handle.appendChild(_line(-2, -16, 2, -16, { stroke:COL_GOLD, 'stroke-width':0.8, opacity:0.6 }));
     svg.appendChild(handle);
 
-    svg.appendChild(_text(-9, -22, '1', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'6', fill:COL_GOLDD, opacity:0.45, 'text-anchor':'middle' }));
-    svg.appendChild(_text( 9, -22, '0', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'6', fill:COL_GOLDD, opacity:0.45, 'text-anchor':'middle' }));
+    svg.appendChild(_text(-9, -22, '1', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'8', 'font-weight':'600', fill:COL_GOLDD, opacity:0.75, 'text-anchor':'middle' }));
+    svg.appendChild(_text( 9, -22, '0', { 'font-family':"'JetBrains Mono', monospace", 'font-size':'8', 'font-weight':'600', fill:COL_GOLDD, opacity:0.75, 'text-anchor':'middle' }));
 
     let on = initialOn;
     function setOn(v) {
@@ -1517,11 +1595,8 @@ if (_sidebarForContact) {
   let basePositions = null;
   let wireMat = null, edgeMat = null, solidMat = null;
   let wireMesh = null, edgeMesh = null, solidMesh = null;
-  let peakSeeds = null;
-  const freqSnapshot = new Float32Array(32);
 
   function buildMesh(shapeId) {
-    peakSeeds = null;
     while (meshGroup.children.length) meshGroup.remove(meshGroup.children[0]);
     const def = SHAPES.find(s => s.id === shapeId) || SHAPES[0];
     const geo = def.make();
@@ -1586,30 +1661,6 @@ if (_sidebarForContact) {
     ));
   });
 
-  /* Freq strip */
-  const freqStripEl = document.getElementById('rp-freq-strip');
-  const STRIP_N = 32;
-  const stripBars = [];
-  if (freqStripEl) {
-    for (let i = 0; i < STRIP_N; i++) {
-      const b = document.createElement('div');
-      b.className = 'fbar';
-      b.style.height = '1px';
-      freqStripEl.appendChild(b);
-      stripBars.push(b);
-    }
-  }
-  function updateStrip(data) {
-    if (!stripBars.length) return;
-    const step = Math.max(1, Math.floor(data.length / STRIP_N));
-    stripBars.forEach((bar, i) => {
-      const v = data[i * step] / 255;
-      bar.style.height = Math.max(1, v * 36) + 'px';
-      bar.style.opacity = 0.25 + v * 0.65;
-      bar.style.background = `rgb(${Math.round(168 + v * 61)},${Math.round(137 + v * 50)},58)`;
-    });
-  }
-
   /* ── Audio data: pull from the vizAnalyser tap on the playing track. ── */
   function getFreqData() {
     if (vizAnalyser && currentAudio && !currentAudio.paused) {
@@ -1630,44 +1681,29 @@ if (_sidebarForContact) {
       overall: Math.pow(avg(d, 0,                L) / 255, 0.60),
     };
   }
-  function updateFreqSnapshot(data) {
-    const L = data.length, B = freqSnapshot.length;
-    for (let b = 0; b < B; b++) {
-      const t0 = Math.floor(Math.pow(b / B, 1.6) * L);
-      const t1 = Math.floor(Math.pow((b + 1) / B, 1.6) * L);
-      let s = 0; const cnt = Math.max(1, t1 - t0);
-      for (let k = t0; k < t1; k++) s += data[k];
-      freqSnapshot[b] = Math.pow((s / cnt) / 255, 0.6);
-    }
-  }
-
-  /* ── Morph (frequency-reactive per-vertex peaks) ── */
+  /* ── Morph: smooth large-scale bend + audio-driven flow + twist ── */
   let breathT = 0;
-  function ensurePeakSeeds(n) {
-    if (peakSeeds && peakSeeds.length >= n * 4) return;
-    peakSeeds = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) {
-      peakSeeds[i*4]   = Math.random() * Math.PI * 2;
-      peakSeeds[i*4+1] = Math.random() * Math.PI * 2;
-      peakSeeds[i*4+2] = Math.random();
-      peakSeeds[i*4+3] = Math.random();
-    }
-  }
   function morphGeometry(m, t) {
     if (!wireMesh || !basePositions) return;
     const pos = wireMesh.geometry.attributes.position;
     const base = basePositions;
     const n = pos.count;
-    ensurePeakSeeds(n);
 
     const ma = morphAmt;
-    const sa = sensitivity;
+    const fl = flow;
     const breath = Math.sin(breathT * 0.55) * 0.04 * ma + 1.0;
     const bassScale = 1.0 + m.bass * 0.10;
     const subKick   = 1.0 + m.sub  * 0.07;
     const wAmp = ma * 0.055;
-    const B = freqSnapshot.length;
-    const doPeaks = sa > 0.01;
+
+    /* Long-wavelength flow lobes — bend the whole body smoothly instead
+       of pushing per-vertex spikes. Amplitude rises with the flow knob
+       and overall audio energy. */
+    const flAmp = fl * 0.32 * (0.30 + m.overall * 0.95);
+    const flT  = t * 0.45;
+    /* Twist: rotate xy-slices around z based on z-coord, slow swaying. */
+    const twistAng = fl * (0.55 + m.bass * 1.4) * Math.sin(t * 0.6);
+    const doTwist = twistAng !== 0;
 
     for (let i = 0; i < n; i++) {
       const bx = base[i*3], by = base[i*3+1], bz = base[i*3+2];
@@ -1681,26 +1717,25 @@ if (_sidebarForContact) {
         Math.sin((nx + ny) * 5.8 + t * 0.6)         * m.mid * 0.08 * ma +
         Math.sin((ny + nz) * 7.4 - t * 1.8)         * m.hi  * 0.05 * ma;
 
-      let peak = 0;
-      if (doPeaks) {
-        const phA = peakSeeds[i*4];
-        const phB = peakSeeds[i*4 + 1];
-        const fAff = peakSeeds[i*4 + 2];
-        const ampW = peakSeeds[i*4 + 3];
-        const bandIdx = Math.floor(fAff * (B - 1));
-        const bandVal = freqSnapshot[bandIdx];
-        const sf = 2.0 + fAff * 16.0;
-        const sharp = 1.4 + fAff * (1.5 + sa * 3.0);
-        const lA = Math.sin(nx * sf + phA + t * (0.2 + fAff * 0.6));
-        const lB = Math.sin(ny * sf + phB + t * (0.15 + fAff * 0.5));
-        const lobe = Math.max(0, lA * lB);
-        const spike = Math.pow(lobe, sharp);
-        const maxH = sa * ampW * bandVal * (0.45 - fAff * 0.17);
-        peak = spike * maxH;
+      const flowBend =
+        Math.sin(nx * 1.3 + flT        + m.bass    * 1.8) * 0.20 +
+        Math.sin(ny * 1.0 - flT * 0.75 + m.mid     * 1.3) * 0.16 +
+        Math.sin(nz * 0.85 + flT * 0.55 + m.overall * 1.0) * 0.13 +
+        Math.sin((nx + nz) * 0.7 + flT * 0.9)              * 0.10;
+      const flowDisp = flowBend * flAmp;
+
+      const scale = breath * bassScale * subKick + wave + flowDisp;
+      let x = bx * scale, y = by * scale, z = bz * scale;
+
+      if (doTwist) {
+        const a = twistAng * bz;
+        const c = Math.cos(a), s = Math.sin(a);
+        const xn = x * c - y * s;
+        const yn = x * s + y * c;
+        x = xn; y = yn;
       }
 
-      const scale = breath * bassScale * subKick + wave + peak;
-      pos.setXYZ(i, bx * scale, by * scale, bz * scale);
+      pos.setXYZ(i, x, y, z);
     }
     pos.needsUpdate = true;
     if (solidMesh && solidMesh.geometry.attributes.position) {
@@ -1725,7 +1760,7 @@ if (_sidebarForContact) {
   window.addEventListener('resize', checkResize);
 
   /* ── Control wiring ── */
-  let sensitivity = 0.5, morphAmt = 0.75, zoomVal = 0.5;
+  let flow = 0.5, morphAmt = 0.75, zoomVal = 0.5;
   let rotSpeed   = 1.0, autoSpin = true,  showRings = true;
 
   buildRadialSelector({
@@ -1733,7 +1768,7 @@ if (_sidebarForContact) {
     items: SHAPES, initialIdx: 0, arcDeg: 300, radius: 62,
     onChange: (s) => buildMesh(s.id),
   });
-  buildContKnob({ svg: document.getElementById('rp-ck-sens'),  initialVal: 0.5,  onVal: v => { sensitivity = v; } });
+  buildContKnob({ svg: document.getElementById('rp-ck-flow'),  initialVal: 0.5,  onVal: v => { flow = v; } });
   buildContKnob({ svg: document.getElementById('rp-ck-morph'), initialVal: 0.75, onVal: v => { morphAmt = v; } });
   buildContKnob({ svg: document.getElementById('rp-ck-zoom'),  initialVal: 0.5,  onVal: v => {
     zoomVal = v;
@@ -1809,7 +1844,6 @@ if (_sidebarForContact) {
     }
 
     const data = getFreqData();
-    updateFreqSnapshot(data);
     const m = getMetrics(data);
     const sp = 0.18;
     sBass += (m.bass    - sBass) * sp;
@@ -1846,7 +1880,7 @@ if (_sidebarForContact) {
     }
     pa.needsUpdate = true;
     pMat.opacity = 0.16 + sm.overall * 0.46;
-    pMat.size    = 0.010 + sm.bass * 0.020 * (1 + sensitivity * 0.4);
+    pMat.size    = 0.010 + sm.bass * 0.020 * (1 + flow * 0.4);
 
     ring1.rotation.z += (0.004 + sm.bass * 0.030) * Math.max(0.2, rotSpeed);
     ring2.rotation.x += (0.003 + sm.mid  * 0.020) * Math.max(0.2, rotSpeed);
@@ -1854,7 +1888,6 @@ if (_sidebarForContact) {
     ring1.scale.setScalar(1 + sm.bass * 0.10);
     ring2.scale.setScalar(1 + sm.mid  * 0.07);
 
-    updateStrip(data);
     syncReadouts();
 
     checkResize();
