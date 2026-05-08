@@ -368,12 +368,77 @@ body::after {
 #mob-toggle { display: none; position: fixed; top: 13px; right: 14px; z-index: 600; background: var(--cream-2); border: 1px solid var(--cream-4); border-radius: 3px; padding: 7px 11px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--gold); letter-spacing: 0.15em; cursor: none; }
 
 @media (max-width: 780px) {
-  :root { --sidebar-w: 270px; }
-  #mob-toggle { display: block; }
-  #sidebar { transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1); }
-  #sidebar.open { transform: translateX(0); }
-  #main { margin-left: 0; }
+  /* On mobile the sidebar reshapes from a tall left rail into a thin top
+     bar that's ALWAYS visible — the heading (name + osc-scope) and the
+     now-playing marquee should not vanish when the user closes the nav.
+     The schematic nav circuit becomes a drop-down drawer that overlays
+     the page when the user taps the NAV ▾ toggle.
+
+     Stack from top of viewport:
+       1. #music-top-dock (freq analyzer, only when audio is playing)
+       2. #sidebar top bar  (now-playing marquee + name + osc)
+       3. nav drawer (#circuit-wrap, fixed overlay) — only when .open
+       4. #main page content (padded down to clear 1+2)
+
+     The existing `#sidebar { top: var(--music-dock-h); }` rule already
+     handles offset (1) for free. */
+  :root {
+    /* Approximate height of the mobile top bar. Bumped when the
+       now-playing marquee (28px) joins the bar. */
+    --sidebar-bar-h: 80px;
+  }
+  body.music-active { --sidebar-bar-h: 110px; }
+
+  #mob-toggle {
+    display: block;
+    /* Track the music dock so the toggle doesn't end up under the freq analyzer */
+    top: calc(var(--music-dock-h) + 13px);
+    transition: top .35s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* Reshape sidebar from left column → top bar. No more slide-off transform;
+     the bar is always visible. */
+  #sidebar {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    bottom: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--cream-4);
+    box-shadow: 0 3px 12px rgba(34, 26, 12, 0.08);
+    transform: none;
+    overflow: visible;
+  }
+
+  /* Decorative kintsugi cracks SVG is sized for a tall column — hide on mobile */
+  #sidebar-cracks { display: none; }
+  /* Footer (REV 1.0 / 2025) is just chrome — hide on mobile */
+  .sidebar-foot { display: none; }
+
+  /* Schematic nav becomes a fixed drawer that drops down below the top bar
+     when toggled. Hidden by default; shown when #sidebar has .open. */
+  #circuit-wrap {
+    display: none;
+    position: fixed;
+    left: 0; right: 0;
+    top: calc(var(--music-dock-h) + var(--sidebar-bar-h));
+    bottom: 0;
+    background: var(--cream-2);
+    border-top: 1px solid var(--cream-4);
+    padding: 18px 12px 28px;
+    z-index: 499;
+    box-shadow: 0 8px 18px rgba(34, 26, 12, 0.12);
+    transition: top .35s cubic-bezier(.4,0,.2,1);
+  }
+  #sidebar.open #circuit-wrap { display: flex; }
+
+  /* Push the page content down to clear the freq dock + the top bar */
+  #main {
+    margin-left: 0;
+    padding-top: calc(var(--music-dock-h) + var(--sidebar-bar-h));
+  }
   #overlay { left: 0; }
+
   .page { padding: 46px 26px 56px; }
   .proj-grid { grid-template-columns: 1fr; }
 }
