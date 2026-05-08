@@ -350,6 +350,27 @@ document.addEventListener('mousemove', e => {
   mouse.y = e.clientY;
 });
 
+/* ── Touch: tap-to-stick ──
+   On touch devices `mousemove` never fires, so the probe would freeze in
+   its initial position. Instead, treat each tap as a new probe target —
+   the verlet chain springs to it (via the existing physics in
+   updateChain) and stays clipped on like a real scope probe. On first
+   load, set a deliberate "rest" pose draped from the anchor jack so the
+   probe doesn't point at the origin. */
+let touchModeActive = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+function setProbeRestPose() {
+  mouse.x = anchor.x + 90;
+  mouse.y = anchor.y + 140;
+}
+if (touchModeActive) setProbeRestPose();
+document.addEventListener('touchstart', e => {
+  touchModeActive = true;
+  if (e.touches && e.touches.length > 0) {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+  }
+}, { passive: true });
+
 /* Dock the cable's anchor (jack) just below the oscilloscope's bottom-right
    corner so the probe wire visually plugs into the scope. The probe itself
    still follows the mouse — only the anchor is fixed here. */
@@ -361,7 +382,10 @@ function recomputeAnchorDock() {
   anchor.y = r.bottom + 6;
 }
 recomputeAnchorDock();
-window.addEventListener('load',   recomputeAnchorDock);
+window.addEventListener('load', () => {
+  recomputeAnchorDock();
+  if (touchModeActive) setProbeRestPose();
+});
 window.addEventListener('resize', recomputeAnchorDock);
 /* Re-dock when the music dock pushes the sidebar up/down. */
 document.addEventListener('transitionend', e => {
