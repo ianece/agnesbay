@@ -87,8 +87,12 @@ const TRACKS = [
   {file: 'assets/audio/suno/its_alright.mp3', title: 'Its All Right' },
   {file: 'assets/audio/suno/ghosts.mp3', title: 'Ghosts' },
    {file: 'assets/audio/cinder_lens.mp3', title: 'Cinder Lens' },
-  
-  
+  {file: 'assets/audio/suno/2_minutes_later.mp3', title: '2 Minutes Later' },
+  {file: 'assets/audio/suno/exhaie_trance.mp3', title: 'Exhale Trance' },
+  {file: 'assets/audio/suno/solder_rain.mp3', title: 'Solder Rain' },
+  {file: 'assets/audio/suno/the_gulls_beneath.mp3', title: 'The Gulls Beneath' },
+
+
   // Add more: { file: 'assets/audio/your-track.mp3', title: 'track name' },
 ];
 

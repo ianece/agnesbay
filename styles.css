@@ -607,11 +607,18 @@ body::after {
 
 .track-num {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 9.5px;
+  font-size: 0;
   color: var(--ink-4);
   text-align: right;
   transition: opacity .2s;
 }
+.track-num::before {
+  content: "\2022";
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+}
+.track-row:hover .track-num,
 .track-row.playing .track-num { opacity: 0; }
 
 .play-icon {
